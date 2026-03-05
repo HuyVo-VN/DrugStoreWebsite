@@ -1,0 +1,204 @@
+<div class="cart-container">
+  <h2 class="cart-title">Your Cart <span>({{ cartItems.length }} Items)</span></h2>
+
+  <div class="cart-content-wrapper" *ngIf="cartItems.length > 0; else emptyCart">
+
+    <div class="cart-left">
+
+      <div class="cart-header-row">
+        <div class="col-checkbox">
+          <input type="checkbox" [(ngModel)]="isAllSelected" (change)="toggleAll()">
+        </div>
+        <div class="col-product">Items</div>
+        <div class="col-price">Price</div>
+        <div class="col-quantity">Quantity</div>
+        <div class="col-total">Total</div>
+        <div class="col-action"><i class="fa-solid fa-trash-can"></i></div>
+      </div>
+
+      <div class="cart-item-row" *ngFor="let item of cartItems" [class.disabled-row]="!item.isAvailable">
+
+        <div class="col-checkbox">
+          <input type="checkbox" [(ngModel)]="item.selected" (change)="checkItem(item)" [disabled]="!item.isAvailable">
+        </div>
+
+        <div class="col-product product-info">
+          <div class="img-wrapper">
+            <img [src]="getProductImageUrl(item.productImage)" alt="{{ item.productName }}" class="product-img"
+                 onerror="this.src='/images/default-product.png';">
+            <div *ngIf="!item.isAvailable" class="sold-out-badge">
+              {{
+ item.stock === 0 ? 'Sold out' : 'Suspend business'
+              }}
+            </div>
+          </div>
+
+          <div class="product-details">
+            <a class="product-name">{{ item.productName }}</a>
+
+            <div *ngIf="item.isAvailable">
+              <span class="status-text text-green" *ngIf="item.quantity < item.stock">
+                Available
+              </span>
+              <span class="status-text text-red" *ngIf="item.quantity >= item.stock">
+                Quantity limit reached
+              </span>
+            </div>
+
+            <div *ngIf="!item.isAvailable">
+              <span class="status-text text-red font-bold">
+                {{ item.stock === 0 ? 'Sold out' : 'Suspend business' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-price">
+          <ng-container *ngIf="item.discountPercent > 0">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+              <span class="current-price" style="color: #ff424e; font-weight: bold;">
+                {{ item.price - (item.price * item.discountPercent / 100) | currency:'USD':'symbol':'1.0-2' }}
+              </span>
+              <span style="text-decoration: line-through; color: #999; font-size: 0.85em;">
+                {{ item.price | currency:'USD':'symbol':'1.0-2' }}
+              </span>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="!item.discountPercent || item.discountPercent === 0">
+            <span class="current-price">{{ item.price | currency:'USD':'symbol':'1.0-2' }}</span>
+          </ng-container>
+        </div>
+
+        <div class="col-quantity">
+          <div class="quantity-box" [class.disabled-box]="!item.isAvailable">
+            <button (click)="decreaseQty(item)" [disabled]="!item.isAvailable"> - </button>
+            <input type="number" [value]="item.quantity" (change)="onQtyChange($event, item)" [disabled]="!item.isAvailable">
+            <button (click)="increaseQty(item)" [disabled]="!item.isAvailable || item.quantity >= item.stock"> + </button>
+          </div>
+        </div>
+
+        <div class="col-total">
+          <span class="item-total-price" style="font-weight: bold; color: #ff424e;">
+            {{ (item.price - (item.price * (item.discountPercent || 0) / 100)) * item.quantity | currency:'USD':'symbol':'1.0-2' }}
+          </span>
+        </div>
+
+        <div class="col-action">
+          <span class="delete-btn" (click)="removeItem(item)">
+            <i class="fa-solid fa-trash-can"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cart-right">
+      <div class="summary-box price-summary">
+
+        <h3>Shipping Details</h3>
+        <form #shippingDetailsForm="ngForm">
+          <div class="row">
+
+            <div class="shipping-phone-container">
+              <label class="input-title" for="phone-input">
+                Phone Number <span class="required-star">*</span>
+              </label>
+
+              <input id="phone-input" class="placeholder-input" placeholder="+61 0132345678" [(ngModel)]="phone"
+                name="phone" required minlength="10" maxlength="15" pattern="^[0-9]+$" #phoneCtrl="ngModel" />
+
+              <div class="error" *ngIf="phoneCtrl.invalid && phoneCtrl.touched">
+                <p *ngIf="phoneCtrl.errors?.['required']">Phone number is required.</p>
+                <p *ngIf="phoneCtrl.errors?.['pattern']">Phone number must contain numbers only.</p>
+                <p *ngIf="phoneCtrl.errors?.['minlength']">Minimum 10 digits required.</p>
+              </div>
+            </div>
+          </div>
+          <div>
+
+            <div class="shipping-address-container">
+              <label class="input-title" for="address-input">
+                Full Address <span class="required-star">*</span>
+              </label>
+
+              <textarea id="address-input" class="placeholder-input"
+                placeholder="Street, City, State/Province, Zip Code" rows="3" [(ngModel)]="address" name="address"
+                required minlength="5" maxlength="100" #addressCtrl="ngModel"></textarea>
+
+              <div class="error" *ngIf="addressCtrl.invalid && addressCtrl.touched">
+                <p *ngIf="addressCtrl.errors?.['required']">Address is required.</p>
+                <p *ngIf="addressCtrl.errors?.['minlength']">Address must be at least 5 characters.</p>
+                <p *ngIf="addressCtrl.errors?.['maxlength']">Address must be less than 100 characters.</p>
+
+              </div>
+            </div>
+
+
+          </div>
+
+        </form>
+
+        <div class="summary-divider"></div>
+
+        <span>Order Summary</span>
+        <div class="summary-row">
+          <span>Cart Total</span>
+          <span>{{ grandTotal | currency:'USD':'symbol':'1.0-2' }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Discount</span>
+          <span>- $0</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div>
+          <span>Payment Type</span>
+          <br>
+          <mat-radio-group aria-label="Select payment method" class="cart-payment-container" [(ngModel)]="paymentMethod"
+            (ngModelChange)="onPaymentChange($event)">
+            <div class="payment-option">
+              <span><i class="fa-solid fa-money-bill-1-wave" style="color: #15da36;"></i> Cash</span>
+              <mat-radio-button value="Cash"></mat-radio-button>
+            </div>
+
+            <div class="payment-option">
+              <span><i class="fa-solid fa-credit-card" style="color: #0b25b6;"></i> ATM</span>
+              <mat-radio-button value="ATM"></mat-radio-button>
+            </div>
+          </mat-radio-group>
+
+        </div>
+        <div>
+          <div class="summary-row">
+            <span>Discount</span>
+            <span>- {{ discountAmount | currency:'USD':'symbol':'1.0-2' }}</span>
+          </div>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-row" *ngIf="grandTotal !== 0">
+          <span>Shipping fee</span>
+          <span>${{fee}}</span>
+        </div>
+        <div class="summary-row total-row" *ngIf="grandTotal!==0">
+          <span>To Pay</span>
+          <span class="final-price">{{ totalToPay | currency:'USD':'symbol':'1.0-2' }}</span>
+        </div>
+        <p class="vat-note">(VAT included where applicable)</p>
+      </div>
+
+
+      <button type="submit" class="checkout-btn" [disabled]="grandTotal === 0 || !shippingDetailsForm.valid "
+        [class.disabled]="grandTotal === 0 || !shippingDetailsForm.valid" (click)="createOrder()">
+        Proceed
+      </button>
+    </div>
+  </div>
+
+
+  <ng-template #emptyCart>
+    <div class="empty-cart-container">
+      <img src="/images/empty-cart.png" alt="Empty Cart" class="empty-img" onerror="this.style.display='none'">
+      <p>Your cart is empty!</p>
+      <a routerLink="/" class="continue-shopping-btn">Continue Shopping</a>
+    </div>
+  </ng-template>
+
+</div>

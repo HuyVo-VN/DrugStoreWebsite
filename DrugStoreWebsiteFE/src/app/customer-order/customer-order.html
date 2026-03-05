@@ -1,0 +1,114 @@
+<div class="order-container">
+  <h2 class="page-title">Orders History</h2>
+
+  <div *ngIf="isLoading" class="loading-spinner">
+    <i class="fas fa-spinner fa-spin"></i> Loading...
+  </div>
+
+  <div class="order-list" *ngIf="!isLoading && orders.length > 0; else noData">
+
+  <div class="order-row">
+    <p>Filter <i class="fa-solid fa-filter"
+        style="cursor: pointer; font-size: 18px; margin-right: 10px; margin-bottom: 3px;" (click)="toggleFilter()"></i>
+    </p>
+
+      <div class="order-status-filter" *ngIf="filter">
+        <p>{{filter}} </p>
+        <i (click)="resetFilterStatus()" class="fa-solid fa-xmark"
+          style=" margin-left: 3px; margin-top: 1px; cursor: pointer; color:rgb(179, 162, 162);"></i>
+
+    </div>
+  </div>
+    <div class="order-card" *ngFor="let order of orders" (click)="viewDetails(order.id)">
+
+      <div class="order-header">
+        <div class="order-date">
+          <i class="far fa-calendar-alt"></i>
+          {{ order.orderDate | date:'dd/MM/yyyy HH:mm' }}
+        </div>
+        <div class="order-status" [ngClass]="getStatusClass(order.status)">
+          {{ getStatusLabel(order.status) }}
+        </div>
+      </div>
+
+      <div class="order-body">
+        <div class="product-preview" *ngIf="order.items && order.items.length > 0">
+          <!-- first product -->
+          <img [src]="getProductImageUrl(order.items[0].productImage) || '/images/default-product.png'" alt="Product"
+            class="preview-img">
+          <div class="preview-info">
+            <span class="product-name">{{ order.items[0].productName }}</span>
+            <span class="more-items" *ngIf="order.items.length > 1">
+              (and {{ order.items.length - 1 }} Other product)
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-footer">
+        <div class="order-id">Order code: #{{ order.id.substring(0, 8) }}...</div>
+        <div class="order-total">
+          Total Amount: <span class="price">{{ order.totalAmount | currency:'USD':'symbol':'1.0-2' }}</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="pagination-container" *ngIf="totalPages > 1 && !isLoading">
+    <button class="page-btn prev-next" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">
+      &laquo; Previous
+    </button>
+
+    <button *ngFor="let p of pages" class="page-btn number" [class.active]="p === currentPage"
+      (click)="onPageChange(p)">
+      {{ p }}
+    </button>
+
+    <button class="page-btn prev-next" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages">
+      Next &raquo;
+    </button>
+  </div>
+
+  <!-- Template no data -->
+  <ng-template #noData>
+    <div class="no-data-container" *ngIf="!isLoading">
+      <img src="/images/empty-order.png" alt="No Orders" class="empty-img" onerror="this.style.display='none'">
+      <p>You have not any orders yet!</p>
+      <a routerLink="/" class="shop-now-btn">Shopping now</a>
+    </div>
+  </ng-template>
+
+</div>
+
+<div class="order-filter-panel" [class.show]="showFilter">
+
+  <div class="order-filter-content">
+
+    <h3 style="margin-bottom: 10px;">Filter by</h3>
+
+    <mat-form-field style="width: 358px;">
+      <mat-label>Status</mat-label>
+      <mat-select [(ngModel)]="selectedStatus">
+        @for (status of statusList; track status) {
+        <mat-option [value]="status.value">{{status.viewValue}}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <h4 style="margin-bottom: 5px;">Total amount</h4>
+
+    <div class="order-price-row">
+      <input type="text" class="order-input" placeholder="Min amount" [(ngModel)]="minPrice">
+      <span style="margin: 0 5px;">-</span>
+      <input type="text" class="order-input" placeholder="Max amount" [(ngModel)]="maxPrice">
+    </div>
+
+  </div>
+
+  <div class="order-filter-footer">
+    <button type="button" class="order-button-reset" (click)="reset()">Reset</button>
+    <button type="button" class="order-button-apply" (click)="applyFilter()">Apply</button>
+  </div>
+
+</div>

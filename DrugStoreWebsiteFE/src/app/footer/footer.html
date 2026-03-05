@@ -1,0 +1,39 @@
+<footer class="site-footer" *ngIf="displayFooter, else noDisplay">
+    <div class="footer-container">
+        <div class="footer-col">
+            <h3 class="footer-heading">About Us</h3>
+            <p>Healthy Life Pharmacy has been serving the community for over 20 years, offering quality healthcare
+                products and expert guidance to help you make the best choices for your health.</p>
+        </div>
+
+        <div class="footer-col">
+            <h3 class="footer-heading">Opening Hours</h3>
+            <ul>
+                <li>Monday to Friday: 8:00 - 19:00</li>
+                <li>Saturday: 8:00 - 15:00</li>
+            </ul>
+        </div>
+
+        <div class="footer-col">
+            <h3 class="footer-heading">Contact Info</h3>
+            <ul>
+                <li><i class="fa-solid fa-location-crosshairs" style="color: #138ce9;"></i> 123 Wellness Ave, Suite
+                    100, Mountain View, San Francisco, California, USA</li>
+                <li><i class="fa-solid fa-phone" style="color: #138ce9;"></i>
+                    <a href="tel://23923929210">+1 650-123-4567</a>
+                </li>
+                <li><i class="fa-regular fa-envelope" style="color: #138ce9;"></i> info@healthylifepharmacy.com</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <p>Copyright © 2025 Healthy Life Pharmacy</p>
+    </div>
+</footer>
+
+<ng-template #noDisplay>
+    <div style="background-color: var(--main-color);;">
+        <h1 style="text-align: center; color: aliceblue;">Drug Store Website</h1>
+    </div>
+</ng-template>

@@ -1,0 +1,239 @@
+/* admin-collection.component.css */
+/* --- Cấu trúc tổng thể --- */
+.admin-container {
+  padding: 20px;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+/* --- Bảng Admin --- */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+  .admin-table thead {
+    background-color: #f8f9fa;
+  }
+
+  .admin-table th, .admin-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+
+  .admin-table tr:hover {
+    background-color: #fafafa;
+  }
+/* --- Badge trạng thái --- */
+.badge {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.badge-success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.badge-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+/* --- Nút hành động --- */
+.btn-edit, .btn-delete {
+  padding: 8px;
+  margin-right: 5px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-edit {
+  background-color: #ffc107;
+  color: white;
+}
+
+  .btn-edit:hover {
+    background-color: #e0a800;
+  }
+
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+  .btn-delete:hover {
+    background-color: #c82333;
+  }
+/* --- Cấu trúc Modal --- */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Lớp nền tối */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.custom-modal {
+  background-color: white;
+  width: 600px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  background-color: #007bff;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 20px;
+  max-height: 500px; /* Giới hạn chiều cao cơ thể */
+  overflow-y: auto; /* Cuộn dọc nếu nội dung quá dài */
+}
+
+.modal-footer {
+  background-color: #f8f9fa;
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+}
+/* --- Form Elements --- */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+}
+
+.half {
+  flex: 1;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+  .checkbox-label input {
+    margin-right: 10px;
+  }
+
+.d-flex-center {
+  display: flex;
+  align-items: center;
+}
+/* --- Danh sách sản phẩm tích chọn --- */
+.product-checklist {
+  max-height: 200px;
+  overflow-y: auto; 
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+.check-item {
+  display: block;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+  .check-item input {
+    margin-right: 10px;
+  }
+
+.d-flex-end {
+  display: flex;
+  justify-content: flex-end; /* Đẩy sát phải */
+  align-items: center;
+  width: 100%;
+}
+
+.d-flex-between {
+  display: flex;
+  justify-content: space-between; /* Đẩy 2 phần tử ra 2 phía */
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.search-input {
+  width: 200px; /* Độ rộng vừa phải cho thanh tìm kiếm */
+  padding: 6px 10px;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+  .btn-secondary:hover {
+    background-color: #5a6268;
+  }
+.checkbox-label-right {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-top: 30px;
+}
+
+  .checkbox-label-right input {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+  }

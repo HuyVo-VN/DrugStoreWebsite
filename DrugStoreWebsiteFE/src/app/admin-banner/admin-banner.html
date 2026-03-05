@@ -1,0 +1,41 @@
+<div class="admin-container">
+  <div class="header-actions">
+    <h2>Banner Management</h2>
+    <button class="btn-add" (click)="openAddBannerModal()">
+      <i class="fa-solid fa-plus"></i> Add banner
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading-spinner">Loading...</div>
+
+  <div class="banner-grid" *ngIf="!loading">
+    <div class="banner-card" *ngFor="let banner of banners">
+      <div class="banner-img-wrapper">
+        <img [src]="getBannerImageUrl(banner.imageUrl)" alt="Banner" class="banner-img">
+        <div class="status-badge" [class.active]="banner.isActive">
+          {{ banner.isActive ? 'Showing' : 'Hidden' }}
+        </div>
+      </div>
+
+      <div class="banner-info">
+        <h3>{{ banner.title }}</h3>
+        <p><strong>Link:</strong> {{ banner.targetUrl || 'None' }}</p>
+        <p><strong>Order:</strong> {{ banner.displayOrder }}</p>
+      </div>
+
+      <div class="banner-actions">
+        <button class="btn-toggle" [class.btn-off]="banner.isActive" (click)="toggleStatus(banner)">
+          <i class="fa-solid" [class.fa-eye-slash]="banner.isActive" [class.fa-eye]="!banner.isActive"></i>
+          {{ banner.isActive ? 'Hide' : 'Show' }}
+        </button>
+        <button class="btn-delete" (click)="deleteBanner(banner)">
+          <i class="fa-solid fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="banners.length === 0 && !loading" class="no-data">
+    No banners are available yet. Please create one!
+  </div>
+</div>

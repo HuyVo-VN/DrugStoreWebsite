@@ -1,0 +1,67 @@
+.manager-container {
+  padding: 30px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  font-family: 'Roboto', sans-serif;
+}
+
+h2 { text-align: center; margin-bottom: 25px; color: #333; }
+
+.manager-table {
+  width: 100%;
+  background: white;
+  border-collapse: collapse;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.manager-table th, .manager-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.manager-table th {
+  background-color: #0b4972;
+  color: white;
+  font-weight: 600;
+}
+
+.manager-table tr:hover { background-color: #f9f9f9; }
+
+.price-col { font-weight: bold; color: #d32f2f; }
+.text-center { text-align: center !important; }
+
+.badge {
+  padding: 6px 0;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  display: inline-block;
+  width: 110px;
+  text-align: center;
+}
+.status-new { background: #e3f2fd; color: #2196f3; }
+.status-processing { background: #fff3e0; color: #ff9800; }
+.status-completed { background: #e8f5e9; color: #4caf50; }
+.status-cancelled { background: #ffebee; color: #f44336; }
+
+.btn-icon {
+  border: none;
+  background: none;
+  font-size: 16px;
+  cursor: pointer;
+  margin: 0 5px;
+  transition: transform 0.2s;
+}
+.btn-icon:hover { transform: scale(1.1); }
+.btn-icon.view { color: #3792b3; }
+.btn-icon.view:hover { color: #235a6e; }
+.btn-icon.edit { color: #ff9800; }
+.btn-icon.edit:hover { color: #d17e03; }
+.btn-icon.delete { color: #dc3545; }
+.btn-icon.delete:hover { color: #a71d2a; transform: scale(1.2); }
+
+.no-data { text-align: center; padding: 30px; color: #777; }

@@ -1,0 +1,147 @@
+# ############################
+# Hệ điều hành (OS)
+# ############################
+# Windows
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+.Trashes
+.fseventsd
+
+# ############################
+# Visual Studio & Rider (IDE)
+# ############################
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# JetBrains Rider
+.idea/
+*.iml
+*~.resharper
+*.sln.iml
+
+# ############################
+# .NET / C# Build Artifacts
+# ############################
+# Thư mục build chính
+[Bb]in/
+[Oo]bj/
+
+# Thư mục build cụ thể
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+Build/
+out/
+
+# ############################
+# Logging (Ví dụ: Serilog)
+# ############################
+# Bỏ qua thư mục Logs và các file .log
+[Ll]ogs/
+[Ll]og/
+*.log
+*.svclog
+
+# ############################
+# NuGet
+# ############################
+# Bỏ qua thư mục packages và các file liên quan
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+*.nuget.props
+*.nuget.targets
+!packages/build/
+
+# ############################
+# Database / Entity Framework
+# ############################
+# Bỏ qua các file CSDL local
+*.db
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+*.db-shm
+*.db-wal
+
+# QUAN TRỌNG: Thư mục 'Migrations' *không* được bỏ qua
+# vì nó chứa mã nguồn định nghĩa schema CSDL.
+
+# ############################
+# Secrets & Configs (Local)
+# ############################
+# Bỏ qua các file config chứa thông tin nhạy cảm
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# BKeys & Chứng chỉ
+*.pfx
+*.publishsettings
+
+# ############################
+# Frontend (Node.js / Angular / React / Vue)
+# ############################
+# Thư viện
+node_modules/
+
+# Thư mục build
+dist/
+tmp/
+temp/
+build/
+.angular/cache/
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# QUAN TRỌNG: File test (*.spec.ts, *.test.js) *không* được bỏ qua
+# vì chúng là mã nguồn.
+
+# ############################
+# Testing
+# ############################
+# Bỏ qua các file kết quả test
+coverage/
+*.trx
+TestResults/
+
+# ############################
+# VS Code
+# ############################
+# Bỏ qua thư mục .vscode nhưng giữ lại các file chia sẻ cho team
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.fake
+
+*.jpg

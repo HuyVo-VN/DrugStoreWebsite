@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrugStoreWebsiteAuthen", "DrugStoreWebsiteAuthen.Api\DrugStoreWebsiteAuthen.Api.csproj", "{1ADE082B-0D01-4E35-97AB-BD1A54BA9318}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrugStoreWebsiteAuthen.Domain", "DrugStoreWebsiteAuthen.Domain\DrugStoreWebsiteAuthen.Domain.csproj", "{3096920A-2A56-4E42-9CBD-93B9E1F27C84}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrugStoreWebsiteAuthen.Infrastructure", "DrugStoreWebsiteAuthen.Infrastructure\DrugStoreWebsiteAuthen.Infrastructure.csproj", "{7D2962B2-7736-45F6-8757-9172C9CC70FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrugStoreWebsiteAuthen.Application", "DrugStoreWebsiteAuthen.Application\DrugStoreWebsiteAuthen.Application.csproj", "{01DEAC05-3663-4AFE-ADDB-C21BF0B26264}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1ADE082B-0D01-4E35-97AB-BD1A54BA9318}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1ADE082B-0D01-4E35-97AB-BD1A54BA9318}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1ADE082B-0D01-4E35-97AB-BD1A54BA9318}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1ADE082B-0D01-4E35-97AB-BD1A54BA9318}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3096920A-2A56-4E42-9CBD-93B9E1F27C84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3096920A-2A56-4E42-9CBD-93B9E1F27C84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3096920A-2A56-4E42-9CBD-93B9E1F27C84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3096920A-2A56-4E42-9CBD-93B9E1F27C84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D2962B2-7736-45F6-8757-9172C9CC70FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D2962B2-7736-45F6-8757-9172C9CC70FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D2962B2-7736-45F6-8757-9172C9CC70FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D2962B2-7736-45F6-8757-9172C9CC70FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01DEAC05-3663-4AFE-ADDB-C21BF0B26264}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01DEAC05-3663-4AFE-ADDB-C21BF0B26264}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01DEAC05-3663-4AFE-ADDB-C21BF0B26264}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01DEAC05-3663-4AFE-ADDB-C21BF0B26264}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

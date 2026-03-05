@@ -1,0 +1,118 @@
+<div id="header">
+  <div class="header-logo-and-menu">
+    <div *ngIf="isManager" class="header-logo">
+      <a routerLink="/admin-page" class="header-logo-link">DrugStore</a>
+    </div>
+    <div *ngIf="isGuest" class="header-logo">
+      <a routerLink="/" class="header-logo-link">DrugStore</a>
+    </div>
+    <div *ngIf="isCustomer" class="header-logo">
+      <a routerLink="/" class="header-menu-link">DrugStore</a>
+    </div>
+    <div *ngIf="isAdmin" class="header-content">
+      <a routerLink="/admin-page" class="header-menu-link">Home</a>
+    </div>
+    <div *ngIf="isAdmin" class="header-content">
+      <a routerLink="/user" class="header-menu-link">Users</a>
+    </div>
+    <div *ngIf="isManager" class="header-content">
+      <a routerLink="/product" class="header-menu-link">Products</a>
+    </div>
+    <div *ngIf="isManager" class="header-content">
+      <a routerLink="/admin/orders" class="header-menu-link">Orders</a>
+    </div>
+    <div *ngIf="isAdmin" class="header-content">
+      <a routerLink="/admin/banners" class="header-menu-link">Banners</a>
+    </div>
+    <div *ngIf="isAdmin" class="header-content">
+      <a routerLink="/admin/collections" class="header-menu-link">Collections</a>
+    </div>
+
+    <div *ngIf="showSearch" class="header-search-section">
+      <div class="search-bar-wrapper">
+        <select class="search-category-select" [(ngModel)]="selectedCategory" (change)="onCategoryChange()">
+          <option value="">All Categories</option>
+          <option *ngFor="let cat of categories" [value]="cat.id">{{cat.name}}</option>
+        </select>
+
+        <input type="text" class="search-input" placeholder="Search for medicines..."
+               [(ngModel)]="searchKeyword" (keyup.enter)="onSearch()">
+
+        <button class="search-btn" (click)="onSearch()">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </div>
+
+      <div class="quick-search-links">
+        <span>Popular:</span>
+        <a (click)="quickSearch('Paracetamol')">Paracetamol</a>
+        <a (click)="quickSearch('Vitamin')">Vitamin</a>
+        <a (click)="quickSearch('Cream')">Cream</a>
+        <a (click)="quickSearch('Gel')">Gel</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="header-logo-and-menu-right">
+    <div class="header-user-section" *ngIf="username">
+      <div *ngIf="isCustomer" class="order-btn">
+        <a
+          routerLink="/customer-orders"
+          style="
+            text-decoration: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 20px;
+          "
+          title="Your Orders"
+        >
+          <span matBadgeSize="large" matBadgeOverlap="false">
+            <i class="fa-solid fa-clipboard-list"></i>
+          </span>
+        </a>
+      </div>
+
+      <div *ngIf="isCustomer" class="header-btn-cart">
+        <a
+          routerLink="/cart"
+          style="text-decoration: none; color: white; font-size: 20px; cursor: pointer"
+          title="Your Cart"
+        >
+          <span matBadge="{{ quantity }}" matBadgeSize="large" matBadgeOverlap="false">
+            <i class="fa-solid fa-cart-shopping"></i>
+          </span>
+        </a>
+      </div>
+
+      <div class="header-user-section" *ngIf="username">
+        <p>Hi, {{ username }}</p>
+        <div class="header-dropdown">
+          <button class="header-dropbtn">⮟</button>
+          <div class="header-dropdown-content">
+            <a routerLink="/customer-orders" *ngIf="isCustomer" style="cursor: pointer">
+              <i class="fa-solid fa-clipboard-list" style="color: #fcaa74; margin-right: 2px"></i>
+              My Orders</a
+            >
+            <a (click)="sendLink()" style="cursor: pointer">
+              <i class="fa-solid fa-user-gear" style="color: #68e07c; margin-right: 2px"></i> Change
+              Password</a
+            >
+            <a (click)="logout()" style="color: red; cursor: pointer">
+              <i class="fa-solid fa-right-from-bracket" style="color: red; margin-right: 2px"></i>
+              Log Out</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="header-user-section" *ngIf="showLogin">
+      <div class="header-dropdown">
+        <div class="header-btn-login" (click)="login()">
+          <p style="color: white; cursor: pointer; margin-right: 4px">Login</p>
+          <i class="fa-solid fa-user" style="color: white; cursor: pointer; margin-top: 1.5px"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

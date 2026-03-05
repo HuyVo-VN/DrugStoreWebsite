@@ -1,0 +1,29 @@
+<div id="login-background-container">
+  <div class="login-box">
+    <h2 style="margin-bottom: 30px;">Login</h2>
+
+    <form #loginForm="ngForm" (submit)="login(); $event.preventDefault()">
+      <div style="margin-bottom: 15px; text-align: left;">
+          <label class="login-label-group">Username</label>
+        <div>
+          <input [(ngModel)]="username" name="username" required class="login-input" />
+        </div>
+      </div>
+
+      <div style="margin-bottom: 15px; text-align: left;">
+          <label class="login-label-group">Password</label>
+        <div>
+          <input #passwordInput [(ngModel)]="password" type="password" name="password" required class="login-input" />
+        </div>
+        <p style="margin-top: 15px; color: red; text-align: center;">{{ message }}</p>
+
+      </div>
+      <button type="submit" [disabled]="!loginForm.valid" class="login-button-primary">Login</button>
+    </form>
+    <div class="login-forget-pass" style="margin-top: 20px;">
+      <a routerLink="/forget-password">Forgot password?</a>
+    </div>
+    <div class="login-horizontal-line"></div>
+    <button type="button" class="login-button-secondary" (click)="goToRegister()">Sign Up</button>
+  </div>
+</div>

@@ -1,0 +1,44 @@
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  background: linear-gradient(450deg, rgb(53, 136, 243),  rgb(15, 76, 156));
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.user-table {
+  width: 100%;
+  width: calc(100% - 40px);
+  margin: 0 auto;  
+  background: white;
+  border-collapse: collapse;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.user-button-secondary {
+    width: 80px;
+    background-color: white;
+    border: 2px solid rgb(116, 150, 243);
+    color: rgb(116, 150, 243);
+    font-weight: 600;
+    margin: 0px;
+    height: 35px;
+    border-radius: 4px;
+}
+
+.user-button-secondary:hover {
+    width: 80px;
+    background-color: rgb(116, 150, 243);
+    border: 2px solid rgb(116, 150, 243);
+    color: white;
+    transform: scale(1.05);
+    cursor: pointer;
+}
+
+.user-button-secondary:active {
+    transform: scale(0.98);
+    background-color: #1161da;
+}

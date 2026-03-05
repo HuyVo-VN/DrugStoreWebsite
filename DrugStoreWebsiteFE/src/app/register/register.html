@@ -1,0 +1,80 @@
+<div [style.backgroundImage]="'url(' + imagePath + ')'"
+  style="display: flex; justify-content: center; align-items: center; "
+  id="register-background-container">
+  <div class="register-card">
+    <h2>Create an Account</h2>
+    <form #registerForm="ngForm" (ngSubmit)="onSubmit()">
+      <div class="register-form-group">
+        <div style="display: flex;">
+          <label for="fullName">Full Name</label>
+          <p style="margin-left:5px; color: red;">*</p>
+        </div>
+        <input type="text" id="fullName" name="fullName" [(ngModel)]="model.fullName" required />
+      </div>
+
+      <div class="register-form-group">
+        <div style="display: flex;">
+          <label for="dateOfBirth">Date of Birth</label>
+          <p style="margin-left:5px; color: red;">*</p>
+        </div>
+        <input type="date" id="dateOfBirth" name="dateOfBirth" [(ngModel)]="model.dateOfBirth" required />
+      </div>
+
+      <div class="register-form-group">
+        <div style="display: flex;">
+          <label for="gender">Gender</label>
+          <p style="margin-left:5px; color: red;">*</p>
+        </div>
+        <select id="gender" name="gender" [(ngModel)]="model.gender" required>
+          <option value="" disabled selected>Select gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="register-form-group">
+        <div style="display: flex;">
+          <label for="email">Email</label>
+          <p style="margin-left:5px; color: red;">*</p>
+        </div>
+        <input type="email" id="email" name="email" [(ngModel)]="model.email" required email />
+      </div>
+
+      <div class="register-form-group">
+        <div style="display: flex;">
+          <label for="phoneNumber">Phone Number</label>
+          <p style="margin-left:5px; color: red;">*</p>
+        </div>
+        <input type="text" id="phoneNumber" name="phoneNumber" [(ngModel)]="model.phoneNumber" required />
+      </div>
+
+      <div class="register-form-group">
+        <label for="imageUrl">Profile Image (URL)</label>
+        <input type="text" id="imageUrl" name="imageUrl" [(ngModel)]="model.imageUrl" placeholder="https://..." />
+      </div>
+
+      <div class="register-form-group">
+        <div style="display: flex;">
+          <label for="username">Username</label>
+          <p style="margin-left:5px; color: red;">*</p>
+        </div>
+        <input type="text" id="username" name="username" [(ngModel)]="model.username" required />
+      </div>
+
+      <div class="register-form-group">
+        <div style="display: flex;">
+          <label for="password">Password</label>
+          <p style="margin-left:5px; color: red;">*</p>
+        </div>
+        <input type="password" id="password" name="password" [(ngModel)]="model.password" required />
+      </div>
+
+      <button type="submit" [disabled]="!registerForm.valid">Register</button>
+
+      <div class="register-login-link">
+        Already have an account? <a routerLink="/login">Log in now</a>
+      </div>
+    </form>
+  </div>
+</div>

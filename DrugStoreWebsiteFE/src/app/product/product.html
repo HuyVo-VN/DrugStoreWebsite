@@ -1,0 +1,124 @@
+<h2 style="margin-top: 15px; ">Product List</h2>
+
+<div class="product-header-row">
+
+  <div class="product-search-wrapper">
+    <i class="fa-solid fa-magnifying-glass product-search-icon"></i>
+
+    <input type="text" class="product-search-input" placeholder="Search" (input)="onSearch($event)">
+  </div>
+  <i class="fa-solid fa-filter" style="cursor: pointer; font-size: 18px; margin-right: auto; margin-bottom: 3px;"
+    (click)="toggleFilter()"></i>
+
+  <button type="button" class="product-add-button" (click)="openAddProductModal()">Add Product</button>
+
+</div>
+
+<div class="product-table-container">
+  <mat-spinner style="margin: 0 auto; display: block;" *ngIf="loading"></mat-spinner>
+
+  <table *ngIf="products.length > 0; else noData">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Image</th>
+        <th>Price</th>
+        <th>Sale Info</th>
+        <th>Stock</th>
+        <th>Category</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let product of products">
+        <td>{{ product.name || '—' }}</td>
+
+        <td class="product-image-cell">
+          <img [src]="getProductImageUrl(product.imageUrl)" alt="{{ product.name }}" class="product-thumbnail"
+               onerror="this.src='/assets/images/default-product.png';">
+        </td>
+
+        <td>{{ product.price ? (product.price | currency:'USD':'symbol') : '—' }}</td>
+        <td>
+          <div *ngIf="product.discountPercent > 0">
+            <span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px;">
+              Sale {{ product.discountPercent }}%
+            </span>
+            <div style="font-size: 12px; color: #666; margin-top: 4px;">
+              Quantity in sale: {{ product.saleStock - (product.saleSold || 0) }}/{{ product.saleStock || 0 }}
+            </div>
+            <div style="font-size: 11px; color: #dc3545;" *ngIf="product.discountEndDate">
+              Expiration date: {{ product.discountEndDate | date:'dd/MM/yy HH:mm' }}
+            </div>
+          </div>
+          <span *ngIf="!product.discountPercent || product.discountPercent === 0" style="color: #999; font-size: 12px;">
+            No Sale
+          </span>
+        </td>
+        <td>{{ product.stock || '0' }}</td>
+        <td>{{ product.categoryName || '—' }}</td>
+        <td>
+          <i (click)="openEditProductModal(product)" class="fa-solid fa-pen-to-square"
+             style="cursor: pointer; color: rgb(21, 112, 230); margin-right: 10px;"></i>
+          <i (click)="delete(product)" class="fa-solid fa-xmark" style="cursor: pointer; color:red;"></i>
+          <label class="product-switch">
+            <input type="checkbox" [checked]="product.isActive" (click)="toggleStatus($event, product)">
+            <span class="product-slider round"></span>
+          </label>
+
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="pagination-container" *ngIf="totalPages > 0">
+  <button class="pagination-btn" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">
+    &laquo; Prev
+  </button>
+
+  <span class="pagination-info">
+    Page {{ currentPage }} of {{ totalPages }}
+  </span>
+
+  <button class="pagination-btn" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages">
+    Next &raquo;
+  </button>
+</div>
+
+<ng-template #noData>
+  <p *ngIf="!loading" style=" color: rgb(216, 122, 33); text-align: center;">No products found.</p>
+</ng-template>
+
+<div class="product-filter-panel" [class.show]="showFilter">
+
+  <div class="filter-content">
+
+    <h3 style="margin-bottom: 10px;">Filter by</h3>
+
+    <mat-form-field style="width: 358px;">
+      <mat-label>Category</mat-label>
+      <mat-select [(ngModel)]="selectedCategoryId">
+        @for (category of categories; track category) {
+        <mat-option [value]="category.value">{{category.viewValue}}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+
+    <h4 style="margin-bottom: 5px;">Price</h4>
+
+    <div class="product-price-row">
+      <input type="text" class="product-input" placeholder="Min price" [(ngModel)]="minPrice">
+      <span style="margin: 0 5px;">-</span>
+      <input type="text" class="product-input" placeholder="Max price" [(ngModel)]="maxPrice">
+    </div>
+
+  </div>
+
+  <div class="product-filter-footer">
+    <button type="button" class="product-button-reset" (click)="reset()">Reset</button>
+    <button type="button" class="product-button-apply" (click)="applyFilter()">Apply</button>
+  </div>
+
+</div>

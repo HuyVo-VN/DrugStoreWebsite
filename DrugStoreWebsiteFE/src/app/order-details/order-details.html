@@ -1,0 +1,110 @@
+<div class="details-container">
+  <div class="details-header">
+    <div class="header-info">
+      <h2>Order Details: #{{ order?.id?.substring(0, 8) }}</h2>
+      <span class="date-label">Order date: {{ order?.orderDate | date : 'dd/MM/yyyy HH:mm' }}</span>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+
+  <div class="details-content-wrapper" *ngIf="!isLoading && order">
+    <div class="details-left">
+      <div class="status-banner" [ngClass]="getStatusClass(order.status)">
+        <span class="status-text">{{ order.status | uppercase }}</span>
+
+        <span class="status-desc" *ngIf="order.status === 'New'"
+          >Your order is pending confirmation.</span
+        >
+        <span class="status-desc" *ngIf="order.status === 'Processing'"
+          >Your order is being prepared.</span
+        >
+        <span class="status-desc" *ngIf="order.status === 'Completed'"
+          >Order delivered successfully.</span
+        >
+        <span class="status-desc" *ngIf="order.status === 'Cancelled'"
+          >This order has been cancelled.</span
+        >
+      </div>
+
+      <div class="items-card">
+        <h3>Products</h3>
+
+        <div class="item-row" *ngFor="let item of order.items">
+          <div class="item-img-wrapper">
+            <img
+              [src]="getProductImageUrl(item.productImage)"
+              class="item-img"
+              onerror="this.src='/images/default-product.png'"
+            />
+          </div>
+
+          <div class="item-info">
+            <span class="item-name">{{ item.productName }}</span>
+            <div class="item-meta">
+              <span class="item-price">{{
+                item.price | currency : 'USD' : 'symbol' : '1.0-2'
+              }}</span>
+              <span class="item-x">x</span>
+              <span class="item-qty">{{ item.quantity }}</span>
+            </div>
+          </div>
+
+          <div class="item-total">
+            {{ item.price * item.quantity | currency : 'USD' : 'symbol' : '1.0-2' }}
+          </div>
+        </div>
+      </div>
+      <div class="back-wrapper">
+        <button class="back-btn" (click)="goBack()"><i class="fas fa-arrow-left"></i> Back</button>
+      </div>
+    </div>
+
+    <div class="details-right">
+      <div class="info-box">
+        <h3>Delivery Information</h3>
+        <div class="info-content">
+          <p class="customer-name">
+            <strong>Phone Number: {{ order.phoneNumber }}</strong>
+          </p>
+          <p class="address-text">Shipping Address: {{ order.shippingAddress }}</p>
+          <p class="note-text" *ngIf="order.note">Note: {{ order.note }}</p>
+        </div>
+      </div>
+
+      <div class="summary-box">
+        <h3 style="margin-top: 0; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
+          Order Summary
+        </h3>
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>{{ subTotal | currency : 'USD' : 'symbol' : '1.0-2' }}</span>
+        </div>
+
+        <div class="summary-row">
+          <span>Shipping Fee</span>
+          <span>+ {{ shippingFee | currency : 'USD' : 'symbol' : '1.0-2' }}</span>
+        </div>
+
+        <div class="summary-row" *ngIf="discount > 0">
+          <span style="color: #28a745; font-weight: 500;">Total Discount</span>
+          <span class="discount-text" style="color: #28a745; font-weight: bold;">
+            - {{ discount | currency : 'USD' : 'symbol' : '1.0-2' }}
+          </span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="summary-row total">
+          <span>Total Paid</span>
+          <span class="final-price">{{ order.totalAmount | currency : 'USD' : 'symbol' : '1.0-2' }}</span>
+        </div>
+
+        <button *ngIf="isCustomer" class="reorder-btn" (click)="reOrder()">
+          <i class="fas fa-redo"></i> Repurchase Order
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

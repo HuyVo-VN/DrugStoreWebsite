@@ -1,0 +1,96 @@
+<div class="admin-container">
+  <div class="header-actions">
+    <h2>Collection Management</h2>
+    <button class="btn-primary" (click)="openAddModal()">
+      <i class="fa-solid fa-plus"></i> Add Collection
+    </button>
+  </div>
+
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Position</th>
+        <th>Show Home Page</th>
+        <th>Number Of Product</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let col of collections">
+        <td><strong>{{ col.name }}</strong></td>
+        <td>{{ col.displayOrder }}</td>
+        <td>
+          <span class="badge" [ngClass]="col.showOnHomePage ? 'badge-success' : 'badge-danger'">
+            {{ col.showOnHomePage ? 'Showing' : 'Hidding' }}
+          </span>
+        </td>
+        <td>{{ col.productIds?.length || 0 }} món</td>
+        <td>
+          <button class="btn-edit" (click)="openEditModal(col)"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn-delete" (click)="deleteCollection(col.id)"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="custom-modal-overlay" *ngIf="showModal">
+    <div class="custom-modal">
+      <div class="modal-header">
+        <h3>{{ isEditMode ? 'Sửa Bộ Sưu Tập' : 'Thêm Bộ Sưu Tập' }}</h3>
+        <button class="close-btn" (click)="closeModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Tên Bộ Sưu Tập</label>
+          <input type="text" class="form-control" [(ngModel)]="currentCollection.name" placeholder="VD: Tủ thuốc gia đình">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Thứ tự hiển thị (1, 2, 3...)</label>
+            <input type="number" class="form-control" [(ngModel)]="currentCollection.displayOrder">
+          </div>
+          <div class="form-group half d-flex-end">
+            <label class="checkbox-label" style="margin-top: 30px;">
+              <input type="checkbox" [(ngModel)]="currentCollection.showOnHomePage">
+              Hiển thị ra Trang chủ
+            </label>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="form-group">
+          <div class="d-flex-between">
+            <label><strong>Gắn Sản Phẩm vào Bộ Sưu Tập này:</strong></label>
+            <input type="text"
+                   class="form-control search-input"
+                   placeholder="Tìm tên SP (VD: vi)..."
+                   [ngModel]="searchQuery"
+                   (ngModelChange)="onSearchChange($event)">
+          </div>
+
+          <div class="product-checklist">
+            <label class="check-item" *ngFor="let prod of filteredProducts">
+              <input type="checkbox"
+                     [checked]="currentCollection.productIds.includes(prod.id)"
+                     (change)="toggleProductSelection(prod.id, $event)">
+              {{ prod.name }} ({{ prod.price | currency:'USD' }})
+            </label>
+
+            <div *ngIf="filteredProducts.length === 0" style="padding: 10px; color: #777;">
+              Không tìm thấy sản phẩm nào khớp với "{{ searchQuery }}".
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer d-flex-between">
+        <button class="btn-secondary" (click)="closeModal()">Hủy</button>
+        <button class="btn-primary" (click)="saveCollection()">Lưu lại</button>
+      </div>
+    </div>
+  </div>
+</div>

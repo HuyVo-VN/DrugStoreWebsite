@@ -1,0 +1,48 @@
+<div class="manager-container">
+  <h2>Order Management</h2>
+
+  <div class="table-responsive">
+    <table class="manager-table" *ngIf="orders.length > 0; else noData">
+      <thead>
+        <tr>
+          <th class="text-center">ID</th>
+          <th class="text-center">Date</th>
+          <th class="text-center">Customer Phone</th>
+          <th class="text-center">Total</th>
+          <th class="text-center">Status</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of orders">
+          <td class="text-center">#{{ order.id.substring(0, 8) }}...</td>
+          <td class="text-center">{{ order.orderDate | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td class="text-center">{{ order.phoneNumber }}</td>
+          <td class="price-col text-center">{{ order.totalAmount | currency:'USD':'symbol':'1.0-2' }}</td>
+          <td class="text-center">
+            <span class="badge" [ngClass]="getStatusClass(order.status)">
+              {{ order.status }}
+            </span>
+          </td>
+          <td class="text-center action-col">
+             <button class="btn-icon view" (click)="viewDetails(order.id)" title="View Details">
+                <i class="fas fa-eye"></i>
+             </button>
+             
+             <button class="btn-icon edit" (click)="openStatusModal(order)" title="Update Status">
+                <i class="fas fa-edit"></i>
+             </button>
+
+             <button class="btn-icon delete" (click)="deleteOrder(order)" title="Delete Order">
+                <i class="fas fa-trash-alt"></i>
+             </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #noData>
+      <div class="no-data">No orders found in the system.</div>
+    </ng-template>
+  </div>
+</div>

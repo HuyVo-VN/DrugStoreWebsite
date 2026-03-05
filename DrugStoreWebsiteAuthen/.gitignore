@@ -1,0 +1,144 @@
+############################
+# Visual Studio
+############################
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+############################
+# Build results
+############################
+[Bb]in/
+[Oo]bj/
+[Dd]ebug*/
+[Rr]elease*/
+x64/
+bld/
+build/
+out/
+
+############################
+# Logs
+############################
+[Ll]og/
+[Ll]ogs/
+*.log
+*.svclog
+
+############################
+# NuGet
+############################
+packages/
+*.nupkg
+*.snupkg
+*.nuget.targets
+*.nuget.props
+*.lock.json
+!packages/build/
+
+############################
+# JetBrains Rider
+############################
+.idea/
+*.iml
+
+############################
+# Compiled files
+############################
+*.dll
+*.exe
+*.pdb
+*.cache
+*.mdb
+
+############################
+# Database files
+############################
+*.db
+*.sqlite
+*.mdf
+*.ldf
+*.db-shm
+*.db-wal
+
+############################
+# Entity Framework
+############################
+Migrations/
+
+############################
+# Secrets and configs
+############################
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+.env
+.env.local
+.env.development
+.env.production
+
+############################
+# Others backend
+############################
+*.tmp
+*.bak
+*.pfx
+*.publishsettings
+Thumbs.db
+.DS_Store
+
+############################
+# Angular / Frontend
+############################
+dist/
+tmp/
+temp/
+build/
+
+node_modules/
+
+# Angular env files
+src/environments/environment*.ts
+
+############################
+# Testing
+############################
+coverage/
+*.spec.ts
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+############################
+# vscode settings
+############################
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+############################
+# Other common ignores
+############################
+
+# Windows
+ehthumbs.db
+desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temporary files
+~$*
+*.swp
+*.swo
+*.tmp
+*.bak
+
+.fake
+
