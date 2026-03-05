@@ -1,0 +1,54 @@
+erDiagram
+    Category ||--o{ Product : "contains"
+    Product ||--o{ CartItem : "added to"
+    Cart ||--o{ CartItem : "contains"
+    
+    Order ||--o{ OrderItem : "includes"
+    Product ||--o{ OrderItem : "reference (restrict delete)"
+
+    Category {
+        int Id PK
+        string Name
+    }
+
+    Product {
+        Guid Id PK
+        string Name
+        decimal Price
+        int Stock
+        string ImageUrl
+        int CategoryId FK
+    }
+
+    Cart {
+        Guid Id PK
+        Guid UserId "Loose coupling"
+    }
+
+    CartItem {
+        Guid Id PK
+        Guid CartId FK
+        Guid ProductId FK
+        int Quantity
+    }
+
+    Order {
+        Guid Id PK
+        Guid UserId
+        dateTime OrderDate
+        decimal TotalAmount
+        int Status "Enum: New, Processing..."
+        string ShippingAddress
+        string PhoneNumber
+        string Note
+    }
+
+    OrderItem {
+        Guid Id PK
+        Guid OrderId FK
+        Guid ProductId FK
+        string ProductName "Snapshot Data"
+        string ProductImage "Snapshot Data"
+        decimal Price "Snapshot Data"
+        int Quantity
+    }

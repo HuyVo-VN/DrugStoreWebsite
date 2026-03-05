@@ -1,0 +1,32 @@
+erDiagram
+    ApplicationUser ||--o{ RefreshToken : "has"
+    ApplicationUser ||--|{ AspNetUserRoles : "assigned"
+    AspNetRoles ||--|{ AspNetUserRoles : "contains"
+
+    ApplicationUser {
+        Guid Id PK
+        string UserName
+        string Email
+        string PasswordHash
+        string PhoneNumber
+    }
+
+    RefreshToken {
+        Guid Id PK
+        string Token
+        string JwtId
+        boolean IsUsed
+        boolean IsRevoked
+        dateTime ExpiryDate
+        Guid UserId FK
+    }
+
+    AspNetRoles {
+        Guid Id PK
+        string Name "Admin, Staff, Customer"
+    }
+
+    AspNetUserRoles {
+        Guid UserId FK
+        Guid RoleId FK
+    }
