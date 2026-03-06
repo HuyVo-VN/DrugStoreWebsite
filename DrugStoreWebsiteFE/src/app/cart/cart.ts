@@ -62,14 +62,13 @@ export class Cart implements OnInit {
       next: (res) => {
         if (res.status === 200 && res.data) {
           this.cartItems = (res.data.items || []).map((item: any) => {
-            // auto update when stock is not enough
-            if (item.stock > 0 && item.quantity > item.stock) {
-              item.quantity = item.stock;
-            }
 
-            // check "isActive"
-            // if stock=0 or isActive=false
-            const isAvailable = item.stock > 0 && item.isActive;
+            const maxAllowed = this.getMaxAllowed(item);
+
+            if (maxAllowed > 0 && item.quantity > maxAllowed) {
+              item.quantity = maxAllowed;
+            }
+            const isAvailable = maxAllowed > 0 && item.isActive;
 
             return {
               ...item,
@@ -137,10 +136,21 @@ export class Cart implements OnInit {
   }
 
   increaseQty(item: any) {
+    const maxAllowed = this.getMaxAllowed(item);
+    if (item.quantity >= maxAllowed) {
+      if (maxAllowed === item.stock) {
+        Swal.fire('Sorry', 'Only ${maxAllowed} products left in stock!', 'warning');
+      } else {
+        Swal.fire('You are too late', `Only ${maxAllowed} Flash Sale slots left!`, 'info');
+      }
+      return;
+    }
+
     item.quantity++;
     this.updateCartItemQuantity(item, item.quantity);
     this.calculateTotal();
   }
+
   decreaseQty(item: any) {
     item.quantity--;
     if (item.quantity <= 0) {
@@ -153,13 +163,25 @@ export class Cart implements OnInit {
     this.calculateTotal();
   }
   onQtyChange(event: any, item: any) {
-    const newValue = parseInt(event.target.value);
+    let newValue = parseInt(event.target.value);
 
     if (isNaN(newValue) || newValue <= 0) {
       this.removeItem(item);
-    } else {
-      this.updateCartItemQuantity(item, newValue);
+      return;
     }
+
+    const maxAllowed = this.getMaxAllowed(item);
+    if (newValue > maxAllowed) {
+      if (maxAllowed === item.stock) {
+        Swal.fire('Sorry', 'Only ${maxAllowed} products left in stock!', 'warning');
+      } else {
+        Swal.fire('You are too late!', 'Only ${ maxAllowed } Flash Sale slots left!', 'info');
+      }
+      newValue = maxAllowed;
+      event.target.value = newValue;
+    }
+
+    this.updateCartItemQuantity(item, newValue);
   }
 
   removeItem(item: any) {
@@ -289,4 +311,22 @@ export class Cart implements OnInit {
       });
   }
 
+  getMaxAllowed(item: any): number {
+    let maxAllowed = item.stock || 0;
+
+    if (item.discountPercent > 0 && item.discountEndDate) {
+      const now = new Date().getTime();
+      const endDate = new Date(item.discountEndDate).getTime();
+
+      if (endDate > now) { 
+        const remainingSale = (item.saleStock || 0) - (item.saleSold || 0);
+        if (remainingSale >= 0 && remainingSale < maxAllowed) {
+          maxAllowed = remainingSale;
+        }
+      }
+    }
+    return maxAllowed;
+  }
+
 }
+

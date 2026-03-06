@@ -109,6 +109,20 @@ export class ProductDetail implements OnInit {
     this.productService.getProductById(this.productId).subscribe({
       next: (res: any) => {
         this.product = res.data;
+
+        this.max = this.product.stock || 0;
+        if (this.product.discountPercent > 0 && this.product.discountEndDate) {
+          const now = new Date().getTime();
+          const endDate = new Date(this.product.discountEndDate).getTime();
+          if (endDate > now) {
+            const remainingSale = (this.product.saleStock || 0) - (this.product.saleSold || 0);
+            if (remainingSale >= 0 && remainingSale < this.max) {
+              this.max = remainingSale;
+            }
+          }
+        }
+        this.quantity = this.clamp(this.quantity);
+
         this.loading = false;
       },
       error: (err) => {
@@ -227,6 +241,10 @@ export class ProductDetail implements OnInit {
     this.router.navigate(['/']);
   }
   increase() {
+    if (this.quantity >= this.max) {
+      this.showMaxLimitWarning();
+      return;
+    }
     this.quantity = this.clamp(this.quantity + this.step);
   }
 
@@ -235,6 +253,9 @@ export class ProductDetail implements OnInit {
   }
 
   onInputChange() {
+    if (this.quantity > this.max) {
+      this.showMaxLimitWarning();
+    }
     this.quantity = this.clamp(this.quantity);
   }
 
@@ -272,6 +293,14 @@ export class ProductDetail implements OnInit {
   }
   closePopup() {
     this.hasInput = false;
+  }
+
+  showMaxLimitWarning() {
+    if (this.max === this.product.stock) {
+      Swal.fire('Sorry', 'Only a limited number of this product left in stock!', 'warning');
+    } else {
+      Swal.fire('Too late!', 'Only a limited number of Flash Sale slots left!', 'info');
+    }
   }
 
 }

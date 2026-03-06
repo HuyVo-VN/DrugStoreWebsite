@@ -12,6 +12,9 @@ public class CartItemResponseDto
     public decimal TotalPrice { get; set; }
     public bool IsActive { get; set; }
     public int DiscountPercent { get; set; }
+    public DateTime? DiscountEndDate { get; set; }
+    public int SaleStock { get; set; } = 0;
+    public int SaleSold { get; set; } = 0;
 
     public CartItemResponseDto mapToCartItemDto(CartItem item)
     {
@@ -26,7 +29,10 @@ public class CartItemResponseDto
             TotalPrice = (item.Product?.Price ?? 0) * item.Quantity,
             Stock = item.Product?.Stock ?? 0,
             IsActive = item.Product?.IsActive ?? false,
-            DiscountPercent = item.Product?.DiscountPercent ?? 0
+            DiscountPercent = item.Product?.DiscountPercent ?? 0,
+            DiscountEndDate = item.Product?.DiscountEndDate,
+            SaleStock = item.Product?.SaleStock ?? 0,
+            SaleSold = item.Product?.SaleSold ?? 0,
         };
     }
 }

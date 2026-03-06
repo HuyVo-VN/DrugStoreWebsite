@@ -131,6 +131,31 @@ public class OrderService : IOrderService
                 if (product.Stock < item.Quantity)
                     return Result<OrderResponseDto>.Failure($"Product {product.Name} out of stock.");
 
+                if (product.Stock < item.Quantity)
+                {
+                    return Result<OrderResponseDto>.Failure($"Product '{product.Name}' still have {product.Stock}.");
+                }
+                bool isFlashSaleActive = product.DiscountPercent > 0
+                              && product.DiscountEndDate.HasValue
+                              && product.DiscountEndDate.Value > DateTime.UtcNow;
+
+                if (isFlashSaleActive)
+                {
+                    int remainingSaleStock = product.SaleStock - product.SaleSold;
+
+                    if (item.Quantity > remainingSaleStock)
+                    {
+                        if (remainingSaleStock > 0)
+                        {
+                            return Result<OrderResponseDto>.Failure($"Product '{product.Name}' still have {remainingSaleStock} Flash Sale price. Please reduce the quantity!");
+                        }
+                        else
+                        {
+                            return Result<OrderResponseDto>.Failure($"Product '{product.Name}' Flash Sale is over. Please refresh the page to see the updated prices!");
+                        }
+                    }
+                }
+
                 var orderItem = new OrderItem(
                     newOrder.Id,
                     item.ProductId,
