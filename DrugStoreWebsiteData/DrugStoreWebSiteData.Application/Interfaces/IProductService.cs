@@ -3,6 +3,7 @@ using DrugStoreWebSiteData.Application.DTOs.Response;
 
 using DrugStoreWebSiteData.Application.Common;
 using DrugStoreWebSiteData.Application.DTOs;
+using DrugStoreWebSiteData.Domain.Entities;
 
 namespace DrugStoreWebSiteData.Application.Interfaces;
 
@@ -16,7 +17,8 @@ public interface IProductService
     Task<Result<PagedResult<ProductResponseDto>>> GetAllProductsAsync(int pageNumber, int pageSize);
     Task<Result<PagedResult<ProductResponseDto>>> SearchProductsAsync(SearchProductRequestDto requestDto);
     Task<Result<PagedResult<ProductResponseDto>>> FilterProductsAsync(FilterProductRequestDto requestDto);
-    Task<Result<PagedResult<ProductResponseDto>>> GetSaleProductsAsync(int limit = 10);
-    Task<Result<PagedResult<ProductResponseDto>>> GetBestSellerProductsAsync(int limit = 10);
-    Task<Result<PagedResult<ProductResponseDto>>> GetProductsByCollectionNameAsync(string collectionName, int take);
+    Task<Result<PagedResult<ProductResponseDto>>> GetSaleProductsPagedAsync(int pageIndex, int pageSize);
+    Task<Result<PagedResult<ProductResponseDto>>> GetBestSellersPagedAsync(int pageIndex, int pageSize);
+    Task<Result<PagedResult<ProductResponseDto>>> GetProductsByCollectionPagedAsync(Guid collectionId, int pageIndex, int pageSize);
+    Task<Result<string>> CancelSaleAsync(Guid productId);
 }

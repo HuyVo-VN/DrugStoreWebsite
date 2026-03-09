@@ -23,7 +23,7 @@ namespace DrugStoreWebSiteData.Domain.Entities
         // Foreign Key
         public Guid CategoryId { get; private set; }
 
-        ICollection<ProductCollection> ProductCollections { get; set; } = new List<ProductCollection>();
+        public ICollection<ProductCollection> ProductCollections { get; set; } = new List<ProductCollection>();
 
         // Navigation property
         public Category Category { get; private set; } = null!;
@@ -101,6 +101,14 @@ namespace DrugStoreWebSiteData.Domain.Entities
             {
                 SaleSold += quantityBought;
             }
+        }
+
+        public void CancelFlashSale()
+        {
+            DiscountPercent = 0;
+            DiscountEndDate = null;
+            SaleStock = 0;
+            SaleSold = 0;
         }
 
     }

@@ -569,13 +569,12 @@
     color: #0056b3;
   }
 
-/* Danh sách cuộn ngang */
 .flash-sale-list {
   display: flex;
   gap: 15px;
   overflow-x: auto;
-  padding-bottom: 10px;
-  /* Ẩn thanh cuộn trên một số trình duyệt nhưng vẫn cuộn được */
+  padding-bottom: 20px;
+  padding-top: 10px;
   scrollbar-width: thin;
   scrollbar-color: #ffb3bc #f5f5fa;
 }
@@ -726,7 +725,8 @@
   display: flex;
   gap: 15px;
   overflow-x: auto;
-  padding-bottom: 15px;
+  padding-top: 10px;
+  padding-bottom: 20px;
   scrollbar-width: thin;
   scrollbar-color: #fdd835 #f5f5fa;
 }
@@ -900,7 +900,8 @@
   display: flex;
   gap: 15px;
   overflow-x: auto;
-  padding-bottom: 15px;
+  padding-top: 10px;
+  padding-bottom: 20px;
   scrollbar-width: thin;
   scrollbar-color: #28a745 #e8f8f0;
 }

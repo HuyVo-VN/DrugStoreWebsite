@@ -54,7 +54,7 @@
         </div>
 
         <div class="col-price">
-          <ng-container *ngIf="item.discountPercent > 0">
+          <ng-container *ngIf="isSaleActive(item)">
             <div style="display: flex; flex-direction: column; align-items: center;">
               <span class="current-price" style="color: #ff424e; font-weight: bold;">
                 {{ item.price - (item.price * item.discountPercent / 100) | currency:'USD':'symbol':'1.0-2' }}
@@ -64,7 +64,7 @@
               </span>
             </div>
           </ng-container>
-          <ng-container *ngIf="!item.discountPercent || item.discountPercent === 0">
+          <ng-container *ngIf="!isSaleActive(item)">
             <span class="current-price">{{ item.price | currency:'USD':'symbol':'1.0-2' }}</span>
           </ng-container>
         </div>
@@ -79,7 +79,7 @@
 
         <div class="col-total">
           <span class="item-total-price" style="font-weight: bold; color: #ff424e;">
-            {{ (item.price - (item.price * (item.discountPercent || 0) / 100)) * item.quantity | currency:'USD':'symbol':'1.0-2' }}
+            {{ (isSaleActive(item) ? (item.price - (item.price * item.discountPercent / 100)) : item.price) * item.quantity | currency:'USD':'symbol':'1.0-2' }}
           </span>
         </div>
 
@@ -141,19 +141,19 @@
 
         <span>Order Summary</span>
         <div class="summary-row">
-          <span>Cart Total</span>
-          <span>{{ grandTotal | currency:'USD':'symbol':'1.0-2' }}</span>
+          <span>Cart Total (Original)</span>
+          <span>{{ originalTotal | currency:'USD':'symbol':'1.0-2' }}</span>
         </div>
-        <div class="summary-row">
-          <span>Discount</span>
-          <span>- $0</span>
+        <div class="summary-row" *ngIf="saleDiscountTotal > 0" style="color: #28a745; font-weight: 500;">
+          <span>Sale Discount</span>
+          <span>- {{ saleDiscountTotal | currency:'USD':'symbol':'1.0-2' }}</span>
         </div>
         <div class="summary-divider"></div>
         <div>
           <span>Payment Type</span>
           <br>
           <mat-radio-group aria-label="Select payment method" class="cart-payment-container" [(ngModel)]="paymentMethod"
-            (ngModelChange)="onPaymentChange($event)">
+                           (ngModelChange)="onPaymentChange($event)">
             <div class="payment-option">
               <span><i class="fa-solid fa-money-bill-1-wave" style="color: #15da36;"></i> Cash</span>
               <mat-radio-button value="Cash"></mat-radio-button>
@@ -164,20 +164,17 @@
               <mat-radio-button value="ATM"></mat-radio-button>
             </div>
           </mat-radio-group>
-
         </div>
-        <div>
-          <div class="summary-row">
-            <span>Discount</span>
-            <span>- {{ discountAmount | currency:'USD':'symbol':'1.0-2' }}</span>
-          </div>
+        <div class="summary-row" *ngIf="discountAmount > 0" style="color: #28a745; font-weight: 500;">
+          <span>ATM Discount (3%)</span>
+          <span>- {{ discountAmount | currency:'USD':'symbol':'1.0-2' }}</span>
         </div>
         <div class="summary-divider"></div>
-        <div class="summary-row" *ngIf="grandTotal !== 0">
+        <div class="summary-row" *ngIf="originalTotal !== 0">
           <span>Shipping fee</span>
-          <span>${{fee}}</span>
+          <span>{{ fee | currency:'USD':'symbol':'1.0-2' }}</span>
         </div>
-        <div class="summary-row total-row" *ngIf="grandTotal!==0">
+        <div class="summary-row total-row" *ngIf="originalTotal !== 0">
           <span>To Pay</span>
           <span class="final-price">{{ totalToPay | currency:'USD':'symbol':'1.0-2' }}</span>
         </div>

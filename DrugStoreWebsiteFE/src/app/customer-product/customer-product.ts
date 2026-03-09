@@ -79,6 +79,9 @@ export class CustomerProduct implements OnInit {
 
   sideBanners: any[] = [];
 
+  currentCollectionId: string = '';
+  currentListType: string = '';
+
   quickButtons = [
     { icon: 'fa-solid fa-pills', label: 'Thuốc kê đơn', targetUrl: '/?category=1' },
     { icon: 'fa-solid fa-kit-medical', label: 'Thực phẩm CN', targetUrl: '/?category=2' },
@@ -124,19 +127,34 @@ export class CustomerProduct implements OnInit {
         this.route.queryParams.subscribe(params => {
           this.currentKeyword = params['search'] || '';
           this.selectedCategoryId = params['category'] || '';
-          this.currentPage = 1; // Reset trang về 1 khi có tìm kiếm mới
+          // Bắt thêm 2 tham số mới
+          this.currentListType = params['type'] || '';
+          this.currentCollectionId = params['collectionId'] || '';
 
-          if (this.currentKeyword) {
+          this.currentPage = 1; // Luôn reset về trang 1 khi URL đổi
+
+          // --- LOGIC RẼ NHÁNH ---
+          if (this.currentListType === 'bestseller') {
+            this.loadBestSellersPaged();
+          }
+          else if (this.currentListType === 'hotsale') {
+            this.loadHotSalesPaged();
+          }
+          else if (this.currentCollectionId) {
+            this.loadCollectionProductsPaged();
+          }
+          else if (this.currentKeyword) {
             this.performSearch(this.currentKeyword);
-          } else if (this.selectedCategoryId) {
+          }
+          else if (this.selectedCategoryId) {
             this.applyFilterForUrl(this.selectedCategoryId);
-          } else {
+          }
+          else {
             this.loadProducts();
           }
 
           if (history.state && history.state.scrollToGrid) {
             this.scrollToProductGrid();
-
             window.history.replaceState({}, document.title, window.location.href);
           }
         });
@@ -258,7 +276,7 @@ export class CustomerProduct implements OnInit {
     });
 
     // 2. Load Sale Products
-    this.productService.getSaleProducts(10).subscribe({
+    this.productService.getSaleProducts(1,10).subscribe({
       next: (res) => {
         console.log('Data API Sale Products return:', res);
 
@@ -270,17 +288,19 @@ export class CustomerProduct implements OnInit {
           console.log('No sale items were found in the items section.');
         }
       },
-      error: (err) => console.error('Error loading sale products', err)
+      /*error: (err) => console.error('Error loading sale products', err)*/
+      error: (err) => console.error('Lỗi Sale Products:', err.error?.message || err)
     });
 
     // 3. Load Best Sellers
-    this.productService.getBestSellers(10).subscribe({
+    this.productService.getBestSellers(1,10).subscribe({
       next: (res) => {
         if (res.isSuccess && res.value && res.value.items) {
           this.bestSellerProducts = res.value.items;
         }
       },
-      error: (err) => console.log('Error loading best sellers', err)
+      //error: (err) => console.log('Error loading best sellers', err)
+      error: (err) => console.error('Lỗi Best Sellers:', err.error?.message || err)
     });
 
     // 4. Dynamic Collections
@@ -367,15 +387,31 @@ export class CustomerProduct implements OnInit {
     }
     this.currentPage = page;
 
+    if (this.currentListType === 'bestseller') {
+      this.loadBestSellersPaged();
+      return;
+    }
+    if (this.currentListType === 'hotsale') {
+      this.loadHotSalesPaged();
+      return;
+    }
+    
+    if (this.currentCollectionId) {
+      this.loadCollectionProductsPaged();
+      return;
+    }
+
     if (this.currentKeyword && this.currentKeyword.trim() !== '') {
       this.performSearch(this.currentKeyword);
       return;
     }
+
     if (this.selectedCategoryId) {
       this.toggleFilter();
       this.applyFilter();
       return;
     }
+
     this.loadProducts();
     this.scrollToProductGrid();
   }
@@ -542,9 +578,111 @@ export class CustomerProduct implements OnInit {
   }
 
   get isSearchOrFilterActive(): boolean {
-    // Trả về true nếu có từ khóa tìm kiếm HOẶC có chọn danh mục
     return (this.currentKeyword !== null && this.currentKeyword !== '') ||
-      (this.selectedCategoryId !== null && this.selectedCategoryId !== '');
+      (this.selectedCategoryId !== null && this.selectedCategoryId !== '') ||
+      (this.currentListType !== '') ||
+      (this.currentCollectionId !== '');
+  }
+
+  loadAllSaleProducts() {
+    this.loading = true;
+    // Giả sử ta lấy tối đa 50 món sale để khách xem, bạn có thể chỉnh số này
+    this.productService.getSaleProducts(1,10).subscribe({
+      next: (res: any) => {
+        const pagedResult = res.data || res.value;
+        this.products = pagedResult?.items || [];
+
+        // Cập nhật lại số trang (nếu API có trả về phân trang)
+        this.totalPages = pagedResult?.totalPages || 1;
+        this.totalCount = pagedResult?.totalCount || this.products.length;
+        this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+
+        this.loading = false;
+        this.scrollToProductGrid();
+      },
+      error: () => this.loading = false
+    });
+  }
+
+  loadBestSellersPaged() {
+    this.loading = true;
+    this.productService.getBestSellers(this.currentPage, this.pageSize).subscribe({
+      next: (res: any) => {
+        if (res.isSuccess && res.value) {
+          const pagedResult = res.value; 
+
+          this.products = pagedResult.items;
+
+          this.totalPages = pagedResult.totalPages || 0;
+          this.totalCount = pagedResult.totalCount || 0;
+          this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        this.loading = false;
+      },
+      error: () => this.loading = false
+    });
+  }
+
+  loadCollectionProductsPaged() {
+    this.loading = true;
+    this.productService.getProductsByCollection(this.currentCollectionId, this.currentPage, this.pageSize).subscribe({
+      next: (res: any) => {
+        const pagedResult = res.data;
+
+        if (pagedResult) {
+          this.products = pagedResult.items || [];
+
+          this.totalPages = pagedResult.totalPages || 0;
+          this.totalCount = pagedResult.totalCount || 0;
+          this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        this.loading = false;
+      },
+      error: () => this.loading = false
+    });
+  }
+
+  loadHotSalesPaged() {
+    this.loading = true;
+
+    // Gọi API lấy danh sách Flash Sale có phân trang
+    this.productService.getSaleProducts(this.currentPage, this.pageSize).subscribe({
+      next: (res: any) => {
+        const pagedResult = res.data || res.value;
+
+        if (pagedResult) {
+          this.products = (pagedResult.items || []).map((product: any) => ({
+            ...product,
+            categoryName: this.categoriesMap.get(product.categoryId) || 'N/A',
+          }));
+
+          this.totalPages = pagedResult.totalPages || 0;
+          this.totalCount = pagedResult.totalCount || 0;
+          this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+
+          this.scrollToProductGrid();
+        }
+        this.loading = false;
+      },
+      error: (err) => {
+        this.logger.error(`Lỗi khi tải danh sách Hot Sale: ${err}`);
+        this.loading = false;
+      }
+    });
+  }
+
+  isSaleActive(item: any): boolean {
+    if (!item || !item.discountPercent || item.discountPercent <= 0) return false;
+    if (!item.discountEndDate) return false;
+
+    const now = new Date().getTime();
+    const endDate = new Date(item.discountEndDate).getTime();
+
+    return endDate > now;
   }
 
 }

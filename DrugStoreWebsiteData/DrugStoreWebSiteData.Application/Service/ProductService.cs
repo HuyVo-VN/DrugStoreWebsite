@@ -309,78 +309,84 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task<Result<PagedResult<ProductResponseDto>>> GetSaleProductsAsync(int limit = 10)
+    public async Task<Result<string>> CancelSaleAsync(Guid productId)
     {
         try
         {
-            var products = await _productRepository.GetSaleProductsAsync(limit);
+            var product = await _productRepository.GetByIdAsync(productId);
 
-            var responseDtos = new List<ProductResponseDto>();
-            var dtoHelper = new ProductResponseDto();
-
-            foreach (var product in products)
+            if (product == null)
             {
-                responseDtos.Add(dtoHelper.mapToProductDto(product));
+                return Result<string>.Failure("Can not find any products.");
             }
 
-            var pagedResult = new PagedResult<ProductResponseDto>(responseDtos, responseDtos.Count, 1, limit);
+            product.CancelFlashSale();
 
-            return Result<PagedResult<ProductResponseDto>>.Success(pagedResult);
+            _productRepository.Update(product);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return Result<string>.Success("Flash Sale has been successfully turned off.!");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while retrieving sale products");
-            return Result<PagedResult<ProductResponseDto>>.Failure($"An error occurred: {ex.Message}");
+            return Result<string>.Failure($"Error when turning off sale: {ex.Message}");
         }
     }
 
-    public async Task<Result<PagedResult<ProductResponseDto>>> GetBestSellerProductsAsync(int limit = 10)
+    public async Task<Result<PagedResult<ProductResponseDto>>> GetSaleProductsPagedAsync(int pageIndex, int pageSize)
     {
         try
         {
-            var products = await _productRepository.GetBestSellerProductsAsync(limit);
+            var (items, totalCount) = await _productRepository.GetSaleProductsPagedAsync(pageIndex, pageSize);
 
-            var responseDtos = new List<ProductResponseDto>();
-            var dtoHelper = new ProductResponseDto();
-
-            foreach (var product in products)
+            var dtos = items.Select(product =>
             {
-                responseDtos.Add(dtoHelper.mapToProductDto(product));
-            }
+                var dto = new ProductResponseDto();
+                return dto.mapToProductDto(product);
+                
+            }).ToList();
 
-            var pagedResult = new PagedResult<ProductResponseDto>(responseDtos, responseDtos.Count, 1, limit);
+            var pagedResult = new PagedResult<ProductResponseDto>(dtos, totalCount, pageIndex, pageSize);
 
             return Result<PagedResult<ProductResponseDto>>.Success(pagedResult);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while retrieving best seller products");
-            return Result<PagedResult<ProductResponseDto>>.Failure($"An error occurred: {ex.Message}");
+            return Result<PagedResult<ProductResponseDto>>.Failure($"Error when loading Flash Sale: {ex.Message}");
         }
     }
+    public async Task<Result<PagedResult<ProductResponseDto>>> GetBestSellersPagedAsync(int pageIndex, int pageSize)
+    {
+        var (items, totalCount) = await _productRepository.GetBestSellersPagedAsync(pageIndex, pageSize);
 
-    public async Task<Result<PagedResult<ProductResponseDto>>> GetProductsByCollectionNameAsync(string collectionName, int take)
+        var dtos = items.Select(p => {
+            var dto = new ProductResponseDto();
+            return dto.mapToProductDto(p);
+        }).ToList();
+
+        var pagedResult = new PagedResult<ProductResponseDto>(dtos, totalCount, pageIndex, pageSize);
+        return Result<PagedResult<ProductResponseDto>>.Success(pagedResult);
+    }
+
+    public async Task<Result<PagedResult<ProductResponseDto>>> GetProductsByCollectionPagedAsync(Guid collectionId, int pageIndex, int pageSize)
     {
         try
         {
-            var products = await _productRepository.GetProductsByCollectionNameAsync(collectionName, take);
+            var (items, totalCount) = await _productRepository.GetProductsByCollectionPagedAsync(collectionId, pageIndex, pageSize);
 
-            var responseDtos = new List<ProductResponseDto>();
-            var dtoHelper = new ProductResponseDto();
+            var dtos = items.Select(p => {
+                var dto = new ProductResponseDto();
+                return dto.mapToProductDto(p);
+            }).ToList();
 
-            foreach (var product in products)
-            {
-                responseDtos.Add(dtoHelper.mapToProductDto(product));
-            }
-
-            var pagedResult = new PagedResult<ProductResponseDto>(responseDtos, responseDtos.Count, 1, take);
+            var pagedResult = new PagedResult<ProductResponseDto>(dtos, totalCount, pageIndex, pageSize);
 
             return Result<PagedResult<ProductResponseDto>>.Success(pagedResult);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error when selecting products by collection {CollectionName}", collectionName);
-            return Result<PagedResult<ProductResponseDto>>.Failure("Unable to retrieve collection data");
+            return Result<PagedResult<ProductResponseDto>>.Failure($"Error when loading Collection: {ex.Message}");
         }
     }
 

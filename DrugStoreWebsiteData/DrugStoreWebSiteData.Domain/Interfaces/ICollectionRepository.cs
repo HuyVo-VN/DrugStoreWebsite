@@ -11,4 +11,5 @@ public interface ICollectionRepository
     void Update(Collection collection);
     Task<bool> DeleteAsync(Guid id);
     Task UpdateCollectionProductsAsync(Guid collectionId, List<Guid> productIds);
+
 }

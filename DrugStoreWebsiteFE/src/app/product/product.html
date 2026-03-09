@@ -39,21 +39,38 @@
         </td>
 
         <td>{{ product.price ? (product.price | currency:'USD':'symbol') : '—' }}</td>
-        <td>
-          <div *ngIf="product.discountPercent > 0">
-            <span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px;">
-              Sale {{ product.discountPercent }}%
-            </span>
-            <div style="font-size: 12px; color: #666; margin-top: 4px;">
-              Quantity in sale: {{ product.saleStock - (product.saleSold || 0) }}/{{ product.saleStock || 0 }}
+        <td style="vertical-align: middle;">
+          <div *ngIf="isSaleActive(product); else noSale" class="sale-info-wrapper">
+
+            <div style="margin-bottom: 6px;">
+              <span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block;">
+                <i class="fa-solid fa-bolt"></i> Sale {{ product.discountPercent }}%
+              </span>
             </div>
-            <div style="font-size: 11px; color: #dc3545;" *ngIf="product.discountEndDate">
-              Expiration date: {{ product.discountEndDate | date:'dd/MM/yy HH:mm' }}
+
+            <div style="font-size: 12px; color: #555; margin-bottom: 2px;">
+              Quantity in sale: <strong>{{ (product.saleStock || 0) - (product.saleSold || 0) }}</strong> / {{ product.saleStock || 0 }}
             </div>
+
+            <div style="font-size: 11px; color: #dc3545; margin-bottom: 8px;" *ngIf="product.discountEndDate">
+              <i class="fa-regular fa-clock"></i> Expiration: {{ product.discountEndDate | date:'dd/MM/yy HH:mm' }}
+            </div>
+
+            <button type="button"
+                    style="background: white; border: 1px solid #dc3545; color: #dc3545; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: 0.2s;"
+                    onmouseover="this.style.background='#dc3545'; this.style.color='white'"
+                    onmouseout="this.style.background='white'; this.style.color='#dc3545'"
+                    (click)="$event.stopPropagation(); onCancelSale(product.id)">
+              <i class="fa-solid fa-ban"></i> Cancel sale
+            </button>
+
           </div>
-          <span *ngIf="!product.discountPercent || product.discountPercent === 0" style="color: #999; font-size: 12px;">
-            No Sale
-          </span>
+
+          <ng-template #noSale>
+            <span style="color: #999; font-size: 12px; font-style: italic;">
+              No Sale
+            </span>
+          </ng-template>
         </td>
         <td>{{ product.stock || '0' }}</td>
         <td>{{ product.categoryName || '—' }}</td>

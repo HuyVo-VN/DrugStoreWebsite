@@ -3,10 +3,12 @@ using DrugStoreWebSiteData.Application.DTOs;
 using DrugStoreWebSiteData.Application.DTOs.Request;
 using DrugStoreWebSiteData.Application.DTOs.Response;
 using DrugStoreWebSiteData.Application.Interfaces;
+using DrugStoreWebSiteData.Application.Services;
 using DrugStoreWebSiteData.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace DrugStoreWebSiteData.Api.Controllers;
@@ -309,32 +311,97 @@ public class ProductsController : ControllerBase
         }
     }
 
+    [HttpPatch("cancel-sale/{id}")]
+    [Authorize(Roles = RoleConstants.ManagerRoles)]
+    [ProducesResponseType(typeof(ResponseModel<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CancelSale(Guid id)
+    {
+        var result = new ResponseModel<string>();
+        try
+        {
+            var cancelResult = await _productService.CancelSaleAsync(id);
+
+            if (cancelResult.IsFailure)
+            {
+                if (cancelResult.Error.Contains("Can not find"))
+                {
+                    result.Status = 404;
+                    result.Message = cancelResult.Error;
+                    return NotFound(result);
+                }
+
+                result.Status = 400;
+                result.Message = cancelResult.Error;
+                return BadRequest(result);
+            }
+
+            result.Status = 200;
+            result.Message = cancelResult.Value;
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while disabling sales for product ID: {ProductId}", id);
+            result.Status = 400;
+            result.Message = $"An unknown error has occurred.: {ex.Message}";
+            return BadRequest(result);
+        }
+    }
+
     [AllowAnonymous]
     [HttpGet("sale-products")]
     [ProducesResponseType(typeof(IEnumerable<ProductResponseDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetSaleProducts([FromQuery] int limit = 10)
+    public async Task<IActionResult> GetSaleProducts([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 15)
     {
-        // Controller chỉ việc gọi Service
-        var result = await _productService.GetSaleProductsAsync(limit);
-        return Ok(result);
+        var result = await _productService.GetSaleProductsPagedAsync(pageIndex, pageSize);
+
+        if (result.IsSuccess)
+        {
+            return Ok(new
+            {
+                status = 200,
+                data = result.Value
+            });
+        }
+
+        return BadRequest(new
+        {
+            status = 400,
+            message = result.Error
+        });
     }
 
     [AllowAnonymous]
     [HttpGet("best-sellers")]
-    [ProducesResponseType(typeof(IEnumerable<ProductResponseDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetBestSellers([FromQuery] int limit = 10)
+    public async Task<IActionResult> GetBestSellers([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 15)
     {
-        var result = await _productService.GetBestSellerProductsAsync(limit);
-        return Ok(result);
+        var result = await _productService.GetBestSellersPagedAsync(pageIndex, pageSize);
+        if (result.IsSuccess) return Ok(result);
+        return BadRequest(result.Error);
     }
 
     [AllowAnonymous]
-    [HttpGet("collection/{collectionName}")]
-    public async Task<IActionResult> GetProductsByCollectionName(string collectionName, [FromQuery] int take = 5)
+    [HttpGet("{id}/products")]
+    public async Task<IActionResult> GetProductsByCollection(Guid id, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 15)
     {
-        var result = await _productService.GetProductsByCollectionNameAsync(collectionName, take);
-        if (!result.IsSuccess) return BadRequest(result);
-        return Ok(result);
+        var result = await _productService.GetProductsByCollectionPagedAsync(id, pageIndex, pageSize);
+
+        if (result.IsSuccess)
+        {
+            return Ok(new
+            {
+                status = 200,
+                data = result.Value
+            });
+        }
+
+        return BadRequest(new
+        {
+            status = 400,
+            message = result.Error
+        });
     }
 
 }

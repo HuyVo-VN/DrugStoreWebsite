@@ -14,9 +14,7 @@ public interface IProductRepository
     Task<(List<Product> Items, int TotalCount)> SearchByNameAsync(string name, int pageNumber, int pageSize);
     Task<(List<Product> Items, int TotalCount)> FilterByCategoryAsync(Guid categoryId, int pageNumber, int pageSize);
     Task<(List<Product> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize);
-
-    Task<IEnumerable<Product>> GetSaleProductsAsync(int limit = 10);
-    Task<IEnumerable<Product>> GetBestSellerProductsAsync(int limit = 10);
-
-    Task<IEnumerable<Product>> GetProductsByCollectionNameAsync(string collectionName, int take);
+    Task<(IEnumerable<Product> Items, int TotalCount)> GetBestSellersPagedAsync(int pageIndex, int pageSize);
+    Task<(IEnumerable<Product> Items, int TotalCount)> GetSaleProductsPagedAsync(int pageIndex, int pageSize);
+    Task<(IEnumerable<Product> Items, int TotalCount)> GetProductsByCollectionPagedAsync(Guid collectionId, int pageIndex, int pageSize);
 }

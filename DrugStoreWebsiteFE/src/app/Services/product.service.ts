@@ -88,7 +88,7 @@ export class ProductService {
   getProductById(id: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/${id}`);
   }
-  
+
   private _productId: string = '';
 
   setProductId(id: string) {
@@ -99,15 +99,20 @@ export class ProductService {
     return this._productId;
   }
 
-  getSaleProducts(limit: number = 10): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/sale-products?limit=${limit}`);
+  getSaleProducts(pageIndex: number, pageSize: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/sale-products?pageIndex=${pageIndex}&pageSize=${pageSize}`);
   }
 
-  getBestSellers(limit: number = 10): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/best-sellers?limit=${limit}`);
+  getBestSellers(pageIndex: number, pageSize: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/best-sellers?pageIndex=${pageIndex}&pageSize=${pageSize}`);
   }
 
-  getProductsByCollectionName(collectionName: string, take: number = 5): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/collection/${encodeURIComponent(collectionName)}?take=${take}`);
+  getProductsByCollection(collectionId: string, pageIndex: number, pageSize: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${collectionId}/products?pageIndex=${pageIndex}&pageSize=${pageSize}`);
+
+  }
+
+  cancelSale(productId: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/cancel-sale/${productId}`, {});
   }
 }

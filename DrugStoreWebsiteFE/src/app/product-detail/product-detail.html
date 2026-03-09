@@ -19,7 +19,7 @@
         <div style="margin-top: 25px; margin-bottom: 25px; background-color: #f8f9fa; padding: 15px 20px; border-radius: 8px;"
              *ngIf="product.isActive == true && product.stock > 0; else productUnavailable">
 
-          <ng-container *ngIf="product.discountPercent > 0">
+          <ng-container *ngIf="isSaleActive(product)">
             <span style="color: #ff424e; font-weight: bold; font-size: 32px;">
               {{ product.price - (product.price * product.discountPercent / 100) | currency:'USD':'symbol':'1.0-2' }}
             </span>
@@ -31,7 +31,7 @@
             </span>
           </ng-container>
 
-          <ng-container *ngIf="!product.discountPercent || product.discountPercent === 0">
+          <ng-container *ngIf="!isSaleActive(product)">
             <span style="color: #008cef; font-weight: bold; font-size: 32px;">
               {{ product.price | currency:'USD':'symbol':'1.0-2' }}
             </span>
@@ -134,11 +134,11 @@
         <span>Order Summary</span>
         <div class="summary-row">
           <span>Item Total</span>
-          <span>{{ grandTotal | currency:'USD':'symbol':'1.0-2' }}</span>
+          <span>{{ originalTotal | currency:'USD':'symbol':'1.0-2' }}</span>
         </div>
         <div class="summary-row">
           <span>Discount</span>
-          <span>- $0</span>
+          <span>- {{ saleDiscountTotal | currency:'USD':'symbol':'1.0-2' }}</span>
         </div>
         <div class="summary-divider"></div>
         <div>

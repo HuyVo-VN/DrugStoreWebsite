@@ -58,7 +58,9 @@
             <span class="time-box">{{ fsSeconds }}</span>
           </div>
         </div>
-        <a class="fs-view-all" routerLink="/sales">View All<i class="fa-solid fa-chevron-right"></i></a>
+        <a class="fs-view-all" [routerLink]="['/']" [queryParams]="{ type: 'hotsale' }">
+          View All<i class="fa-solid fa-chevron-right"></i>
+        </a>
       </div>
 
       <div class="flash-sale-list">
@@ -108,7 +110,7 @@
           <div class="bs-info">
             <h3 class="bs-name" title="{{ item.name }}">{{ item.name }}</h3>
             <div class="bs-price-row" style="margin: 5px 0;">
-              <ng-container *ngIf="item.discountPercent > 0">
+              <ng-container *ngIf="isSaleActive(item)">
                 <span class="fs-current-price" style="color: #ff424e; font-weight: bold;">
                   {{ item.price - (item.price * item.discountPercent / 100) | currency : 'USD' : 'symbol' : '1.0-2' }}
                 </span>
@@ -117,7 +119,7 @@
                 </span>
               </ng-container>
 
-              <ng-container *ngIf="!item.discountPercent || item.discountPercent === 0">
+              <ng-container *ngIf="!isSaleActive(item)">
                 <p class="bs-price" style="margin: 0;">{{ item.price | currency : 'USD' : 'symbol' : '1.0-2' }}</p>
               </ng-container>
             </div>
@@ -144,8 +146,8 @@
             <i class="fa-solid fa-layer-group fc-icon"></i>
             {{ collection.name | uppercase }}
           </h2>
-          <a class="fc-view-all" routerLink="/">
-            Xem gợi ý đầy đủ <i class="fa-solid fa-arrow-right"></i>
+          <a class="fc-view-all" [routerLink]="['/']" [queryParams]="{ collectionId: collection.id }">
+            View All <i class="fa-solid fa-arrow-right"></i>
           </a>
         </div>
 
@@ -160,7 +162,7 @@
               <h3 class="fc-name" title="{{ item.name }}">{{ item.name }}</h3>
 
               <div class="fc-price-row" style="margin: 5px 0;">
-                <ng-container *ngIf="item.discountPercent > 0">
+                <ng-container *ngIf="isSaleActive(item)">
                   <span class="fs-current-price" style="color: #ff424e; font-weight: bold;">
                     {{ item.price - (item.price * item.discountPercent / 100) | currency : 'USD' : 'symbol' : '1.0-2' }}
                   </span>
@@ -169,7 +171,7 @@
                   </span>
                 </ng-container>
 
-                <ng-container *ngIf="!item.discountPercent || item.discountPercent === 0">
+                <ng-container *ngIf="!isSaleActive(item)">
                   <p class="fc-price" style="margin: 0; font-weight: bold; color: #008cef;">{{ item.price | currency : 'USD' : 'symbol' : '1.0-2' }}</p>
                 </ng-container>
               </div>
@@ -179,7 +181,7 @@
                   <i class="fa-solid fa-star"></i> {{ item.rating || 5.0 }}
                 </div>
                 <button class="fc-add-btn" (click)="$event.stopPropagation(); addToCart($event, item)">
-                  <i class="fa-solid fa-cart-plus"></i> Thêm
+                  <i class="fa-solid fa-cart-plus"></i> Add
                 </button>
               </div>
             </div>
@@ -205,7 +207,7 @@
 
           <div class="price-wrapper" style="margin-top: 5px;">
 
-            <ng-container *ngIf="product.discountPercent > 0">
+            <ng-container *ngIf="isSaleActive(product)">
               <span class="fs-current-price" style="color: #ff424e; font-weight: bold; font-size: 1.1rem;">
                 {{ product.price - (product.price * product.discountPercent / 100) | currency : 'USD' : 'symbol' : '1.0-2' }}
               </span>
@@ -214,7 +216,7 @@
               </span>
             </ng-container>
 
-            <ng-container *ngIf="!product.discountPercent || product.discountPercent === 0">
+            <ng-container *ngIf="!isSaleActive(product)">
               <p class="product-price" style="margin: 0; color: #008cef; font-weight: bold; font-size: 1.1rem;">
                 {{ product.price | currency : 'USD' : 'symbol' : '1.0-2' }}
               </p>

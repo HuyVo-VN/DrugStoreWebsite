@@ -750,4 +750,32 @@ export class Product implements OnInit {
     
   }
 
+  isSaleActive(product: any): boolean {
+    if (!product.discountPercent || product.discountPercent <= 0) return false;
+    if (!product.discountEndDate) return false;
+
+    const now = new Date().getTime();
+    const endDate = new Date(product.discountEndDate).getTime();
+
+    return endDate > now;
+  }
+
+  onCancelSale(productId: string) {
+    Swal.fire({
+      title: 'Do you want to turn off sales for this product?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Turn off now'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.productService.cancelSale(productId).subscribe({
+          next: () => {
+            Swal.fire('Success', 'Sales turned off!', 'success');
+            this.loadProducts(); 
+          }
+        });
+      }
+    });
+  }
+
 }

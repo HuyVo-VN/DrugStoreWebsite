@@ -22,6 +22,9 @@ export class Cart implements OnInit {
   grandTotal: number = 0;
   isAllSelected: boolean = true;
 
+  originalTotal: number = 0;   
+  saleDiscountTotal: number = 0;
+
   phone: string = '';
   address = '';
   username = '';
@@ -89,15 +92,23 @@ export class Cart implements OnInit {
   }
 
   calculateTotal() {
-    this.grandTotal = this.cartItems
-      .filter(item => item.selected && item.isAvailable)
-      .reduce((total, item) => {
-        const actualPrice = item.discountPercent > 0
-          ? item.price - (item.price * item.discountPercent / 100)
-          : item.price;
+    this.originalTotal = 0;
+    this.saleDiscountTotal = 0;
+    this.grandTotal = 0;
 
-        return total + (actualPrice * item.quantity);
-      }, 0);
+    const selectedItems = this.cartItems.filter(item => item.selected && item.isAvailable);
+
+    selectedItems.forEach(item => {
+      const itemOriginal = item.price * item.quantity;
+      this.originalTotal += itemOriginal;
+
+      if (this.isSaleActive(item)) {
+        const discountPerItem = (item.price * item.discountPercent) / 100;
+        this.saleDiscountTotal += discountPerItem * item.quantity;
+      }
+    });
+
+    this.grandTotal = this.originalTotal - this.saleDiscountTotal;
 
     if (this.paymentMethod === 'ATM') {
       this.discountAmount = this.grandTotal * 0.03;
@@ -326,6 +337,16 @@ export class Cart implements OnInit {
       }
     }
     return maxAllowed;
+  }
+
+  isSaleActive(item: any): boolean {
+    if (!item || !item.discountPercent || item.discountPercent <= 0) return false;
+    if (!item.discountEndDate) return false;
+
+    const now = new Date().getTime();
+    const endDate = new Date(item.discountEndDate).getTime();
+
+    return endDate > now;
   }
 
 }

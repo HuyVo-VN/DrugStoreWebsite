@@ -2,6 +2,7 @@
 using DrugStoreWebSiteData.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using DrugStoreWebSiteData.Domain.Interfaces;
+using DrugStoreWebSiteData.Application.Common;
 
 namespace DrugStoreWebSite.Infrastructure.Repositories;
 
@@ -106,43 +107,92 @@ public class ProductRepository : IProductRepository
         return (items, totalCount);
     }
 
-    public async Task<IEnumerable<Product>> GetSaleProductsAsync(int limit = 10)
+    //public async Task<(IEnumerable<Product> Items, int TotalCount)> GetBestSellersPagedAsync(int pageIndex, int pageSize)
+    //{
+    //    var query = _context.Products
+    //        .Where(p => p.IsActive && p.SoldQuantity > 0)
+    //        .OrderByDescending(p => p.SoldQuantity);
+
+    //    int totalCount = await query.CountAsync();
+    //    var items = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+
+    //    return (items, totalCount);
+    //}
+
+    //public async Task<(IEnumerable<Product> Items, int TotalCount)> GetSaleProductsPagedAsync(int pageIndex, int pageSize)
+    //{
+    //    var currentTime = DateTime.UtcNow;
+
+    //    var query = _context.Products
+    //        .Where(p => p.IsActive
+    //                 && p.DiscountPercent > 0
+    //                 && p.DiscountEndDate.HasValue
+    //                 && p.DiscountEndDate.Value > currentTime
+    //                 && p.SaleSold < p.SaleStock);
+
+    //    int totalCount = await query.CountAsync();
+
+    //    var items = await query
+    //        .OrderBy(p => p.DiscountEndDate)
+    //        .Skip((pageIndex - 1) * pageSize)
+    //        .Take(pageSize)
+    //        .ToListAsync();
+
+    //    return (items, totalCount);
+    //}
+
+    public async Task<(IEnumerable<Product> Items, int TotalCount)> GetSaleProductsPagedAsync(int pageIndex, int pageSize)
     {
+        var currentTime = DateTime.UtcNow;
 
-        var now = DateTime.UtcNow;
+        var query = _context.Products
+            .Include(p => p.Category) // Phải có dòng này để lúc map DTO không bị lỗi Null
+            .Where(p => p.IsActive
+                     && p.DiscountPercent > 0
+                     && p.DiscountEndDate > currentTime // Bỏ .HasValue và .Value đi
+                     && p.SaleSold < p.SaleStock);
 
-        return await _context.Products
-            .Where(p => p.DiscountPercent > 0 
-            && p.IsActive == true
-            && p.DiscountEndDate != null
-            && p.DiscountEndDate > now
-            && p.SaleSold < p.SaleStock)
-            .OrderByDescending(p => p.DiscountPercent)
+        int totalCount = await query.CountAsync();
+
+        var items = await query
             .OrderBy(p => p.DiscountEndDate)
-            .Take(limit)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+
+        return (items, totalCount);
     }
 
-    public async Task<IEnumerable<Product>> GetBestSellerProductsAsync(int limit = 10)
+    public async Task<(IEnumerable<Product> Items, int TotalCount)> GetBestSellersPagedAsync(int pageIndex, int pageSize)
     {
-        return await _context.Products
-            .Where(p => p.IsActive && p.SoldQuantity > 0) 
-            .OrderByDescending(p => p.SoldQuantity)
-            .Take(limit)
-            .ToListAsync();
-    }
+        var query = _context.Products
+            .Include(p => p.Category) // Phải có dòng này để lúc map DTO không bị lỗi Null
+            .Where(p => p.IsActive && p.SoldQuantity > 0)
+            .OrderByDescending(p => p.SoldQuantity);
 
-    public async Task<IEnumerable<Product>> GetProductsByCollectionNameAsync(string collectionName, int take)
-    {
-        return await _context.ProductCollections
-            .Include(pc => pc.Product)
-            .Include(pc => pc.Collection)
-            .Where(pc => pc.Collection.Name.Contains(collectionName)
-                      && pc.Collection.IsActive
-                      && pc.Product.IsActive)
-            .Select(pc => pc.Product)
-            .Take(take)
+        int totalCount = await query.CountAsync();
+
+        var items = await query
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+
+        return (items, totalCount);
+    }
+    public async Task<(IEnumerable<Product> Items, int TotalCount)> GetProductsByCollectionPagedAsync(Guid collectionId, int pageIndex, int pageSize)
+    {
+        var query = _context.Products
+            .Where(p => p.IsActive && p.ProductCollections.Any(pc => pc.CollectionId == collectionId))
+            .OrderByDescending(p => p.Price);
+
+        int totalCount = await query.CountAsync();
+
+        var items = await query
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 
 }

@@ -50,6 +50,9 @@ export class ProductDetail implements OnInit {
   max = 50;
   step = 1;
 
+  originalTotal: number = 0;
+  saleDiscountTotal: number = 0;
+
 
   totalToPay = 0;
   phone = '';
@@ -277,11 +280,16 @@ export class ProductDetail implements OnInit {
   }
 
   calculateTotal() {
-    const actualPrice = this.product.discountPercent > 0
-      ? this.product.price - (this.product.price * this.product.discountPercent / 100)
-      : this.product.price;
+    this.originalTotal = this.product.price * this.quantity;
 
-    this.grandTotal = actualPrice * this.quantity;
+    if (this.isSaleActive(this.product)) {
+      const discountPerItem = (this.product.price * this.product.discountPercent) / 100;
+      this.saleDiscountTotal = discountPerItem * this.quantity;
+    } else {
+      this.saleDiscountTotal = 0;
+    }
+
+    this.grandTotal = this.originalTotal - this.saleDiscountTotal;
 
     if (this.paymentMethod === 'ATM') {
       this.discountAmount = this.grandTotal * 0.03;
@@ -301,6 +309,16 @@ export class ProductDetail implements OnInit {
     } else {
       Swal.fire('Too late!', 'Only a limited number of Flash Sale slots left!', 'info');
     }
+  }
+
+  isSaleActive(item: any): boolean {
+    if (!item || !item.discountPercent || item.discountPercent <= 0) return false;
+    if (!item.discountEndDate) return false;
+
+    const now = new Date().getTime();
+    const endDate = new Date(item.discountEndDate).getTime();
+
+    return endDate > now;
   }
 
 }
