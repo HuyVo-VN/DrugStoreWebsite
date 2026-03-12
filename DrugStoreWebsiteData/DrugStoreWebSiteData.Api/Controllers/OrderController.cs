@@ -169,6 +169,7 @@ public class OrderController : ControllerBase
                 return BadRequest(responseResult);
             }
 
+            responseResult.Status = 200;
             responseResult.Data = serviceResult.Value;
             responseResult.Message = "Create new order successfully";
 

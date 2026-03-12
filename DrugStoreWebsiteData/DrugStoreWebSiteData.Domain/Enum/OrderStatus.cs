@@ -5,5 +5,6 @@ public enum OrderStatus
     New = 0,
     Processing = 1,
     Completed = 2,
-    Cancelled = 3
+    Cancelled = 3,
+    Paid = 4
 }

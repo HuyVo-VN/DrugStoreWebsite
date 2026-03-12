@@ -10,6 +10,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using dotenv.net;
 using DrugStoreWebSiteData.Infrastructure.Services;
+using DrugStoreWebSiteData.Application.DTOs.VnPay;
+using DrugStoreWebSiteData.Application.Service;
 
 DotEnv.Load();
 
@@ -97,7 +99,9 @@ builder.Services.AddScoped<IBannerRepository, BannerRepository>();
 builder.Services.AddScoped<IBannerService, BannerService>();
 builder.Services.AddScoped<ICollectionService, CollectionService>();
 builder.Services.AddScoped<ICollectionRepository, CollectionRepository>();
+builder.Services.AddScoped<IVnPayService, VnPayService>();
 builder.Services.AddAuthorization();
+builder.Services.Configure<VnPayConfig>(builder.Configuration.GetSection("Vnpay"));
 
 
 var app = builder.Build();
