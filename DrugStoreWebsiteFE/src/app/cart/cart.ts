@@ -9,6 +9,7 @@ import { LoggerService } from '../Services/logger.service';
 import { AuthService } from '../Services/auth.service';
 import { UserService } from '../Services/user';
 import { OrderService } from '../Services/order.service';
+import { PaymentService } from '../Services/payment.service';
 
 @Component({
   selector: 'app-cart',
@@ -41,7 +42,14 @@ export class Cart implements OnInit {
   totalToPay: number = 0;
   paymentMethod: string = 'Cash';
 
-  constructor(private cartService: CartService, private logger: LoggerService, private authService: AuthService, private userService: UserService, private orderService: OrderService) { }
+  constructor(
+    private cartService: CartService,
+    private logger: LoggerService,
+    private authService: AuthService,
+    private userService: UserService,
+    private orderService: OrderService,
+    private paymentService: PaymentService
+  ) { }
 
   ngOnInit() {
     this.loadCart();
@@ -275,50 +283,63 @@ export class Cart implements OnInit {
     this.calculateTotal();
   }
   createOrder() {
-    const selectedItems = this.cartItems
-      .filter(item => item.selected && item.isAvailable);
+    const selectedItems = this.cartItems.filter(item => item.selected && item.isAvailable);
 
     this.orderService.createOrder(this.totalToPay, this.address, this.phone, selectedItems)
       .subscribe({
-        next: (response) => {
-          if (response.status === 0) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Order created successfully',
-              timer: 1500,
-              heightAuto: false,
-              showConfirmButton: false
-            }).then(() => {
-              const deleteCalls = selectedItems.map(item =>
-                this.cartService.removeFromCart(item.itemId)
-              );
+        next: (response: any) => {
+          // GHI CHÚ: Hãy đảm bảo API createOrder của bạn có trả về thông tin đơn hàng vừa tạo (đặc biệt là ID)
+          // Thường nó sẽ nằm ở response.data.id hoặc response.value.id
 
-              Promise.all(deleteCalls.map(obs => obs.toPromise())).then(() => {
-                this.loadCart();
+          if (response.status === 0 || response.status === 200) {
+
+            if (this.paymentMethod === 'ATM') {
+
+              const createdOrderId = response.data?.id || response.value?.id;
+
+              if (!createdOrderId) {
+                Swal.fire('Error', 'Unable to retrieve the order number to make payment!', 'error');
+                return;
+              }
+
+              this.paymentService.createPaymentUrl(createdOrderId, this.totalToPay).subscribe({
+                next: (res) => {
+                  if (res.url) {
+                    const deleteCalls = selectedItems.map(item => this.cartService.removeFromCart(item.itemId));
+
+                    Promise.all(deleteCalls.map(obs => obs.toPromise())).then(() => {
+                      window.location.href = res.url; 
+                    }).catch(() => {
+                      window.location.href = res.url;
+                    });
+                    // -------------------------------------------------------------------
+
+                  }
+                },
+                error: () => Swal.fire('Error', 'Unable to create VNPay payment link', 'error')
               });
 
-            });
+            }
+            else {
+              Swal.fire({
+                icon: 'success',
+                title: 'Order created successfully',
+                timer: 1500,
+                heightAuto: false,
+                showConfirmButton: false
+              }).then(() => {
+                const deleteCalls = selectedItems.map(item => this.cartService.removeFromCart(item.itemId));
+                Promise.all(deleteCalls.map(obs => obs.toPromise())).then(() => {
+                  this.loadCart();
+                });
+              });
+            }
+
           } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Failed',
-              text: response.message || 'Something went wrong!',
-              timer: 2500,
-              showConfirmButton: false,
-              heightAuto: false,
-            });
+            Swal.fire('Failed', response.message || 'Something went wrong!', 'error');
           }
         },
-        error: (err) => {
-          Swal.fire({
-            icon: 'error',
-            title: 'Failed',
-            text: err.message || 'Something went wrong!',
-            timer: 2500,
-            showConfirmButton: false,
-            heightAuto: false,
-          });
-        }
+        error: (err) => Swal.fire('Failed', err.message || 'Something went wrong!', 'error')
       });
   }
 

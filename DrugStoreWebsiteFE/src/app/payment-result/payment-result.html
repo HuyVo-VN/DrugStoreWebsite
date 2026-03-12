@@ -1,0 +1,25 @@
+<div style="text-align: center; padding: 50px; margin-top: 50px;">
+
+  <div *ngIf="isLoading">
+    <h2>Processing payment results...</h2>
+  </div>
+
+  <div *ngIf="!isLoading && isSuccess">
+    <i class="fa-solid fa-circle-check" style="font-size: 80px; color: #28a745; margin-bottom: 20px;"></i>
+    <h2 style="color: #28a745;">Payment successful!</h2>
+    <p>Thank you for your purchase. Your order is being prepared.</p>
+    <button (click)="goToHome()" style="padding: 10px 20px; background: #0b4972; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px;">
+      Continute shopping
+    </button>
+  </div>
+
+  <div *ngIf="!isLoading && !isSuccess">
+    <i class="fa-solid fa-circle-xmark" style="font-size: 80px; color: #dc3545; margin-bottom: 20px;"></i>
+    <h2 style="color: #dc3545;">Payment failed!</h2>
+    <p>Your transaction has been invalidated or an error occurred.</p>
+    <button (click)="goToHome()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px;">
+      Go back to Cart
+    </button>
+  </div>
+
+</div>

@@ -16,6 +16,7 @@ import { CartService } from '../Services/cart.service';
 import { OrderService } from '../Services/order.service';
 import { UserService } from '../Services/user';
 import { MatRadioModule } from '@angular/material/radio';
+import { PaymentService} from '../Services/payment.service';
 
 @Component({
   selector: 'app-product-detail',
@@ -76,7 +77,8 @@ export class ProductDetail implements OnInit {
     private logger: LoggerService,
     private cartService: CartService,
     private orderService: OrderService,
-    private userService: UserService
+    private userService: UserService,
+    private paymentService: PaymentService
   ) { }
 
   ngOnInit() {
@@ -180,25 +182,43 @@ export class ProductDetail implements OnInit {
   }
   createInstantOrder() {
     if (this.userRole) {
-      const items = [
-        {
-          productId: this.productId,
-          quantity: this.quantity
-        }
-      ];
-
       this.orderService.createInstantOrder(this.totalToPay, this.address, this.phone, this.productId, this.quantity)
         .subscribe({
-          next: (response) => {
-            if (response.status === 0) {
+          next: (response: any) => {
+            if (response.status === 0 || response.status === 200) {
+
               this.hasInput = false;
-              Swal.fire({
-                icon: 'success',
-                title: 'Order created successfully',
-                timer: 1500,
-                heightAuto: false,
-                showConfirmButton: false
-              })
+
+              if (this.paymentMethod === 'ATM') {
+                const createdOrderId = response.data?.id || response.value?.id;
+
+                if (!createdOrderId) {
+                  Swal.fire('Error', 'Unable to retrieve the order number to make payment!', 'error');
+                  return;
+                }
+
+                this.paymentService.createPaymentUrl(createdOrderId, this.totalToPay).subscribe({
+                  next: (res) => {
+                    if (res.url) {
+                      window.location.href = res.url;
+                    }
+                  },
+                  error: () => Swal.fire('Lỗi', 'Unable to create VNPay payment link', 'error')
+                });
+
+              }
+              else {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Order created successfully',
+                  timer: 1500,
+                  heightAuto: false,
+                  showConfirmButton: false
+                }).then(() => {
+                  window.location.reload(); 
+                });
+              }
+
             }
             else {
               Swal.fire({
@@ -215,7 +235,7 @@ export class ProductDetail implements OnInit {
             Swal.fire({
               icon: 'error',
               title: 'Failed',
-              text: err.message || 'Something went wrong!',
+              text: err.error?.message || err.message || 'Something went wrong!',
               timer: 2500,
               showConfirmButton: false,
               heightAuto: false,
@@ -223,12 +243,11 @@ export class ProductDetail implements OnInit {
           }
         });
     }
-
     else {
       Swal.fire({
         icon: 'warning',
         title: 'Login Required',
-        text: 'Please log in to continue adding items to your cart!',
+        text: 'Please log in to continue!',
         showCancelButton: true,
         confirmButtonText: 'Login',
         cancelButtonText: 'Cancel',
