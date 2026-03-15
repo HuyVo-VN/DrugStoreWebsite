@@ -21,6 +21,7 @@ import { OrderManager } from './order-manager/order-manager';
 import { AdminBanner } from './admin-banner/admin-banner';
 import { AdminCollection } from './admin-collection/admin-collection';
 import { PaymentResult } from './payment-result/payment-result';
+import { AdminCategory } from './admin-category/admin-category';
 
 export const routes: Routes = [
   { path: 'login', component: Login, canActivate: [loginAuthGuard] },
@@ -42,5 +43,6 @@ export const routes: Routes = [
   { path: 'admin/orders', component: OrderManager, canActivate: [authGuard] },
   { path: 'admin/banners', component: AdminBanner, canActivate: [authGuard] },
   { path: 'admin/collections', component: AdminCollection, canActivate: [authGuard] },
-  { path: 'payment-result', component: PaymentResult}
+  { path: 'payment-result', component: PaymentResult },
+  { path: 'admin/categories', component: AdminCategory, canActivate: [authGuard] },
 ];

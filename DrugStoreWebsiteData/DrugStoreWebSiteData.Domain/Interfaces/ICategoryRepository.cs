@@ -4,9 +4,10 @@ namespace DrugStoreWebSiteData.Domain.Interfaces;
 
 public interface ICategoryRepository
 {
-    //Only return the entity or null if not found
     Task<Category?> GetByIdAsync(Guid id);
-    Task<Category?> GetByNameAsync(string name);
     Task<List<Category>> GetAllAsync();
+    Task<(List<Category> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize);
     Task AddAsync(Category category);
+    Task<bool> DeleteAsync(Guid categoryId);
+    void Update(Category category);
 }

@@ -38,6 +38,8 @@ public class JwtService : IJwtService
             var role = roles.FirstOrDefault() ?? "";
 
             var key = Encoding.UTF8.GetBytes(secretKey);
+            var expirationMinutesString = Environment.GetEnvironmentVariable("JWT_ACCESS_EXPIRATION_MINUTES");
+            var expirationMinutes = int.TryParse(expirationMinutesString, out var parsedMinutes) ? parsedMinutes : 5;
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var claims = new[]
@@ -51,7 +53,7 @@ public class JwtService : IJwtService
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(1),
+                Expires = DateTime.UtcNow.AddMinutes(expirationMinutes),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
                 Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")

@@ -15,6 +15,9 @@
     <div *ngIf="isAdmin" class="header-content">
       <a routerLink="/user" class="header-menu-link">Users</a>
     </div>
+    <div *ngIf="isAdmin" class="header-content">
+      <a routerLink="/admin/categories" class="header-menu-link">Categories</a>
+    </div>
     <div *ngIf="isManager" class="header-content">
       <a routerLink="/product" class="header-menu-link">Products</a>
     </div>

@@ -64,8 +64,11 @@ namespace DrugStoreWebsiteAuthen.Controllers
                 var accessToken = await _jwtService.GenerateJwtToken(user.UserName);
                 var refreshToken = await _jwtService.GenerateRefreshToken();
 
+                var expirationDaysString = Environment.GetEnvironmentVariable("JWT_REFRESH_EXPIRATION_DAYS");
+                var refreshTokenExpiryDays = int.TryParse(expirationDaysString, out var parsedMinutes) ? parsedMinutes : 15;
+
                 user.RefreshToken = refreshToken;
-                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(1);
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenExpiryDays);
                 await _userService.UpdateUserAsync(user);
 
                 return Ok(new
@@ -299,7 +302,10 @@ namespace DrugStoreWebsiteAuthen.Controllers
 
                 var newRefreshToken = await _jwtService.GenerateRefreshToken();
 
-                await _userService.SetRefreshTokenAsync(user.Data.UserName, newRefreshToken, 7);
+                var expirationDaysString = Environment.GetEnvironmentVariable("JWT_REFRESH_EXPIRATION_DAYS");
+                var refreshTokenExpiryDays = int.TryParse(expirationDaysString, out var parsedMinutes) ? parsedMinutes : 15;
+
+                await _userService.SetRefreshTokenAsync(user.Data.UserName, newRefreshToken, refreshTokenExpiryDays);
 
                 _logger.LogInformation("Token refreshed successfully for user: {UserName}.", username);
                 response.Status = 200;

@@ -114,7 +114,7 @@ export class CustomerProduct implements OnInit {
     });
 
     this.loading = true;
-    this.categoryService.getCategories().subscribe({
+    this.categoryService.getAllCategories().subscribe({
       next: (res) => {
         if (res.status === 200 && res.data) {
           this.categoriesMap.clear();
@@ -334,7 +334,7 @@ export class CustomerProduct implements OnInit {
 
   loadData() {
     this.loading = true;
-    this.categoryService.getCategories().subscribe({
+    this.categoryService.getAllCategories().subscribe({
       next: (res) => {
         if (res.status === 200 && res.data) {
           this.categories = res.data.map((category: any) => ({

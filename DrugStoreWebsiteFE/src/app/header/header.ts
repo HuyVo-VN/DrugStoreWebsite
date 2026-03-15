@@ -69,7 +69,7 @@ export class Header implements OnInit {
       this.showLoginLink();
     });
 
-    this.categoryService.getCategories().subscribe({
+    this.categoryService.getAllCategories().subscribe({
       next: (res) => {
         if (res.status === 200 && res.data) {
           this.categories = res.data;

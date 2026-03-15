@@ -1,18 +1,15 @@
 using DrugStoreWebSiteData.Domain.Entities;
 using DrugStoreWebSiteData.Infrastructure.Persistence;
-using Microsoft.Extensions.Logging;
-using DrugStoreWebSiteData.Application.Common;
 using Microsoft.EntityFrameworkCore;
 using DrugStoreWebSiteData.Domain.Interfaces;
 
-namespace DrugStoreWebSiteData.Infrastructure.Repositories;
+namespace DrugStoreWebSite.Infrastructure.Repositories;
 
 public class CategoryRepository : ICategoryRepository
 {
     private readonly DrugStoreDbContext _context;
-    public CategoryRepository() { }
 
-    public CategoryRepository(DrugStoreDbContext context, ILogger<CategoryRepository> logger)
+    public CategoryRepository(DrugStoreDbContext context)
     {
         _context = context;
     }
@@ -21,10 +18,22 @@ public class CategoryRepository : ICategoryRepository
     {
         return await _context.Categories.FindAsync(id);
     }
-    
-    public async Task<Category?> GetByNameAsync(string name)
+
+    public async Task<List<Category>> GetAllAsync()
     {
-        return await _context.Categories.FirstOrDefaultAsync(c => c.Name == name);
+        return await _context.Categories.ToListAsync();
+    }
+
+    public async Task<(List<Category> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize)
+    {
+        var totalCount = await _context.Categories.CountAsync();
+        var items = await _context.Categories
+            .OrderByDescending(c => c.UpdatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 
     public async Task AddAsync(Category category)
@@ -32,9 +41,19 @@ public class CategoryRepository : ICategoryRepository
         await _context.Categories.AddAsync(category);
     }
 
-    public async Task<List<Category>> GetAllAsync()
+    public async Task<bool> DeleteAsync(Guid categoryId)
     {
-        return await _context.Categories.ToListAsync();
+        var category = await _context.Categories.FindAsync(categoryId);
+        if (category != null)
+        {
+            _context.Categories.Remove(category);
+            return true;
+        }
+        return false;
     }
 
+    public void Update(Category category)
+    {
+        _context.Categories.Update(category);
+    }
 }

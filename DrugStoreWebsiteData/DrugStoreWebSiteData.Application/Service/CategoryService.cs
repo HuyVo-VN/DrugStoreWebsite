@@ -1,78 +1,165 @@
-using DrugStoreWebSiteData.Application.Common;
+﻿using DrugStoreWebSiteData.Application.Common;
 using DrugStoreWebSiteData.Application.DTOs.Request;
 using DrugStoreWebSiteData.Application.DTOs.Response;
 using DrugStoreWebSiteData.Application.Interfaces;
+using DrugStoreWebSiteData.Domain.Entities;
 using DrugStoreWebSiteData.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
-
 
 namespace DrugStoreWebSiteData.Application.Services;
 
 public class CategoryService : ICategoryService
 {
-    private readonly ILogger<CategoryService> _logger;
-    private readonly IUnitOfWork _unitOfWork;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<CategoryService> _logger;
 
-    public CategoryService(
-        ILogger<CategoryService> logger,
-        ICategoryRepository categoryRepository,
-        IUnitOfWork unitOfWork)
+    public CategoryService(ICategoryRepository categoryRepository, IUnitOfWork unitOfWork, ILogger<CategoryService> logger)
     {
-        _logger = logger;
         _categoryRepository = categoryRepository;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
-    public async Task<Result<CategoryResponseDto>> CreateCategoryAsync(CreateCategoryRequestDto request)
+    public async Task<Result<CategoryResponseDto>> CreateCategoryAsync(CreateCategoryRequestDto request, string currentUser)
     {
         try
         {
-            var existingCategory = await _categoryRepository.GetByNameAsync(request.Name);
-            if (existingCategory != null)
-            {
-                _logger.LogWarning("Category creation failed. Category with name: {CategoryName} already exists.", request.Name);
-                return Result<CategoryResponseDto>.Failure("Category with the same name already exists.");
-            }
+            var category = new Category(request.Name, request.Description);
+            category.UpdateDetails(request.Name, request.Description, currentUser);
 
-            var newCategory = request.mapToCategory();
-
-            await _categoryRepository.AddAsync(newCategory);
-
+            await _categoryRepository.AddAsync(category);
             await _unitOfWork.SaveChangesAsync();
 
-            var responseDto = new CategoryResponseDto();
-            _logger.LogInformation("Category created successfully: {CategoryName}", request.Name);
-            return Result<CategoryResponseDto>.Success(responseDto.mapToCategoryDto(newCategory));
+            var responseDto = new CategoryResponseDto().mapToCategoryDto(category);
+            _logger.LogInformation("Category created successfully: {CategoryId}", category.Id);
+
+            return Result<CategoryResponseDto>.Success(responseDto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while creating category: {CategoryName}", request.Name);
-            return Result<CategoryResponseDto>.Failure($"Error occurred while creating category: {ex.Message}");
+            _logger.LogError(ex, "Error occurred while creating category");
+            return Result<CategoryResponseDto>.Failure($"An error occurred: {ex.Message}");
         }
-
-
     }
 
-    public async Task<Result<CategoryResponseDto>> GetCategoryByIdAsync(Guid id)
+    public async Task<Result<CategoryResponseDto>> UpdateCategoryAsync(Guid id, UpdateCategoryRequestDto request, string currentUser)
     {
         try
         {
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null)
             {
-                _logger.LogWarning("Category retrieval failed. Category with ID: {CategoryId} does not exist.", id);
+                _logger.LogWarning("Category not found: {CategoryId}", id);
                 return Result<CategoryResponseDto>.Failure("Category not found.");
             }
 
-            var responseDto = new CategoryResponseDto();
-            _logger.LogInformation("Category retrieved successfully: {CategoryId}", id);
-            return Result<CategoryResponseDto>.Success(responseDto.mapToCategoryDto(category));
+            category.UpdateDetails(request.Name, request.Description, currentUser);
+            _categoryRepository.Update(category);
+            await _unitOfWork.SaveChangesAsync();
+
+            var responseDto = new CategoryResponseDto().mapToCategoryDto(category);
+            _logger.LogInformation("Category updated successfully: {CategoryId}", category.Id);
+
+            return Result<CategoryResponseDto>.Success(responseDto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while retrieving category with ID: {CategoryId}", id);
-            return Result<CategoryResponseDto>.Failure("An error occurred while retrieving the category.");
+            _logger.LogError(ex, "Error occurred while updating category");
+            return Result<CategoryResponseDto>.Failure($"An error occurred: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<CategoryResponseDto>> GetCategoryByIdAsync(Guid id)
+    {
+        try
+        {
+            var categoryResult = await _categoryRepository.GetByIdAsync(id);
+            if (categoryResult == null)
+            {
+                _logger.LogWarning("Category with ID: {CategoryId} not found.", id);
+                return Result<CategoryResponseDto>.Failure("Category not found.");
+            }
+
+            var responseDto = new CategoryResponseDto().mapToCategoryDto(categoryResult);
+            _logger.LogInformation("Category retrieved successfully: {CategoryId}", id);
+
+            return Result<CategoryResponseDto>.Success(responseDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while retrieving category");
+            return Result<CategoryResponseDto>.Failure($"An error occurred: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<string>> DeleteAsync(Guid categoryId)
+    {
+        try
+        {
+            var result = await _categoryRepository.DeleteAsync(categoryId);
+            if (result)
+            {
+                await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation("Category with ID: {CategoryId} deleted successfully.", categoryId);
+                return Result<string>.Success("Category deleted successfully.");
+            }
+            return Result<string>.Failure("Category not found or could not be deleted.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while deleting category with ID: {Id}", categoryId);
+            return Result<string>.Failure($"An error occurred while deleting the category: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<string>> UpdateStatusAsync(UpdateStatusCategoryRequestDto request, string currentUser)
+    {
+        try
+        {
+            var category = await _categoryRepository.GetByIdAsync(request.CategoryId);
+            if (category != null)
+            {
+                category.UpdateStatus(request.NewStatus, currentUser);
+                _categoryRepository.Update(category);
+
+                await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation("Category status updated successfully for ID: {CategoryId}", category.Id);
+                return Result<string>.Success("Category status updated successfully.");
+            }
+
+            return Result<string>.Failure("Error occurred while getting category to update.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while updating category status");
+            return Result<string>.Failure($"An error occurred while updating the category status: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<PagedResult<CategoryResponseDto>>> GetAllCategoriesPagedAsync(int pageNumber, int pageSize)
+    {
+        try
+        {
+            var (categories, totalCount) = await _categoryRepository.GetPagedAsync(pageNumber, pageSize);
+
+            if (categories == null)
+            {
+                _logger.LogError("Failed to retrieve categories");
+                return Result<PagedResult<CategoryResponseDto>>.Failure("Category list not found");
+            }
+
+            var responseDtos = categories.Select(c => new CategoryResponseDto().mapToCategoryDto(c)).ToList();
+            var pagedResult = new PagedResult<CategoryResponseDto>(responseDtos, totalCount, pageNumber, pageSize);
+
+            _logger.LogInformation("Paged categories retrieved successfully.");
+            return Result<PagedResult<CategoryResponseDto>>.Success(pagedResult);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while retrieving paged categories");
+            return Result<PagedResult<CategoryResponseDto>>.Failure($"An error occurred: {ex.Message}");
         }
     }
 
@@ -80,30 +167,16 @@ public class CategoryService : ICategoryService
     {
         try
         {
-            var categoryResult = await _categoryRepository.GetAllAsync();
-            if (categoryResult == null)
-            {
-                _logger.LogWarning("Failed to retrieve categories");
-                return Result<List<CategoryResponseDto>>.Failure("Failed to get all categories");
-            }
-
-            var responseDtos = new List<CategoryResponseDto>();
-            var dtoHelper = new CategoryResponseDto();
-
-            foreach (var category in categoryResult)
-            {
-                responseDtos.Add(dtoHelper.mapToCategoryDto(category));
-            }
+            var categories = await _categoryRepository.GetAllAsync();
+            var responseDtos = categories.Select(c => new CategoryResponseDto().mapToCategoryDto(c)).ToList();
 
             _logger.LogInformation("All categories retrieved successfully.");
             return Result<List<CategoryResponseDto>>.Success(responseDtos);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while retrieving categories");
+            _logger.LogError(ex, "Error occurred while retrieving all categories");
             return Result<List<CategoryResponseDto>>.Failure($"An error occurred: {ex.Message}");
         }
     }
-
-
 }

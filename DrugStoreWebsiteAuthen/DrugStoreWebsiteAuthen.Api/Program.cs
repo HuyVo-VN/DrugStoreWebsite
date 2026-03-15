@@ -1,14 +1,8 @@
-using DrugStoreWebsiteAuthen.Application.DTOs.Request;
-using DrugStoreWebsiteAuthen.Application.DTOs.Response;
 using DrugStoreWebsiteAuthen.Application.Interfaces;
-using DrugStoreWebsiteAuthen.Application.Common;
 using DrugStoreWebsiteAuthen.Application.Services;
-using DrugStoreWebsiteAuthen.Infrastructure;
 using DrugStoreWebsiteAuthen.Infrastructure.Persistence;
 using DrugStoreWebsiteAuthen.Infrastructure.Repositories;
 using DrugStoreWebsiteAuthen.Domain;
-using DrugStoreWebsiteAuthen.Api.Helpers;
-using DrugStoreWebsiteAuthen.Api.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -123,8 +117,6 @@ builder.Services.AddAuthorization(options =>
 });
 
 // Register JwtSecurityTokenHandlerWrapper and JwtMiddleware
-builder.Services.AddScoped<JwtSecurityTokenHandlerWrapper>();
-builder.Services.AddScoped<JwtMiddleware>();
 
 var app = builder.Build();
 
@@ -149,8 +141,6 @@ app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.UseMiddleware<JwtMiddleware>();
 
 app.MapControllers();
 
