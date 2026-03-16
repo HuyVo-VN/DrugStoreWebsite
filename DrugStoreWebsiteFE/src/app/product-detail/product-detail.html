@@ -1,90 +1,91 @@
 <div class="product-detail-home-link">
-  <a routerLink="/"><i class="fa-solid fa-house" style="color: #1c99f8;"></i> Home </a> / {{product.name}}
+  <a routerLink="/"><i class="fa-solid fa-house"></i> Home </a> / {{product.name}}
 </div>
 
-  <div id="product-detail-container">
+<div id="product-detail-container">
 
-    <div *ngIf="product; else loadingTemplate" class="product-detail-item">
-      <div>
-        <img [src]="getProductImageUrl(product.imageUrl)" alt="{{ product.name }}" style="object-fit: contain;">
-      </div>
-      <div class="product-line-between"></div>
-      <div class="product-detail-info">
+  <div *ngIf="product; else loadingTemplate" class="product-detail-item">
+    <div>
+      <img [src]="getProductImageUrl(product.imageUrl)" alt="{{ product.name }}">
+    </div>
+    <div class="product-line-between"></div>
+    <div class="product-detail-info">
 
-        <div style="display: flex;">
-          <p style="font-size: x-large;">{{ product.name }}</p>
-
-        </div>
-
-        <div style="margin-top: 25px; margin-bottom: 25px; background-color: #f8f9fa; padding: 15px 20px; border-radius: 8px;"
-             *ngIf="product.isActive == true && product.stock > 0; else productUnavailable">
-
-          <ng-container *ngIf="isSaleActive(product)">
-            <span style="color: #ff424e; font-weight: bold; font-size: 32px;">
-              {{ product.price - (product.price * product.discountPercent / 100) | currency:'USD':'symbol':'1.0-2' }}
-            </span>
-            <span style="text-decoration: line-through; color: #999; font-size: 18px; margin-left: 15px;">
-              {{ product.price | currency:'USD':'symbol':'1.0-2' }}
-            </span>
-            <span style="background-color: #ffeaea; color: #ff424e; padding: 4px 8px; border-radius: 4px; font-size: 14px; margin-left: 15px; font-weight: bold; border: 1px solid #ff424e; vertical-align: super;">
-              SALE OFF {{ product.discountPercent }}%
-            </span>
-          </ng-container>
-
-          <ng-container *ngIf="!isSaleActive(product)">
-            <span style="color: #008cef; font-weight: bold; font-size: 32px;">
-              {{ product.price | currency:'USD':'symbol':'1.0-2' }}
-            </span>
-          </ng-container>
-
-        </div>
-        <p><i class="fa fa-star" style="color: #74C0FC; margin-right: 8px;"></i>100% Genuine Products</p>
-        <p><i class="fa fa-star" style="color: #74C0FC; margin-right: 8px;"></i>Delivery within 24H: Free shipping for
-          orders from $5</p>
-        <p><i class="fa fa-star" style="color: #74C0FC; margin-right: 8px;"></i>Fast 2H Delivery: Free shipping for
-          orders
-          from $5</p>
-
-        <div *ngIf="product.isActive == true && product.stock > 0" style="display: flex; align-items: center;">
-
-          <div class="quantity-control">
-            <button (click)="decrease()" style="font-size: larger">-</button>
-            <input type="number" [(ngModel)]="quantity" (ngModelChange)="onInputChange()" [min]="min" [max]="max"
-              style="width: 50px; text-align: center; padding: 5px;">
-            <button (click)="increase()" style="font-size: larger">+</button>
-          </div>
-
-          <p style="margin-top: 35px; margin-left: 30px;">Quantity: {{quantity}}</p>
-        </div>
-        <div *ngIf="product.isActive == true && product.stock > 0" class="card-footer">
-
-          <button type="button" class="product-detail-btn-buy" (click)="inputShippingDetails()">
-            Buy now
-          </button>
-
-          <button type="button" class="product-detail-btn-add" (click)="addCart()">
-            Add to cart
-          </button>
-        </div>
+      <div class="product-detail-name-wrapper">
+        <p class="product-detail-name">{{ product.name }}</p>
       </div>
 
+      <div class="product-price-box"
+           *ngIf="product.isActive && product.categoryIsActive && product.stock > 0">
+
+        <ng-container *ngIf="isSaleActive(product)">
+          <span class="sale-price">
+            {{ product.price - (product.price * product.discountPercent / 100) | currency:'USD':'symbol':'1.0-2' }}
+          </span>
+          <span class="original-price">
+            {{ product.price | currency:'USD':'symbol':'1.0-2' }}
+          </span>
+          <span class="sale-badge">
+            SALE OFF {{ product.discountPercent }}%
+          </span>
+        </ng-container>
+
+        <ng-container *ngIf="!isSaleActive(product)">
+          <span class="normal-price">
+            {{ product.price | currency:'USD':'symbol':'1.0-2' }}
+          </span>
+        </ng-container>
+      </div>
+
+      <p><i class="fa fa-star product-feature-icon"></i>100% Genuine Products</p>
+      <p><i class="fa fa-star product-feature-icon"></i>Delivery within 24H: Free shipping for orders from $5</p>
+      <p><i class="fa fa-star product-feature-icon"></i>Fast 2H Delivery: Free shipping for orders from $5</p>
+
+      <div *ngIf="product.isActive && product.categoryIsActive && product.stock > 0"
+           class="product-quantity-section">
+        <div class="quantity-control">
+          <button (click)="decrease()">-</button>
+          <input type="number" [(ngModel)]="quantity" (ngModelChange)="onInputChange()" [min]="min" [max]="max">
+          <button (click)="increase()">+</button>
+        </div>
+        <p class="product-quantity-text">Quantity: {{quantity}}</p>
+      </div>
+
+      <div *ngIf="product.isActive && product.categoryIsActive && product.stock > 0; else productUnavailable" class="card-footer">
+        <button type="button" class="product-detail-btn-buy" (click)="inputShippingDetails()">
+          Buy now
+        </button>
+
+        <button type="button" class="product-detail-btn-add" (click)="addCart()">
+          Add to cart
+        </button>
+      </div>
     </div>
-    <div class="product-description">
-      <h3>Description</h3>
-      <p style="margin-top: 10px;">{{ product.description}}</p>
-    </div>
+
   </div>
+
+  <div class="product-description">
+    <h3>Description</h3>
+    <p>{{ product.description}}</p>
+  </div>
+</div>
+
 <ng-template #loadingTemplate>
-  <mat-spinner style="margin: 0 auto; display: block;" *ngIf="loading"></mat-spinner>
+  <mat-spinner class="loading-spinner" *ngIf="loading"></mat-spinner>
 </ng-template>
 
 <ng-template #productUnavailable>
-  <p class="product-detail-unavailable">PRODUCT UNAVAILABLE</p>
+  <div class="product-unavailable-box">
+    <p class="product-detail-unavailable">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      {{ product.stock <= 0 && product.isActive && product.categoryIsActive ? 'OUT OF STOCK' : 'SUSPEND BUSINESS' }}
+    </p>
+  </div>
 </ng-template>
 
 <div *ngIf="hasInput" class="popup-overlay">
   <div class="popup-content">
-    
+
     <button class="popup-close" (click)="closePopup()">✖</button>
 
     <div class="buy-right">
@@ -100,7 +101,7 @@
               </label>
 
               <input id="phone-input" class="placeholder-input" placeholder="+61 0132345678" [(ngModel)]="phone"
-                name="phone" required minlength="10" maxlength="15" pattern="^[0-9]+$" #phoneCtrl="ngModel" />
+                     name="phone" required minlength="10" maxlength="15" pattern="^[0-9]+$" #phoneCtrl="ngModel" />
 
               <div class="error" *ngIf="phoneCtrl.invalid && phoneCtrl.touched">
                 <p *ngIf="phoneCtrl.errors?.['required']">Phone number is required.</p>
@@ -109,16 +110,16 @@
               </div>
             </div>
           </div>
-          <div>
 
+          <div>
             <div class="shipping-address-container">
               <label class="input-title" for="address-input">
                 Full Address <span class="required-star">*</span>
               </label>
 
               <textarea id="address-input" class="placeholder-input"
-                placeholder="Street, City, State/Province, Zip Code" rows="3" [(ngModel)]="address" name="address"
-                required minlength="5" #addressCtrl="ngModel"></textarea>
+                        placeholder="Street, City, State/Province, Zip Code" rows="3" [(ngModel)]="address" name="address"
+                        required minlength="5" #addressCtrl="ngModel"></textarea>
 
               <div class="error" *ngIf="addressCtrl.invalid && addressCtrl.touched">
                 <p *ngIf="addressCtrl.errors?.['required']">Address is required.</p>
@@ -126,7 +127,6 @@
               </div>
             </div>
           </div>
-
         </form>
 
         <div class="summary-divider"></div>
@@ -141,44 +141,48 @@
           <span>- {{ saleDiscountTotal | currency:'USD':'symbol':'1.0-2' }}</span>
         </div>
         <div class="summary-divider"></div>
+
         <div>
           <span>Payment Type</span>
           <br>
           <mat-radio-group aria-label="Select payment method" class="buy-payment-container" [(ngModel)]="paymentMethod"
-            (ngModelChange)="onPaymentChange($event)">
+                           (ngModelChange)="onPaymentChange($event)">
             <div class="payment-option">
-              <span><i class="fa-solid fa-money-bill-1-wave" style="color: #15da36;"></i> Cash</span>
+              <span><i class="fa-solid fa-money-bill-1-wave cash-icon"></i> Cash</span>
               <mat-radio-button value="Cash"></mat-radio-button>
             </div>
 
             <div class="payment-option">
-              <span><i class="fa-solid fa-credit-card" style="color: #0b25b6;"></i> ATM</span>
+              <span><i class="fa-solid fa-credit-card atm-icon"></i> ATM</span>
               <mat-radio-button value="ATM"></mat-radio-button>
             </div>
           </mat-radio-group>
-
         </div>
+
         <div>
           <div class="summary-row">
             <span>Discount</span>
             <span>- {{ discountAmount | currency:'USD':'symbol':'1.0-2' }}</span>
           </div>
         </div>
+
         <div class="summary-divider"></div>
+
         <div class="summary-row" *ngIf="grandTotal !== 0">
           <span>Shipping fee</span>
           <span>${{fee}}</span>
         </div>
+
         <div class="summary-row total-row" *ngIf="grandTotal!==0">
           <span>To Pay</span>
           <span class="final-price">{{ totalToPay | currency:'USD':'symbol':'1.0-2' }}</span>
         </div>
+
         <p class="vat-note">(VAT included where applicable)</p>
       </div>
 
-
       <button type="submit" class="checkout-btn" [disabled]="grandTotal === 0 || !shippingDetailsForm.valid "
-        [class.disabled]="grandTotal === 0 || !shippingDetailsForm.valid" (click)="createInstantOrder()">
+              [class.disabled]="grandTotal === 0 || !shippingDetailsForm.valid" (click)="createInstantOrder()">
         Proceed
       </button>
     </div>

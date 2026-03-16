@@ -25,10 +25,9 @@ img {
     width: 100%;
 }
 
-#product-detail-container .product-detail-info i {
+  #product-detail-container .product-detail-info .product-feature-icon {
     margin-top: 20px;
-
-}
+  }
 
 #product-detail-container .product-detail-btn-add {
     margin-top: 50px;
@@ -342,4 +341,124 @@ input[type=number] {
 .checkout-btn.disabled {
     background-color: #ccc;
     cursor: not-allowed;
+}
+
+.product-detail-home-link i {
+  color: #1c99f8;
+}
+
+.product-detail-item img {
+  object-fit: contain;
+}
+
+.product-detail-name-wrapper {
+  display: flex;
+}
+
+.product-detail-name {
+  font-size: x-large;
+}
+
+.product-price-box {
+  margin-top: 25px;
+  margin-bottom: 25px;
+  background-color: #f8f9fa;
+  padding: 15px 20px;
+  border-radius: 8px;
+}
+
+.sale-price {
+  color: #ff424e;
+  font-weight: bold;
+  font-size: 32px;
+}
+
+.original-price {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 18px;
+  margin-left: 15px;
+}
+
+.sale-badge {
+  background-color: #ffeaea;
+  color: #ff424e;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-left: 15px;
+  font-weight: bold;
+  border: 1px solid #ff424e;
+  vertical-align: super;
+}
+
+.normal-price {
+  color: #008cef;
+  font-weight: bold;
+  font-size: 32px;
+}
+
+.product-feature-icon {
+  color: #74C0FC;
+  margin-right: 8px;
+}
+
+.product-quantity-section {
+  display: flex;
+  align-items: center;
+}
+
+.quantity-control button {
+  font-size: larger;
+}
+
+.quantity-control input {
+  width: 50px;
+  text-align: center;
+  padding: 5px;
+}
+
+.product-quantity-text {
+  margin-top: 35px;
+  margin-left: 30px;
+}
+
+.product-description p {
+  margin-top: 10px;
+}
+
+.loading-spinner {
+  margin: 0 auto;
+  display: block;
+}
+
+.product-unavailable-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffeaea;
+  padding: 15px 20px;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 25px 0;
+}
+
+.product-detail-unavailable {
+  color: #ff424e;
+  font-weight: bold;
+  font-size: 20px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.cash-icon {
+  color: #15da36;
+}
+
+.atm-icon {
+  color: #0b25b6;
 }

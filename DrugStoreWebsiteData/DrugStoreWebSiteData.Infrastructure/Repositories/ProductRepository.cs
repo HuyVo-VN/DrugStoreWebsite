@@ -17,7 +17,9 @@ public class ProductRepository : IProductRepository
 
     public async Task<Product?> GetByIdAsync(Guid id)
     {
-        return await _context.Products.FindAsync(id);
+        return await _context.Products
+            .Include(p => p.Category)
+            .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task AddAsync(Product product)
@@ -56,6 +58,10 @@ public class ProductRepository : IProductRepository
     }
     public async Task<(List<Product> Items, int TotalCount)> SearchByNameAsync(string name, int pageNumber, int pageSize)
     {
+        var query = _context.Products
+            .Include(p => p.Category)
+            .Where(p => p.Name.ToLower().Contains(name.ToLower()));
+
         var totalCount = await _context.Products.Where(p => p.Name.ToLower().Contains(name.ToLower())).CountAsync();
 
         var items = await _context.Products.Where(p => p.Name.ToLower()
@@ -146,10 +152,10 @@ public class ProductRepository : IProductRepository
         var currentTime = DateTime.UtcNow;
 
         var query = _context.Products
-            .Include(p => p.Category) // Phải có dòng này để lúc map DTO không bị lỗi Null
+            .Include(p => p.Category)
             .Where(p => p.IsActive
                      && p.DiscountPercent > 0
-                     && p.DiscountEndDate > currentTime // Bỏ .HasValue và .Value đi
+                     && p.DiscountEndDate > currentTime
                      && p.SaleSold < p.SaleStock);
 
         int totalCount = await query.CountAsync();
@@ -166,7 +172,7 @@ public class ProductRepository : IProductRepository
     public async Task<(IEnumerable<Product> Items, int TotalCount)> GetBestSellersPagedAsync(int pageIndex, int pageSize)
     {
         var query = _context.Products
-            .Include(p => p.Category) // Phải có dòng này để lúc map DTO không bị lỗi Null
+            .Include(p => p.Category)
             .Where(p => p.IsActive && p.SoldQuantity > 0)
             .OrderByDescending(p => p.SoldQuantity);
 
@@ -182,6 +188,7 @@ public class ProductRepository : IProductRepository
     public async Task<(IEnumerable<Product> Items, int TotalCount)> GetProductsByCollectionPagedAsync(Guid collectionId, int pageIndex, int pageSize)
     {
         var query = _context.Products
+            .Include(p => p.Category)
             .Where(p => p.IsActive && p.ProductCollections.Any(pc => pc.CollectionId == collectionId))
             .OrderByDescending(p => p.Price);
 

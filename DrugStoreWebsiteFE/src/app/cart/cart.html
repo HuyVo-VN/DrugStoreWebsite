@@ -68,7 +68,7 @@
             <span class="current-price">{{ item.price | currency:'USD':'symbol':'1.0-2' }}</span>
           </ng-container>
         </div>
-
+        
         <div class="col-quantity">
           <div class="quantity-box" [class.disabled-box]="!item.isAvailable">
             <button (click)="decreaseQty(item)" [disabled]="!item.isAvailable"> - </button>

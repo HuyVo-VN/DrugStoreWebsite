@@ -15,6 +15,7 @@ public class CartItemResponseDto
     public DateTime? DiscountEndDate { get; set; }
     public int SaleStock { get; set; } = 0;
     public int SaleSold { get; set; } = 0;
+    public bool CategoryIsActive { get; set; }
 
     public CartItemResponseDto mapToCartItemDto(CartItem item)
     {
@@ -33,6 +34,7 @@ public class CartItemResponseDto
             DiscountEndDate = item.Product?.DiscountEndDate,
             SaleStock = item.Product?.SaleStock ?? 0,
             SaleSold = item.Product?.SaleSold ?? 0,
+            CategoryIsActive = item.Product?.Category?.IsActive ?? true
         };
     }
 }

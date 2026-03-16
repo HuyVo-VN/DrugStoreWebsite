@@ -72,7 +72,7 @@ export class Header implements OnInit {
     this.categoryService.getAllCategories().subscribe({
       next: (res) => {
         if (res.status === 200 && res.data) {
-          this.categories = res.data;
+          this.categories = res.data.filter((cat: any) => cat.isActive === true);
         }
       }
     });

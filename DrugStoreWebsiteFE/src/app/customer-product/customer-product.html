@@ -225,16 +225,18 @@
           </div>
         </div>
 
-        <div *ngIf="product.isActive == true && product.stock > 0" class="card-footer">
+        <div *ngIf="product.isActive && product.categoryIsActive && product.stock > 0" class="card-footer">
           <button class="add-to-cart-btn" (click)="addToCart($event, product)">
             <i class="fas fa-cart-plus"></i> Add to cart
           </button>
         </div>
-        <div *ngIf="!product.isActive" class="card-footer">
+
+        <div *ngIf="!product.isActive || !product.categoryIsActive" class="card-footer">
           <button class="soldout-btn" disabled> Suspend business</button>
         </div>
-        <div *ngIf="!product.stock" class="card-footer">
-          <button class="soldout-btn" disabled> Sold out</button>
+
+        <div *ngIf="product.isActive && product.categoryIsActive && product.stock <= 0" class="card-footer">
+          <button class="soldout-btn" disabled> Out of stock </button>
         </div>
       </div>
     </div>

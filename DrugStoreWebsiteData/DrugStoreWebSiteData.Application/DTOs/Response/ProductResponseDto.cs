@@ -18,6 +18,9 @@ public class ProductResponseDto
     public int SaleStock { get; set; } = 0;
     public int SaleSold { get; set; } = 0;
 
+    public string CategoryName { get; set; }
+    public bool CategoryIsActive { get; set; }
+
     public ProductResponseDto mapToProductDto(Product product)
     {
         return new ProductResponseDto
@@ -35,6 +38,9 @@ public class ProductResponseDto
             DiscountEndDate = product.DiscountEndDate,
             SaleStock = product.SaleStock,
             SaleSold = product.SaleSold,
+
+            CategoryName = product.Category?.Name ?? string.Empty,
+            CategoryIsActive = product.Category?.IsActive ?? true
         };
     }
 }

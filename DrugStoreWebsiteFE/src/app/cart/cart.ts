@@ -79,7 +79,7 @@ export class Cart implements OnInit {
             if (maxAllowed > 0 && item.quantity > maxAllowed) {
               item.quantity = maxAllowed;
             }
-            const isAvailable = maxAllowed > 0 && item.isActive;
+            const isAvailable = maxAllowed > 0 && item.isActive && item.categoryIsActive !== false;
 
             return {
               ...item,
