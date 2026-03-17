@@ -37,25 +37,25 @@
   <div class="custom-modal-overlay" *ngIf="showModal">
     <div class="custom-modal">
       <div class="modal-header">
-        <h3>{{ isEditMode ? 'Sửa Bộ Sưu Tập' : 'Thêm Bộ Sưu Tập' }}</h3>
+        <h3>{{ isEditMode ? 'Edit Collection' : 'Add Collection' }}</h3>
         <button class="close-btn" (click)="closeModal()">&times;</button>
       </div>
 
       <div class="modal-body">
         <div class="form-group">
-          <label>Tên Bộ Sưu Tập</label>
-          <input type="text" class="form-control" [(ngModel)]="currentCollection.name" placeholder="VD: Tủ thuốc gia đình">
+          <label>Collection Name</label>
+          <input type="text" class="form-control" [(ngModel)]="currentCollection.name" placeholder="VD: Family medicine cabinet">
         </div>
 
         <div class="form-row">
           <div class="form-group half">
-            <label>Thứ tự hiển thị (1, 2, 3...)</label>
+            <label>Display order (1, 2, 3...)</label>
             <input type="number" class="form-control" [(ngModel)]="currentCollection.displayOrder">
           </div>
           <div class="form-group half d-flex-end">
             <label class="checkbox-label" style="margin-top: 30px;">
               <input type="checkbox" [(ngModel)]="currentCollection.showOnHomePage">
-              Hiển thị ra Trang chủ
+              Show on Homepage
             </label>
           </div>
         </div>
@@ -64,10 +64,10 @@
 
         <div class="form-group">
           <div class="d-flex-between">
-            <label><strong>Gắn Sản Phẩm vào Bộ Sưu Tập này:</strong></label>
+            <label><strong>Add the product to this collection.:</strong></label>
             <input type="text"
                    class="form-control search-input"
-                   placeholder="Tìm tên SP (VD: vi)..."
+                   placeholder="Find product (VD: vi)..."
                    [ngModel]="searchQuery"
                    (ngModelChange)="onSearchChange($event)">
           </div>
@@ -81,15 +81,15 @@
             </label>
 
             <div *ngIf="filteredProducts.length === 0" style="padding: 10px; color: #777;">
-              Không tìm thấy sản phẩm nào khớp với "{{ searchQuery }}".
+              No matching products were found. "{{ searchQuery }}".
             </div>
           </div>
         </div>
       </div>
 
       <div class="modal-footer d-flex-between">
-        <button class="btn-secondary" (click)="closeModal()">Hủy</button>
-        <button class="btn-primary" (click)="saveCollection()">Lưu lại</button>
+        <button class="btn-secondary" (click)="closeModal()">Cancel</button>
+        <button class="btn-primary" (click)="saveCollection()">Save</button>
       </div>
     </div>
   </div>

@@ -50,7 +50,7 @@ export class AdminBanner implements OnInit {
 
   openAddBannerModal() {
     Swal.fire({
-      title: '<h2 style="font-size: 24px; font-weight: bold; margin: 0;">Tạo Banner Mới</h2>',
+      title: '<h2 style="font-size: 24px; font-weight: bold; margin: 0;">Add new banner</h2>',
       html:
         `<style>
           .swal-form-container label { font-weight: bold; margin-top: 10px; display: block; text-align: left; font-size: 14px; }

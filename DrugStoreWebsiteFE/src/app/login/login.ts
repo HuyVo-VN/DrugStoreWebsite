@@ -42,7 +42,7 @@ export class Login {
           }).then(() => {
             // Redirect user based on their role
             if (role === 'Admin') {
-              this.router.navigate(['/user']);
+              this.router.navigate(['/admin-page']);
             } else if (role === 'Staff') {
               this.router.navigate(['/product']);
             }else

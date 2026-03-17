@@ -44,9 +44,10 @@ h2 { text-align: center; margin-bottom: 25px; color: #333; }
   text-align: center;
 }
 .status-new { background: #e3f2fd; color: #2196f3; }
-.status-processing { background: #fff3e0; color: #ff9800; }
-.status-completed { background: #e8f5e9; color: #4caf50; }
-.status-cancelled { background: #ffebee; color: #f44336; }
+.status-processing { background: #fff3e0; color: #ff9800; border: 1px solid #c3e6cb; }
+.status-completed { background: #e8f5e9; color: #4caf50; border: 1px solid #c3e6cb; }
+.status-cancelled { background: #ffebee; color: #f44336; border: 1px solid #c3e6cb; }
+.status-paid { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;}
 
 .btn-icon {
   border: none;
