@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import Swal from 'sweetalert2';
 import { ProductService } from '../Services/product.service';
 import { CategoryService } from '../Services/category.service';
@@ -69,6 +69,8 @@ export class ProductDetail implements OnInit {
   paymentMethod: string = 'Cash';
   grandTotal: number = 0;
 
+  relatedProducts: any[] = [];
+
   constructor(
     private productService: ProductService,
     private categoryService: CategoryService,
@@ -78,7 +80,8 @@ export class ProductDetail implements OnInit {
     private cartService: CartService,
     private orderService: OrderService,
     private userService: UserService,
-    private paymentService: PaymentService
+    private paymentService: PaymentService,
+    private route: ActivatedRoute,
   ) { }
 
   ngOnInit() {
@@ -89,6 +92,17 @@ export class ProductDetail implements OnInit {
     } else {
       this.logger.error("No productId found!");
     }
+
+    this.route.paramMap.subscribe(params => {
+      const idFromUrl = params.get('id');
+
+      if (idFromUrl) {
+        this.productId = idFromUrl;
+        this.getProductById();
+      } else {
+        this.logger.error("No productId found in URL!");
+      }
+    });
 
 
     this.authService.role$.subscribe((role) => {
@@ -127,7 +141,9 @@ export class ProductDetail implements OnInit {
           }
         }
         this.quantity = this.clamp(this.quantity);
-
+        if (this.product.categoryId) {
+          this.loadRelatedProducts(this.product.categoryId);
+        }
         this.loading = false;
       },
       error: (err) => {
@@ -338,6 +354,27 @@ export class ProductDetail implements OnInit {
     const endDate = new Date(item.discountEndDate).getTime();
 
     return endDate > now;
+  }
+
+  loadRelatedProducts(categoryId: string) {
+    this.productService.filterProducts(categoryId, 1, 6).subscribe({
+      next: (res: any) => {
+        if (res.isSuccess && res.value && res.value.items) {
+
+          this.relatedProducts = res.value.items.filter((p: any) => {
+            return String(p.id).toLowerCase() !== String(this.productId).toLowerCase();
+          });
+
+        }
+      },
+      error: (err) => console.error('Error when loading similar products:', err)
+    });
+  }
+
+  goToProduct(id: string) {
+    this.router.navigate(['/product-detail', id]).then(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   }
 
 }

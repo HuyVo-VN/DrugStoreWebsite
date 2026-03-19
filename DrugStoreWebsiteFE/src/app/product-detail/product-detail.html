@@ -1,5 +1,5 @@
 <div class="product-detail-home-link">
-  <a routerLink="/"><i class="fa-solid fa-house"></i> Home </a> / {{product.name}}
+  <a routerLink="/"><i class="fa-solid fa-house"></i> Home </a> / {{product?.name}}
 </div>
 
 <div id="product-detail-container">
@@ -67,6 +67,48 @@
   <div class="product-description">
     <h3>Description</h3>
     <p>{{ product.description}}</p>
+  </div>
+
+  <div class="related-products-section" *ngIf="relatedProducts && relatedProducts.length > 0">
+    <div class="related-header">
+      <h3 class="related-title">You Might Also Like</h3>
+
+      <a class="view-all-link" [routerLink]="['/']" [queryParams]="{ category: product?.categoryId }">
+        View all <i class="fa-solid fa-angle-right"></i>
+      </a>
+    </div>
+
+    <div class="related-slider">
+      <div class="related-card" *ngFor="let rp of relatedProducts" (click)="goToProduct(rp.id)">
+
+        <div class="rp-status-overlay" *ngIf="!rp.isActive || !rp.categoryIsActive || rp.stock <= 0">
+          <span>{{ rp.stock <= 0 && rp.isActive && rp.categoryIsActive ? 'Out of stock' : 'Suspend' }}</span>
+        </div>
+
+        <div class="rp-sale-badge" *ngIf="isSaleActive(rp) && rp.isActive && rp.categoryIsActive && rp.stock > 0">
+          -{{rp.discountPercent}}%
+        </div>
+
+        <div class="rp-img-wrapper">
+          <img [src]="getProductImageUrl(rp.imageUrl)" alt="{{ rp.name }}" onerror="this.src='/images/default-product.png';">
+        </div>
+
+        <div class="rp-info">
+          <p class="rp-name" title="{{ rp.name }}">{{ rp.name }}</p>
+
+          <div class="rp-price-box">
+            <ng-container *ngIf="isSaleActive(rp)">
+              <span class="rp-sale-price">{{ rp.price - (rp.price * rp.discountPercent / 100) | currency:'USD':'symbol':'1.0-2' }}</span>
+              <span class="rp-original-price">{{ rp.price | currency:'USD':'symbol':'1.0-2' }}</span>
+            </ng-container>
+
+            <ng-container *ngIf="!isSaleActive(rp)">
+              <span class="rp-normal-price">{{ rp.price | currency:'USD':'symbol':'1.0-2' }}</span>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 

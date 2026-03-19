@@ -36,6 +36,7 @@ export const routes: Routes = [
   { path: 'change-password', component: ChangePassword, canActivate: [authGuard] },
   { path: 'product', component: Product, canActivate: [authGuard] },
   { path: 'product-detail', component: ProductDetail },
+  { path: 'product-detail/:id', component: ProductDetail },
   { path: 'cart', component: Cart, canActivate: [authGuard] },
   { path: '', component: CustomerProduct },
   { path: 'customer-orders', component: CustomerOrder, canActivate: [authGuard] },
