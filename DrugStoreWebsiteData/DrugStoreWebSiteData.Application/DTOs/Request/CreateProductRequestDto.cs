@@ -30,9 +30,10 @@ public class CreateProductRequestDto
 
     public DateTime? DiscountEndDate { get; set; }
     public int SaleStock { get; set; }
+    public string Specifications { get; set; }
 
     public Product mapToProduct()
     {
-        return new Product(Name, Description, Price, Stock, CategoryId, DiscountPercent, DiscountEndDate, SaleStock);
+        return new Product(Name, Description, Price, Stock, CategoryId, DiscountPercent, DiscountEndDate, SaleStock, Specifications);
     }
 }

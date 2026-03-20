@@ -657,3 +657,73 @@ input[type=number] {
     color: #0b25b6;
     text-decoration: underline;
   }
+
+/* --- PRODUCT SPECIFICATIONS --- */
+.product-specifications {
+  width: 100%;
+  max-width: 1340px;
+  margin-bottom: 20px;
+  background-color: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+  .product-specifications h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+  }
+
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+  .spec-table tr {
+    border-bottom: 1px solid #f0f2f5;
+  }
+
+    .spec-table tr:last-child {
+      border-bottom: none;
+    }
+
+.spec-key {
+  width: 30%;
+  padding: 12px 10px;
+  color: #7f8c8d;
+  background-color: #fafafa; /* Nền xám nhạt cho cột tên thuộc tính */
+  font-weight: 500;
+}
+
+.spec-value {
+  width: 70%;
+  padding: 12px 10px;
+  color: #333;
+}
+
+.view-all-spec-container {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.view-all-spec-btn {
+  background: transparent;
+  border: none;
+  color: #1c99f8;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+  .view-all-spec-btn:hover {
+    color: #0b25b6;
+    text-decoration: underline;
+  }
+
+/* Custom width cho popup thông số */
+.spec-popup {
+  width: 600px; /* To hơn popup thanh toán một chút để đọc bảng cho dễ */
+}

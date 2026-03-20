@@ -69,6 +69,37 @@
     <p>{{ product.description}}</p>
   </div>
 
+  <div class="product-specifications" *ngIf="parsedSpecs.length > 0">
+    <h3>Product Specifications</h3>
+
+    <table class="spec-table">
+      <tr *ngFor="let spec of parsedSpecs | slice:0:4">
+        <td class="spec-key">{{ spec.key }}</td>
+        <td class="spec-value">{{ spec.value }}</td>
+      </tr>
+    </table>
+
+    <div class="view-all-spec-container" *ngIf="parsedSpecs.length > 4">
+      <button class="view-all-spec-btn" (click)="showSpecPopup = true">
+        View all specifications <i class="fa-solid fa-angle-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="showSpecPopup" class="popup-overlay">
+    <div class="popup-content spec-popup">
+      <button class="popup-close" (click)="showSpecPopup = false">✖</button>
+      <h3>All Specifications</h3>
+
+      <table class="spec-table full-table">
+        <tr *ngFor="let spec of parsedSpecs">
+          <td class="spec-key">{{ spec.key }}</td>
+          <td class="spec-value">{{ spec.value }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
   <div class="related-products-section" *ngIf="relatedProducts && relatedProducts.length > 0">
     <div class="related-header">
       <h3 class="related-title">You Might Also Like</h3>

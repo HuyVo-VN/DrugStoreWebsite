@@ -30,5 +30,5 @@ public class UpdateProductRequestDto
     [Required(ErrorMessage = "Category ID is required")]
     public Guid CategoryId { get; set; }
 
-
+    public string Specifications { get; set; }
 }

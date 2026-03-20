@@ -21,6 +21,8 @@ public class ProductResponseDto
     public string CategoryName { get; set; }
     public bool CategoryIsActive { get; set; }
 
+    public string Specifications { get; set; }
+
     public ProductResponseDto mapToProductDto(Product product)
     {
         return new ProductResponseDto
@@ -40,7 +42,8 @@ public class ProductResponseDto
             SaleSold = product.SaleSold,
 
             CategoryName = product.Category?.Name ?? string.Empty,
-            CategoryIsActive = product.Category?.IsActive ?? true
+            CategoryIsActive = product.Category?.IsActive ?? true,
+            Specifications = product.Specifications,
         };
     }
 }

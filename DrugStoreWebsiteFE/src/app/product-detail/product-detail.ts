@@ -71,6 +71,9 @@ export class ProductDetail implements OnInit {
 
   relatedProducts: any[] = [];
 
+  parsedSpecs: any[] = [];
+  showSpecPopup: boolean = false;
+
   constructor(
     private productService: ProductService,
     private categoryService: CategoryService,
@@ -128,6 +131,17 @@ export class ProductDetail implements OnInit {
     this.productService.getProductById(this.productId).subscribe({
       next: (res: any) => {
         this.product = res.data;
+
+        try {
+          if (this.product.specifications) {
+            this.parsedSpecs = JSON.parse(this.product.specifications);
+          } else {
+            this.parsedSpecs = [];
+          }
+        } catch (e) {
+          console.error("Error parsing JSON Specifications", e);
+          this.parsedSpecs = [];
+        }
 
         this.max = this.product.stock || 0;
         if (this.product.discountPercent > 0 && this.product.discountEndDate) {

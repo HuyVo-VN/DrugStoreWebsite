@@ -51,7 +51,8 @@ public static class SeedData
                 catAnalgesicAntipyretic.Id,
                 0,
                null,
-                0
+                0,
+                null
             )
             {
                 ImageUrl = "/images/products/panadol.webp"
@@ -78,7 +79,8 @@ public static class SeedData
                 catGastrointestinal.Id,
                 0,
                 null,
-                0
+                0,
+                null
             )
             {
                 ImageUrl = "/images/products/berberin.webp"

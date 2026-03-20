@@ -1,0 +1,75 @@
+<div style="padding: 20px; max-width: 800px; max-height: 90vh; overflow-y: auto;">
+  <h2 style="margin-top: 0;">{{ isEditMode ? 'Edit Product' : 'Create New Product' }}</h2>
+
+  <form [formGroup]="productForm" (ngSubmit)="onSubmit()" style="display: flex; gap: 20px;">
+
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+
+      <div>
+        <label>Name *</label>
+        <input formControlName="name" class="swal2-input" style="width: 100%; height: 40px;">
+        <span *ngIf="productForm.get('name')?.invalid && productForm.get('name')?.touched" style="color: red; font-size: 12px;">Name is required</span>
+      </div>
+
+      <div>
+        <label>Category *</label>
+        <select formControlName="categoryId" class="swal2-select" style="width: 100%; height: 40px;">
+          <option value="" disabled>Select a category</option>
+          <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+          <label>Price *</label>
+          <input type="number" formControlName="price" class="swal2-input" style="width: 100%; height: 40px;">
+        </div>
+        <div style="flex: 1;">
+          <label>Stock *</label>
+          <input type="number" formControlName="stock" class="swal2-input" style="width: 100%; height: 40px;">
+        </div>
+      </div>
+
+      <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+        <label style="font-weight: bold;">Product Specifications</label>
+
+        <div formArrayName="specifications">
+          <div *ngFor="let spec of specifications.controls; let i=index" [formGroupName]="i" style="display: flex; gap: 10px; margin-top: 10px;">
+            <input formControlName="key" placeholder="Key (Brand, etc)" class="swal2-input" style="margin: 0; width: 45%; height: 35px;">
+            <input formControlName="value" placeholder="Value" class="swal2-input" style="margin: 0; width: 45%; height: 35px;">
+            <button type="button" (click)="removeSpecification(i)" style="color: red; border: none; background: transparent; cursor: pointer;">✖</button>
+          </div>
+        </div>
+
+        <button type="button" (click)="addSpecification()" style="margin-top: 10px; width: 100%; padding: 8px; border: 1px dashed #1c99f8; color: #1c99f8; background: transparent; cursor: pointer;">
+          + Add Specification
+        </button>
+      </div>
+
+      <div>
+        <label>Description</label>
+        <textarea formControlName="description" class="swal2-textarea" style="width: 100%; height: 80px;"></textarea>
+      </div>
+    </div>
+
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+      <div>
+        <label>Product Image</label>
+        <input type="file" (change)="onFileSelected($event)" accept="image/*" style="width: 100%; margin-top: 5px;">
+
+        <div style="position: relative; margin-top: 15px; border: 1px dashed #ccc; padding: 10px; text-align: center;">
+          <img [src]="imagePreview" style="max-width: 100%; max-height: 250px; object-fit: contain;">
+          <button type="button" (click)="removeImage()" *ngIf="imagePreview && !imagePreview.includes('default-product')" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.5); color: white; border: none; cursor: pointer;">✖</button>
+        </div>
+      </div>
+
+      <div style="margin-top: auto; display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" mat-dialog-close style="padding: 10px 20px; border: none; background: #e0e0e0; cursor: pointer; border-radius: 4px;">Cancel</button>
+        <button type="submit" style="padding: 10px 20px; border: none; background: #3792b3; color: white; font-weight: bold; cursor: pointer; border-radius: 4px;">
+          {{ isEditMode ? 'Save Changes' : 'Create Product' }}
+        </button>
+      </div>
+    </div>
+
+  </form>
+</div>

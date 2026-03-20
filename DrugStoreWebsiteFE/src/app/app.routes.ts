@@ -22,6 +22,7 @@ import { AdminBanner } from './admin-banner/admin-banner';
 import { AdminCollection } from './admin-collection/admin-collection';
 import { PaymentResult } from './payment-result/payment-result';
 import { AdminCategory } from './admin-category/admin-category';
+import { ProductForm } from './product-form/product-form';
 
 export const routes: Routes = [
   { path: 'login', component: Login, canActivate: [loginAuthGuard] },
@@ -35,6 +36,7 @@ export const routes: Routes = [
   { path: 'user', component: User, canActivate: [authGuard] },
   { path: 'change-password', component: ChangePassword, canActivate: [authGuard] },
   { path: 'product', component: Product, canActivate: [authGuard] },
+  { path: 'product-form', component: ProductForm, canActivate: [authGuard] },
   { path: 'product-detail', component: ProductDetail },
   { path: 'product-detail/:id', component: ProductDetail },
   { path: 'cart', component: Cart, canActivate: [authGuard] },

@@ -64,7 +64,8 @@ public class ProductService : IProductService
                     product.CategoryId,
                     product.DiscountPercent,
                     product.DiscountEndDate,
-                    product.SaleStock
+                    product.SaleStock,
+                    product.Specifications
                 );
             }
 
@@ -207,7 +208,8 @@ public class ProductService : IProductService
                 request.CategoryId,
                 request.DiscountPercent,
                 request.DiscountEndDate,
-                request.SaleStock);
+                request.SaleStock,
+                request.Specifications);
 
             _productRepository.Update(productResult);
 

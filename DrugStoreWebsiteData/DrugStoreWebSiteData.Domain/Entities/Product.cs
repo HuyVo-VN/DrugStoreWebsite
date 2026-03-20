@@ -25,12 +25,14 @@ namespace DrugStoreWebSiteData.Domain.Entities
 
         public ICollection<ProductCollection> ProductCollections { get; set; } = new List<ProductCollection>();
 
+        public string Specifications { get; private set; } = "[]"; 
+
         // Navigation property
         public Category Category { get; private set; } = null!;
 
         private Product() { }
 
-        public Product(string name, string description, decimal price, int stock, Guid categoryId, int discountPercent, DateTime? discountEndDate,int saleStock)
+        public Product(string name, string description, decimal price, int stock, Guid categoryId, int discountPercent, DateTime? discountEndDate,int saleStock, string specifications)
         {
             Id = Guid.NewGuid();
             Name = name;
@@ -43,6 +45,7 @@ namespace DrugStoreWebSiteData.Domain.Entities
             DiscountPercent = discountPercent;
             DiscountEndDate = discountEndDate;
             SaleStock = saleStock;
+            Specifications = specifications ?? string.Empty;
         }
 
         public void UpdateStatus(bool status, string updatedBy, DateTime updatedAt)
@@ -56,7 +59,7 @@ namespace DrugStoreWebSiteData.Domain.Entities
         /// <summary>
         /// Updates the product details.
         /// </summary>
-        public void UpdateDetails(string name, string description, decimal price, int stock, string imageUrl, Guid categoryId, int discountPercent, DateTime? discountEndDate, int saleStock)
+        public void UpdateDetails(string name, string description, decimal price, int stock, string imageUrl, Guid categoryId, int discountPercent, DateTime? discountEndDate, int saleStock, string specifications)
         {
             Name = name;
             Description = description ?? string.Empty;
@@ -69,6 +72,7 @@ namespace DrugStoreWebSiteData.Domain.Entities
             DiscountPercent = discountPercent;
             DiscountEndDate = discountEndDate;
             SaleStock = saleStock;
+            Specifications = specifications ?? string.Empty;
         }
 
         public void DecreaseStock(int quantity)
