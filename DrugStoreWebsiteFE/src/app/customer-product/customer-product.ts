@@ -125,6 +125,9 @@ export class CustomerProduct implements OnInit {
 
         // LẮNG NGHE URL ĐỂ TÌM KIẾM
         this.route.queryParams.subscribe(params => {
+          this.loading = true;
+          this.products = [];
+
           this.currentKeyword = params['search'] || '';
           this.selectedCategoryId = params['category'] || '';
           // Bắt thêm 2 tham số mới
