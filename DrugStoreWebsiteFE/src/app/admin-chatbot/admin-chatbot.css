@@ -1,0 +1,365 @@
+/* --- AI CHATBOT WRAPPER --- */
+#ai-chatbot-wrapper {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10000; /* Nằm trên tất cả mọi thứ */
+  font-family: 'Open Sans', sans-serif;
+}
+
+/* --- 1. FLOATING ACTION BUTTON (FAB) --- */
+.chat-fab {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #0b25b6; /* Màu xanh đậm chuyên nghiệp */
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  font-size: 26px;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+  .chat-fab:hover {
+    transform: scale(1.1) rotate(5deg);
+    background-color: #0d2fdc;
+  }
+
+.chat-fab-status {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 12px;
+  height: 12px;
+  background-color: #15da36; /* Vòng tròn xanh online */
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+/* --- 2. CHAT PANEL MAIN CONTAINER --- */
+.chat-panel {
+  width: 380px;
+  height: 600px;
+  max-height: calc(100vh - 40px); /* Chống tràn màn hình */
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 5px 30px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideInUp 0.3s ease-out; /* Hiệu ứng hiện ra mượt mà */
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* --- 2.1. HEADER --- */
+.chat-header {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-avatar-icon {
+  font-size: 20px;
+  color: #0b25b6;
+  background: #e3f2fd;
+  padding: 8px;
+  border-radius: 50%;
+}
+
+.ai-name {
+  margin: 0;
+  font-weight: bold;
+  color: #333;
+  font-size: 15px;
+}
+
+.ai-status {
+  margin: 0;
+  font-size: 12px;
+  color: #15da36;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  background-color: #15da36;
+  border-radius: 50%;
+}
+
+.chat-close-btn {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+  .chat-close-btn:hover {
+    color: #555;
+  }
+
+/* --- 2.2. BODY (NƠI CHỨA TIN NHẮN) --- */
+.chat-body {
+  flex: 1; /* Tự giãn nở để chiếm không gian */
+  padding: 20px;
+  background-color: #f0f2f5;
+  overflow-y: auto; /* Cho phép cuộn khi tin nhắn nhiều */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+  /* Ẩn thanh cuộn xấu xí trên Chrome/Safari */
+  .chat-body::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .chat-body::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 10px;
+  }
+
+/* --- MESSAGE BUBBLES --- */
+.message-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 85%;
+  position: relative;
+}
+
+.message-avatar {
+  font-size: 16px;
+  color: #0b25b6;
+  padding-bottom: 5px;
+}
+
+.message-bubble {
+  padding: 10px 15px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  position: relative;
+}
+
+.message-time {
+  font-size: 11px;
+  color: #999;
+  position: absolute;
+  bottom: -18px;
+  white-space: nowrap;
+}
+
+/* AI MESSAGE (Bên trái) */
+.ai-message {
+  align-self: flex-start;
+}
+
+  .ai-message .message-bubble {
+    background-color: white;
+    color: #333;
+    border-bottom-left-radius: 3px;
+  }
+
+  .ai-message .message-time {
+    left: 36px;
+  }
+
+/* USER MESSAGE (Bên phải) */
+.user-message {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+  .user-message .message-bubble {
+    background-color: #0b25b6;
+    color: white;
+    border-bottom-right-radius: 3px;
+  }
+
+  .user-message .message-time {
+    right: 0;
+  }
+
+/* --- 2.3. INPUT AREA --- */
+.chat-input-area {
+  background-color: white;
+  padding: 10px 15px;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+  .chat-input-area textarea {
+    flex: 1;
+    border: 1px solid #eee;
+    border-radius: 20px;
+    padding: 10px 15px;
+    font-size: 14px;
+    resize: none;
+    background: #f8f9fa;
+    font-family: inherit;
+    min-height: 40px;
+    max-height: 120px;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+    .chat-input-area textarea::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .chat-input-area textarea::-webkit-scrollbar-thumb {
+      background-color: #ccc;
+      border-radius: 10px;
+    }
+
+    .chat-input-area textarea:focus {
+      outline: none;
+      border-color: #ccc;
+      background: white;
+    }
+.textarea-wrapper {
+  flex: 1;
+  background-color: #f8f9fa;
+  border: 1px solid #eee;
+  /* ĐÂY LÀ PHẦN XỬ LÝ LỖI: Bo góc và giấu phần tràn */
+  border-radius: 20px;
+  overflow: hidden; /* Quan trọng: Giấu thanh cuộn vuông của textarea không cho lòi ra góc bo */
+
+  transition: background-color 0.2s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+  /* Hiệu ứng khi focus vào vùng nhập liệu */
+  .textarea-wrapper:focus-within {
+    background-color: white;
+    border-color: #ccc;
+    box-shadow: 0 0 0 2px rgba(11, 37, 182, 0.1); /* Thêm shadow nhẹ cho xịn */
+  }
+
+/* --- TEXTAREA BÊN TRONG: Chỉ chứa chữ, không chứa viền/nền --- */
+.chat-input-area textarea {
+  width: 100%;
+  background: transparent !important; /* Trong suốt */
+  border: none !important; /* Xóa viền */
+  outline: none !important; /* Xóa viền xanh mặc định */
+
+  padding: 10px 15px;
+  font-size: 14px;
+  line-height: 1.4;
+  resize: none;
+  font-family: inherit;
+  color: #333;
+  margin: 0;
+  /* Co giãn và cuộn */
+  min-height: 40px;
+  max-height: 120px; /* Giới hạn chiều cao */
+  overflow-y: auto; /* Tự cuộn bên trong div wrapper */
+
+  box-sizing: border-box;
+}
+
+  /* --- LÀM ĐẸP THANH CUỘN (Chỉ hiện bên trong phạm vi bo góc) --- */
+  .chat-input-area textarea::-webkit-scrollbar {
+    width: 5px; /* Thanh cuộn siêu mảnh */
+  }
+
+  .chat-input-area textarea::-webkit-scrollbar-track {
+    background: transparent; /* Nền thanh cuộn trong suốt */
+    margin: 10px 0; /* Đẩy thanh cuộn cách mép bo trên/dưới một chút cho đẹp */
+  }
+
+  .chat-input-area textarea::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.1); /* Màu thanh cuộn mờ mờ */
+    border-radius: 10px;
+  }
+
+    .chat-input-area textarea::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+
+.chat-send-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #e3f2fd;
+  color: #0b25b6;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+  .chat-send-btn:hover {
+    background-color: #0b25b6;
+    color: white;
+  }
+
+  .chat-send-btn:disabled {
+    background-color: #eee;
+    color: #aaa;
+    cursor: not-allowed;
+  }
+
+/* --- FORMAT RIÊNG CHO ĐOẠN TEXT ĐÃ RENDER MARKDOWN --- */
+.markdown-body {
+  line-height: 1.6;
+}
+
+  .markdown-body p {
+    margin: 0 0 10px 0; /* Cách đều các đoạn văn */
+  }
+
+    .markdown-body p:last-child {
+      margin-bottom: 0;
+    }
+
+  .markdown-body ul,
+  .markdown-body ol {
+    margin: 5px 0 10px 20px; /* Thụt lề cho danh sách */
+    padding: 0;
+  }
+
+  .markdown-body li {
+    margin-bottom: 5px;
+  }
+
+  .markdown-body strong {
+    font-weight: 600;
+    color: #111; /* Chữ in đậm rõ ràng hơn */
+  }
+
+/* Fix màu chữ in đậm cho tin nhắn của User (vì nền xanh) */
+.user-message .markdown-body strong {
+  color: #fff;
+}

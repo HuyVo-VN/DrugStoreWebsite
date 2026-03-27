@@ -1,0 +1,59 @@
+<div id="ai-chatbot-wrapper">
+
+  <button type="button" class="chat-fab" (click)="toggleChatForm(true)" *ngIf="!isChatFormOpen">
+    <i class="fa-solid fa-robot"></i>
+    <span class="chat-fab-status"></span>
+  </button>
+
+  <div class="chat-panel" *ngIf="isChatFormOpen">
+
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <i class="fa-solid fa-robot ai-avatar-icon"></i>
+        <div>
+          <p class="ai-name">DrugStore AI Assistant</p>
+          <p class="ai-status"><span class="status-dot"></span> Ready to help</p>
+        </div>
+      </div>
+      <button type="button" class="chat-close-btn" (click)="toggleChatForm(false)">✖</button>
+    </div>
+
+    <div class="chat-body" #chatBody>
+
+      <div *ngFor="let msg of messages" class="message-wrapper" [ngClass]="msg.sender === 'ai' ? 'ai-message' : 'user-message'">
+        <i *ngIf="msg.sender === 'ai'" class="fa-solid fa-robot message-avatar"></i>
+
+        <div class="message-bubble markdown-body" [innerHTML]="msg.text | markdown"></div>
+
+        <span class="message-time">{{ msg.time }}</span>
+      </div>
+
+      <div class="message-wrapper ai-message" *ngIf="isLoading">
+        <i class="fa-solid fa-robot message-avatar"></i>
+        <div class="message-bubble" style="color: #888; font-style: italic;">
+          Thinking...
+        </div>
+      </div>
+
+    </div>
+
+    <div class="chat-input-area">
+
+      <div class="textarea-wrapper">
+        <textarea #chatInput
+                  [(ngModel)]="currentMessage"
+                  placeholder="Ask me about sales, inventory,..."
+                  rows="1"
+                  (input)="autoResize(chatInput)"
+                  (keydown.enter)="sendMessage($event, chatInput)">
+        </textarea>
+      </div>
+
+      <button type="button" class="chat-send-btn" (click)="sendMessage($event, chatInput)" [disabled]="!currentMessage.trim()">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </div>
+
+  </div>
+
+</div>

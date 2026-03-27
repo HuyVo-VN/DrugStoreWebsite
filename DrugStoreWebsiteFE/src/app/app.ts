@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit } from '@angular/core';
 import { RouterOutlet, RouterModule } from '@angular/router';
 import { Login } from './login/login';
 import { Home } from './home/home';
@@ -16,14 +16,33 @@ import { CustomerProduct } from './customer-product/customer-product';
 import { Cart } from './cart/cart';
 import { CustomerOrder } from './customer-order/customer-order';
 
+import { CommonModule } from '@angular/common';
+import { AuthService } from './Services/auth.service';
+import { AdminChatbot } from './admin-chatbot/admin-chatbot';
+
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Login, Home, Register, ForgetPassword, ResetPassword, AdminPage, Footer, Header, User, ChangePassword, Product, CustomerProduct, Cart, CustomerOrder],
+  imports: [
+    RouterOutlet, Login, Home, Register, ForgetPassword, ResetPassword,
+    AdminPage, Footer, Header, User, ChangePassword, Product,
+    CustomerProduct, Cart, CustomerOrder, AdminChatbot, CommonModule],
+
   standalone: true,
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
+export class App implements OnInit {
   protected readonly title = signal('Authentication');
+
+  userRole: string = '';
+
+  constructor(private authService: AuthService) { }
+
+  ngOnInit() {
+    // Lắng nghe xem người dùng hiện tại là ai (Khách hay Admin)
+    this.authService.role$.subscribe((role) => {
+      this.userRole = role;
+    });
+  }
 }
 

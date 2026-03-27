@@ -109,8 +109,13 @@ export class CustomerProduct implements OnInit {
       this.performSearch(keyword);
     });
 
-    this.authService.role$.subscribe((role) => {
-      this.userRole = role;
+    this.authService.role$.subscribe(role => {
+      if (role === 'Admin') {
+        this.router.navigate(['/admin-page']);
+      }
+      if (role == 'Staff') {
+        this.router.navigate(['/admin/categories'])
+      }
     });
 
     this.loading = true;
