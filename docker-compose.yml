@@ -1,0 +1,65 @@
+﻿version: '3.8'
+
+services:
+  # 1. Frontend Angular (Chạy ở port 80)
+  frontend:
+    build:
+      context: ./DrugStoreWebsiteFE
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      - drugstore_network
+    depends_on:
+      - authen-api
+      - data-api
+      - ai-service
+
+  # 2. Backend Authen API (Chạy ở port 5001)
+  authen-api:
+    build:
+      context: ./DrugStoreWebsiteAuthen
+      dockerfile: Dockerfile
+    ports:
+      - "5001:8080" # Map cổng 5001 trên máy sếp vào cổng 8080 của thùng Docker
+    networks:
+      - drugstore_network
+    extra_hosts:                           
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - ./DrugStoreWebsiteAuthen/DrugStoreWebsiteAuthen.Api/.env
+    
+
+  # 3. Backend Data API (Chạy ở port 5002)
+  data-api:
+    build:
+      context: ./DrugStoreWebsiteData
+      dockerfile: Dockerfile
+    ports:
+      - "5002:8080" 
+    networks:
+      - drugstore_network
+    extra_hosts:                           
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - ./DrugStoreWebsiteData/DrugStoreWebSiteData.Api/.env
+
+
+  # 4. AI Chatbot Service (Chạy ở port 8888)
+  ai-service:
+    build:
+      context: ./DrugStoreWebsiteAI
+      dockerfile: Dockerfile
+    ports:
+      - "8888:8888"
+    networks:
+      - drugstore_network
+    extra_hosts:                           
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - ./DrugStoreWebsiteAI/.env
+
+# Tạo một mạng LAN ảo để 4 thằng này nhìn thấy nhau
+networks:
+  drugstore_network:
+    driver: bridge
