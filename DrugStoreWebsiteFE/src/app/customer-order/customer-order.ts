@@ -10,6 +10,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { OrderStatus } from '../enums/status.enums';
+import { environment } from '../../environments/environment';
+
 
 @Component({
   selector: 'app-customer-order',
@@ -20,7 +22,7 @@ import { OrderStatus } from '../enums/status.enums';
 })
 export class CustomerOrder implements OnInit {
 
-  private readonly baseUrl = 'https://localhost:5287';
+  private readonly baseUrl = `${environment.dataApiUrl}`;
   private readonly defaultImage = '/images/default-product.png';
 
   orders: any[] = [];

@@ -3,6 +3,7 @@ import time
 import asyncio
 import json
 import re
+import urllib.parse
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -60,12 +61,17 @@ async def safe_llm_call(prompt: str):
     return await llm.ainvoke(prompt)
 
 # ================== CẤU HÌNH DATABASE ==================
-DB_SERVER = r"DESKTOP-ME1OU3E\HUYVO"
-DB_USER = "ai_readonly"
-DB_PASS = "StrongPassword123!"
+DB_SERVER = os.getenv("DB_SERVER")
+DB_USER = os.getenv("DB_USER")
+raw_pass = os.getenv("DB_PASS")
+DB_DATA_NAME = os.getenv("DB_DATA_NAME")
+DB_AUTH_NAME = os.getenv("DB_AUTH_NAME")
 
-db_data_uri = f"mssql+pyodbc://{DB_USER}:{DB_PASS}@{DB_SERVER}/DrugStoreDataDB?driver=ODBC+Driver+17+for+SQL+Server"
-db_authen_uri = f"mssql+pyodbc://{DB_USER}:{DB_PASS}@{DB_SERVER}/DrugStoreAuthDB?driver=ODBC+Driver+17+for+SQL+Server"
+# Mã hóa mật khẩu an toàn nếu có ký tự đặc biệt (!, @, #,...)
+DB_PASS = urllib.parse.quote_plus(raw_pass) if raw_pass else ""
+
+db_data_uri = f"mssql+pyodbc://{DB_USER}:{DB_PASS}@{DB_SERVER}/{DB_DATA_NAME}?driver=ODBC+Driver+17+for+SQL+Server"
+db_authen_uri = f"mssql+pyodbc://{DB_USER}:{DB_PASS}@{DB_SERVER}/{DB_AUTH_NAME}?driver=ODBC+Driver+17+for+SQL+Server"
 
 try:
     db_data = SQLDatabase.from_uri(db_data_uri)

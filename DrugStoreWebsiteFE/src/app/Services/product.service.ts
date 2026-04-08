@@ -2,6 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { NGXLogger } from 'ngx-logger';
+import { environment } from '../../environments/environment';
+
 
 
 @Injectable({
@@ -9,7 +11,7 @@ import { NGXLogger } from 'ngx-logger';
 })
 export class ProductService {
 
-  private readonly apiUrl = 'https://localhost:5287/api/Products';
+  private readonly apiUrl = `${environment.dataApiUrl}/api/Products`;
 
   constructor(private http: HttpClient, private logger: NGXLogger) { }
 

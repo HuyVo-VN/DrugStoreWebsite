@@ -10,6 +10,8 @@ import { AuthService } from '../Services/auth.service';
 import { UserService } from '../Services/user';
 import { OrderService } from '../Services/order.service';
 import { PaymentService } from '../Services/payment.service';
+import { environment } from '../../environments/environment';
+
 
 @Component({
   selector: 'app-cart',
@@ -30,7 +32,7 @@ export class Cart implements OnInit {
   address = '';
   username = '';
 
-  private readonly baseUrl = 'https://localhost:5287';
+  private readonly baseUrl = `${environment.dataApiUrl}`;
   private readonly defaultImage = '/images/default-product.png';
 
   isLoading = false;

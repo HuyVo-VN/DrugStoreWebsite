@@ -2,12 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { NGXLogger } from 'ngx-logger';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private readonly apiUrl = 'http://localhost:5164/api/User';
+  private readonly apiUrl = `${environment.authenApiUrl}/api/User`;
   constructor(private http: HttpClient, private logger: NGXLogger) { }
 
   getUsers(): Observable<any> {

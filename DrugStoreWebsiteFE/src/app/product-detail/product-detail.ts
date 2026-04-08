@@ -16,7 +16,9 @@ import { CartService } from '../Services/cart.service';
 import { OrderService } from '../Services/order.service';
 import { UserService } from '../Services/user';
 import { MatRadioModule } from '@angular/material/radio';
-import { PaymentService} from '../Services/payment.service';
+import { PaymentService } from '../Services/payment.service';
+import { environment } from '../../environments/environment';
+
 
 @Component({
   selector: 'app-product-detail',
@@ -38,7 +40,7 @@ import { PaymentService} from '../Services/payment.service';
 })
 export class ProductDetail implements OnInit {
 
-  private readonly baseUrl = 'https://localhost:5287';
+  private readonly baseUrl = `${environment.dataApiUrl}`;
   private readonly defaultImage = '/images/default-product.png';
 
   loading = false;

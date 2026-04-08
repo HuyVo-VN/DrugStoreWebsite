@@ -2,6 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-product-form',
@@ -56,7 +57,7 @@ export class ProductForm implements OnInit {
       });
 
       if (p.imageUrl) {
-        this.imagePreview = p.imageUrl.startsWith('http') ? p.imageUrl : `https://localhost:5287${p.imageUrl}`;
+        this.imagePreview = p.imageUrl.startsWith('http') ? p.imageUrl : `${environment.dataApiUrl}${p.imageUrl}`;
       }
 
       // Đổ mảng Specifications cũ vào (nếu có)

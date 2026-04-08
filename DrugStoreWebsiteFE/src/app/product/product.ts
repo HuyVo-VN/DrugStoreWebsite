@@ -15,6 +15,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { ProductForm } from '../product-form/product-form';
+import { environment } from '../../environments/environment';
+
 
 @Component({
   selector: 'app-product',
@@ -24,7 +26,7 @@ import { ProductForm } from '../product-form/product-form';
   styleUrls: ['./product.css'],
 })
 export class Product implements OnInit {
-  private readonly baseUrl = 'https://localhost:5287';
+  private readonly baseUrl = `${environment.dataApiUrl}`;
   private readonly defaultImage = '/images/default-product.png';
 
 

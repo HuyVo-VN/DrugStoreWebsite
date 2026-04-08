@@ -4,10 +4,12 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { subscriptionLogsToBeFn } from 'rxjs/internal/testing/TestScheduler';
 import { Router } from '@angular/router';
 import { NGXLogger } from 'ngx-logger';
+import { environment } from '../../environments/environment';
+
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:5164/api/Auth';
+  private readonly apiUrl = `${environment.authenApiUrl}/api/Auth`;
 
   private usernameSubject = new BehaviorSubject<string>(this.getUsernameFromToken());
   username$ = this.usernameSubject.asObservable();

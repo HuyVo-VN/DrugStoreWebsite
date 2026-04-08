@@ -6,6 +6,8 @@ import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { marked } from 'marked';
 import { MarkdownPipe } from '../markdown-pipe';
+import { environment } from '../../environments/environment';
+
 
 interface ChatMessage {
   text: string;
@@ -34,7 +36,7 @@ export class AdminChatbot implements OnInit {
 
   // 2. NHÚNG HTTP CLIENT ĐỂ GỌI API
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8888/api/chatbot/ask'; // Đường dẫn tới server Python
+  private apiUrl = `${environment.aiApiUrl}/api/chatbot/ask`; // Đường dẫn tới server Python
 
   constructor() { }
 

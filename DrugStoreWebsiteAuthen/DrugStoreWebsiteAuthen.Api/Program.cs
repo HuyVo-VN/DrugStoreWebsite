@@ -1,4 +1,4 @@
-using DrugStoreWebsiteAuthen.Application.Interfaces;
+﻿using DrugStoreWebsiteAuthen.Application.Interfaces;
 using DrugStoreWebsiteAuthen.Application.Services;
 using DrugStoreWebsiteAuthen.Infrastructure.Persistence;
 using DrugStoreWebsiteAuthen.Infrastructure.Repositories;
@@ -144,5 +144,18 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error when create database: {ex.Message}");
+    }
+}
 app.Run();
 

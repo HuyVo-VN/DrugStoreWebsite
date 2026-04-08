@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { BannerService } from '../Services/banner.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-admin-banner',
@@ -13,7 +14,7 @@ import { BannerService } from '../Services/banner.service';
   styleUrl: './admin-banner.css'
 })
 export class AdminBanner implements OnInit {
-  private readonly baseUrl = 'https://localhost:5287';
+  private readonly baseUrl = `${environment.dataApiUrl}`;
   private readonly defaultImage = '/images/default-banner.jpg';
 
   banners: any[] = [];

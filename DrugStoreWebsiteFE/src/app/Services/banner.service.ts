@@ -2,12 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { NGXLogger } from 'ngx-logger';
+import { environment } from '../../environments/environment';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class BannerService {
-  readonly apiUrl = 'https://localhost:5287/api/Banners';
+  readonly apiUrl = `${environment.dataApiUrl}/api/Banners`;
 
   constructor(private http: HttpClient, private logger: NGXLogger) { }
 

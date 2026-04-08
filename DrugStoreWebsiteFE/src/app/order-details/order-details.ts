@@ -7,6 +7,8 @@ import { LoggerService } from '../Services/logger.service';
 import { CartService } from '../Services/cart.service';
 import { AppRoles } from '../enums/role.enums';
 import { AuthService } from '../Services/auth.service';
+import { environment } from '../../environments/environment';
+
 
 @Component({
   selector: 'app-order-details',
@@ -22,7 +24,7 @@ export class OrderDetails implements OnInit {
   orderId: string | null = null;
   order: any = null;
   isLoading = false;
-  private readonly baseUrl = 'https://localhost:5287';
+  private readonly baseUrl = `${environment.dataApiUrl}`
 
   subTotal: number = 0;
   shippingFee: number = 3;

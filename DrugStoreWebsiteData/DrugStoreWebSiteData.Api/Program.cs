@@ -1,4 +1,4 @@
-using DrugStoreWebSiteData.Infrastructure.Persistence;
+﻿using DrugStoreWebSiteData.Infrastructure.Persistence;
 using DrugStoreWebSite.Infrastructure.Repositories;
 using DrugStoreWebSiteData.Application.Interfaces;
 using DrugStoreWebSiteData.Domain.Interfaces;
@@ -117,7 +117,11 @@ if (app.Environment.IsDevelopment())
     );
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+   // app.UseHttpsRedirection();
+};
+
 app.UseCors("AllowAll");
 app.UseStaticFiles();
 
@@ -126,5 +130,21 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<DrugStoreDbContext>();
+        // Nếu sếp đã dùng lệnh Add-Migration trước đó thì dùng Migrate()
+        // Nếu chưa dùng thì xài EnsureCreated() để nó tự ốp thẳng Entity thành bảng
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error when create database: {ex.Message}");
+    }
+}
 
 app.Run();

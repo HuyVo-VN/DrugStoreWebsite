@@ -16,6 +16,8 @@ import { CartService } from '../Services/cart.service';
 import { AppRoles } from '../enums/role.enums';
 import { BannerService } from '../Services/banner.service';
 import { CollectionService } from '../Services/collection.service';
+import { environment } from '../../environments/environment';
+
 
 @Component({
   selector: 'app-customer-product',
@@ -27,7 +29,7 @@ import { CollectionService } from '../Services/collection.service';
 })
 export class CustomerProduct implements OnInit {
   products: any[] = [];
-  private readonly baseUrl = 'https://localhost:5287';
+  private readonly baseUrl = `${environment.dataApiUrl}`;
   private readonly defaultImage = '/images/default-product.png';
 
   constructor(
