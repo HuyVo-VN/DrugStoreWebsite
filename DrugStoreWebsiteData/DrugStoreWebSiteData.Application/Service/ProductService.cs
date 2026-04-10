@@ -14,7 +14,7 @@ public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
     private readonly ICategoryRepository _categoryRepository;
-    private readonly IImageService _imageService;
+    private readonly IPhotoService _photoService;
 
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ProductService> _logger;
@@ -24,13 +24,13 @@ public class ProductService : IProductService
         ICategoryRepository categoryRepository,
         IUnitOfWork unitOfWork,
         ILogger<ProductService> logger,
-        IImageService imageService)
+        IPhotoService photoService)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
-        _imageService = imageService;
+        _photoService = photoService;
     }
 
     public async Task<Result<ProductResponseDto>> CreateProductAsync(CreateProductRequestDto request)
@@ -52,7 +52,7 @@ public class ProductService : IProductService
             if (request.ImageFile != null)
             {
                 // save and take url
-                var newImageUrl = await _imageService.SaveImageAsync(request.ImageFile);
+                var newImageUrl = await _photoService.AddPhotoAsync(request.ImageFile);
 
                 // update URL into Entity
                 product.UpdateDetails(
@@ -185,16 +185,16 @@ public class ProductService : IProductService
                 // delete old picture
                 if (!string.IsNullOrEmpty(productResult.ImageUrl))
                 {
-                    _imageService.DeleteImage(productResult.ImageUrl);
+                    await _photoService.DeletePhotoAsync(productResult.ImageUrl);
                 }
                 // save new picture
-                updatedImageUrl = await _imageService.SaveImageAsync(request.ImageFile);
+                updatedImageUrl = await _photoService.AddPhotoAsync(request.ImageFile);
             }
             else if (request.DeleteCurrentImage)
             {
                 if (!string.IsNullOrEmpty(productResult.ImageUrl))
                 {
-                    _imageService.DeleteImage(productResult.ImageUrl);
+                    await _photoService.DeletePhotoAsync(productResult.ImageUrl);
                 }
                 updatedImageUrl = "";
             }

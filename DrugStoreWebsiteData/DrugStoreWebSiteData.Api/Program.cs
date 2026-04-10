@@ -102,6 +102,7 @@ builder.Services.AddScoped<ICollectionRepository, CollectionRepository>();
 builder.Services.AddScoped<IVnPayService, VnPayService>();
 builder.Services.AddAuthorization();
 builder.Services.Configure<VnPayConfig>(builder.Configuration.GetSection("Vnpay"));
+builder.Services.AddScoped<IPhotoService, CloudinaryPhotoService>();
 
 
 var app = builder.Build();
