@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrugStoreWebSiteData.Infrastructure", "DrugStoreWebSiteData.Infrastructure\DrugStoreWebSiteData.Infrastructure.csproj", "{70F29DE2-795D-48BE-A469-4273E85DD175}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrugStoreWebSiteData.Infrastructure", "DrugStoreWebSiteData.Infrastructure\DrugStoreWebSiteData.Infrastructure.csproj", "{70F29DE2-795D-48BE-A469-4273E85DD175}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrugStoreWebSiteData.Api", "DrugStoreWebSiteData.Api\DrugStoreWebSiteData.Api.csproj", "{0860B716-C880-4660-83E7-430C484A3395}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrugStoreWebSiteData.Api", "DrugStoreWebSiteData.Api\DrugStoreWebSiteData.Api.csproj", "{0860B716-C880-4660-83E7-430C484A3395}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrugStoreWebSiteData.Domain", "DrugStoreWebSiteData.Domain\DrugStoreWebSiteData.Domain.csproj", "{3677D9C8-7309-488F-8500-AEC656F882FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrugStoreWebSiteData.Domain", "DrugStoreWebSiteData.Domain\DrugStoreWebSiteData.Domain.csproj", "{3677D9C8-7309-488F-8500-AEC656F882FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrugStoreWebSiteData.Application", "DrugStoreWebSiteData.Application\DrugStoreWebSiteData.Application.csproj", "{D4155705-041C-4597-8718-A9A52CB18C96}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrugStoreWebSiteData.Application", "DrugStoreWebSiteData.Application\DrugStoreWebSiteData.Application.csproj", "{D4155705-041C-4597-8718-A9A52CB18C96}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrugStoreWebsiteData.Tests", "DrugStoreWebsiteData.Tests\DrugStoreWebsiteData.Tests.csproj", "{60687951-5113-42B7-B6B6-09BA7D6AADE8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrugStoreWebsiteData.Tests", "DrugStoreWebsiteData.Tests\DrugStoreWebsiteData.Tests.csproj", "{60687951-5113-42B7-B6B6-09BA7D6AADE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -86,5 +86,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C6E86F72-3383-4E90-B2AD-02D28BBB7278}
 	EndGlobalSection
 EndGlobal
