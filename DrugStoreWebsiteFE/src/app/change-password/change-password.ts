@@ -35,7 +35,8 @@ export class ChangePassword implements OnInit {
       this.errorMessage = 'Invalid link (missing email/token).';
       Swal.fire({
         icon: 'error',
-        title: 'Invalid Link',
+          title: 'Invalid Link',
+        heightAuto: false,
         text: this.errorMessage,
         showConfirmButton: true,
         heightAuto: false,
@@ -62,6 +63,7 @@ export class ChangePassword implements OnInit {
       Swal.fire({
         icon: 'warning',
         title: 'Incorrect',
+        heightAuto: false,
         text: this.errorMessage,
         showConfirmButton: true,
         heightAuto: false,
@@ -75,6 +77,7 @@ export class ChangePassword implements OnInit {
       Swal.fire({
         icon: 'warning',
         title: 'Mismatch',
+        heightAuto: false,
         text: this.errorMessage,
         showConfirmButton: true,
         heightAuto: false,
@@ -108,6 +111,7 @@ export class ChangePassword implements OnInit {
           Swal.fire({
             icon: 'success',
             title: 'Success',
+            heightAuto: false,
             text: 'Your password has been changed successfully!',
             showConfirmButton: true,
             heightAuto: false,

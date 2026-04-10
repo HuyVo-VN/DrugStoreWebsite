@@ -98,6 +98,7 @@ export class OrderDetails implements OnInit {
       text: "Items from this order will be added to your shopping cart.",
       icon: 'question',
       showCancelButton: true,
+      heightAuto: false,
       confirmButtonColor: '#b1f033ff',
       confirmButtonText: 'Confirm',
       cancelButtonText: 'Cancel'

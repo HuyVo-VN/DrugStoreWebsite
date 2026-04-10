@@ -451,6 +451,7 @@ export class CustomerProduct implements OnInit {
           Swal.fire({
             icon: 'success',
             title: 'Added to Cart',
+            heightAuto: false,
             text: `${product.name} has been added to your cart!`,
             timer: 1500,
             showConfirmButton: false

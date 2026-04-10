@@ -148,7 +148,13 @@ export class AdminBanner implements OnInit {
       if (result.isConfirmed) {
         this.bannerService.deleteBanner(banner.id).subscribe({
           next: () => {
-            Swal.fire('Deleted!', 'Banner deleted.', 'success');
+            Swal.fire({
+              title: 'Deleted!',
+              text: 'Banner deleted.',
+              icon: 'success',
+              heightAuto: false,
+              backdrop: true
+            });
             this.loadBanners();
           },
           error: (err) => Swal.fire('Error', 'Can not delete banner!', 'error')

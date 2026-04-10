@@ -159,6 +159,7 @@ export class AdminCollection implements OnInit {
   deleteCollection(id: string) {
     Swal.fire({
       title: 'Delete Collection?',
+      heightAuto: false,
       text: "This action does not delete the original product, only the group.",
       icon: 'warning',
       showCancelButton: true,

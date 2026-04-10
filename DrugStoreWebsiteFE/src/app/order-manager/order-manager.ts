@@ -59,6 +59,7 @@ export class OrderManager implements OnInit {
 
     Swal.fire({
       title: 'Update Order Status',
+      heightAuto: false,
       html: `
         <div style="text-align: left; margin-top: 10px; margin-left: 10%;">
            <label style="font-weight:bold;">Order ID:</label> <br> #${order.id} <br><br>
@@ -103,6 +104,7 @@ export class OrderManager implements OnInit {
       title: 'Are you sure?',
       text: `Do you want to delete Order #${order.id.substring(0, 8)}? This action cannot be undone.`,
       icon: 'warning',
+      heightAuto: false,
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',

@@ -90,6 +90,7 @@ export class AdminCategory implements OnInit {
   deleteCategory(id: string) {
     Swal.fire({
       title: 'Are you sure?',
+      heightAuto: false,
       text: "You will not be able to restore this category!",
       icon: 'warning',
       showCancelButton: true,
@@ -116,7 +117,7 @@ export class AdminCategory implements OnInit {
         category.isActive = newStatus;
         Swal.fire({
           toast: true, position: 'top-end', showConfirmButton: false,
-          timer: 1500, icon: 'success', title: ''
+          timer: 1500, icon: 'success', title: '', heightAuto: false,
         });
       },
       error: () => Swal.fire('Lỗi', 'Unable to update status', 'error')

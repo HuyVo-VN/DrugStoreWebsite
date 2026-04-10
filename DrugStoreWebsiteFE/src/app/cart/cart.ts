@@ -208,6 +208,7 @@ export class Cart implements OnInit {
   removeItem(item: any) {
     Swal.fire({
       title: 'Are you sure?',
+      heightAuto: false,
       html: `Do you want to remove?<br>This action cannot be undone.`,
       icon: 'warning',
       showCancelButton: true,
@@ -224,6 +225,7 @@ export class Cart implements OnInit {
               Swal.fire({
                 icon: 'success',
                 title: 'Success',
+                heightAuto: false,
                 text: 'Item has been removed successfully!',
                 showConfirmButton: true,
                 heightAuto: false,
