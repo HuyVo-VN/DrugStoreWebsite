@@ -1,0 +1,32 @@
+﻿name: Deploy to VPS
+
+# 1. Kịch bản này sẽ chạy khi có ai đó PUSH code lên nhánh 'main'
+on:
+  push:
+    branches: [ main ] 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Connect to VPS and Deploy
+      # Đây là công cụ chuẩn mực của GitHub để SSH vào VPS
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        # 2. Đây là những lệnh mà thằng GitHub sẽ gõ trên VPS của sếp
+        script: |
+          # Di chuyển vào thư mục code (Thay đổi nếu thư mục sếp tên khác)
+          cd ~/DrugStoreWebsite
+          
+          # Kéo code mới nhất về
+          git pull origin main
+          
+          # Đập đi xây lại bằng Docker (Tự động luôn)
+          docker compose down --rmi local
+          docker compose up -d --build
+          
+          # Dọn dẹp rác Docker cho nhẹ ổ cứng
+          docker image prune -f
