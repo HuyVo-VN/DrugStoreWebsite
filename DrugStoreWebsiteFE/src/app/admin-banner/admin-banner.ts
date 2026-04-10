@@ -125,7 +125,14 @@ export class AdminBanner implements OnInit {
 
         this.bannerService.createBanner(formData).subscribe({
           next: () => {
-            Swal.fire('Success', 'Banner created.', 'success');
+            Swal.fire({
+              title: 'Success',
+              text: 'Banner created.',
+              icon: 'success',
+              heightAuto: false,
+              backdrop: true
+            });
+            
             this.loadBanners();
           },
           error: (err) => Swal.fire('Fail', err.error?.message || 'Error when create!', 'error')
@@ -174,7 +181,9 @@ export class AdminBanner implements OnInit {
     this.bannerService.updateBanner(banner.id, formData).subscribe({
       next: () => {
         banner.isActive = newStatus;
-        Swal.fire({ icon: 'success', title: 'Update status successfully', timer: 1200, showConfirmButton: false });
+        Swal.fire({
+          icon: 'success', title: 'Update status successfully', timer: 1200, showConfirmButton: false, heightAuto: false,
+          backdrop: true });
       },
       error: () => Swal.fire('Error', 'Can not update status!', 'error')
     });
