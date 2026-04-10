@@ -19,10 +19,10 @@ export class OrderManager implements OnInit {
   
   statusOptions = [
     { value: 0, label: 'New' },
-    { value: 1, label: 'Paid' },
-    { value: 2, label: 'Processing' },
-    { value: 3, label: 'Completed' },
-    { value: 4, label: 'Cancelled' },
+    { value: 1, label: 'Processing' },
+    { value: 2, label: 'Completed' },
+    { value: 3, label: 'Cancelled' },
+    { value: 4, label: 'Paid' },
   ];
 
   constructor(

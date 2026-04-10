@@ -13,7 +13,7 @@ namespace DrugStoreWebSiteData.Application.Services;
 public class BannerService : IBannerService
 {
     private readonly IBannerRepository _bannerRepository;
-    private readonly IImageService _imageService;
+    private readonly IPhotoService _photoService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<BannerService> _logger;
 
@@ -21,12 +21,12 @@ public class BannerService : IBannerService
         IBannerRepository bannerRepository,
         IUnitOfWork unitOfWork,
         ILogger<BannerService> logger,
-        IImageService imageService)
+        IPhotoService photoService)
     {
         _bannerRepository = bannerRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
-        _imageService = imageService;
+        _photoService = photoService;
     }
 
     public async Task<IEnumerable<BannerResponseDto>> GetActiveBannersAsync()
@@ -81,7 +81,7 @@ public class BannerService : IBannerService
             string imageUrl = string.Empty;
             if (request.ImageFile != null)
             {
-                imageUrl = await _imageService.SaveImageAsync(request.ImageFile, "banners");
+                imageUrl = await _photoService.AddPhotoAsync(request.ImageFile);
             }
 
             var banner = new Banner
@@ -116,12 +116,14 @@ public class BannerService : IBannerService
 
             if (request.ImageFile != null)
             {
-                if (!string.IsNullOrEmpty(banner.ImageUrl)) _imageService.DeleteImage(banner.ImageUrl);
-                banner.ImageUrl = await _imageService.SaveImageAsync(request.ImageFile, "banners");
+                if (!string.IsNullOrEmpty(banner.ImageUrl)) 
+                    await _photoService.DeletePhotoAsync(banner.ImageUrl);
+                banner.ImageUrl = await _photoService.AddPhotoAsync(request.ImageFile);
             }
             else if (request.DeleteCurrentImage)
             {
-                if (!string.IsNullOrEmpty(banner.ImageUrl)) _imageService.DeleteImage(banner.ImageUrl);
+                if (!string.IsNullOrEmpty(banner.ImageUrl)) 
+                    await _photoService.DeletePhotoAsync(banner.ImageUrl);
                 banner.ImageUrl = string.Empty;
             }
 
@@ -150,7 +152,7 @@ public class BannerService : IBannerService
             var banner = await _bannerRepository.GetByIdAsync(id);
             if (banner != null && !string.IsNullOrEmpty(banner.ImageUrl))
             {
-                _imageService.DeleteImage(banner.ImageUrl);
+                await _photoService.DeletePhotoAsync(banner.ImageUrl);
             }
 
             var result = await _bannerRepository.DeleteAsync(id);
