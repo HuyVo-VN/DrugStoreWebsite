@@ -216,7 +216,6 @@ export class Cart implements OnInit {
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'Cancel',
-      heightAuto: false
     }).then((result) => {
       if (result.isConfirmed) {
         this.cartService.removeFromCart(item.itemId)
@@ -228,7 +227,6 @@ export class Cart implements OnInit {
                 heightAuto: false,
                 text: 'Item has been removed successfully!',
                 showConfirmButton: true,
-                heightAuto: false,
                 customClass: { popup: 'small-swal' }
               });
 

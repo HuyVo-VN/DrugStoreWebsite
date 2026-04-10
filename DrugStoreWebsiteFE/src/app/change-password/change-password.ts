@@ -39,7 +39,6 @@ export class ChangePassword implements OnInit {
         heightAuto: false,
         text: this.errorMessage,
         showConfirmButton: true,
-        heightAuto: false,
         customClass: {
           popup: 'small-swal'
         }
@@ -66,7 +65,6 @@ export class ChangePassword implements OnInit {
         heightAuto: false,
         text: this.errorMessage,
         showConfirmButton: true,
-        heightAuto: false,
         customClass: {
           popup: 'small-swal'
         }
@@ -80,7 +78,6 @@ export class ChangePassword implements OnInit {
         heightAuto: false,
         text: this.errorMessage,
         showConfirmButton: true,
-        heightAuto: false,
         customClass: {
           popup: 'small-swal'
         }
@@ -114,7 +111,6 @@ export class ChangePassword implements OnInit {
             heightAuto: false,
             text: 'Your password has been changed successfully!',
             showConfirmButton: true,
-            heightAuto: false,
             customClass: {
               popup: 'small-swal'
             },
