@@ -112,6 +112,8 @@ export class CustomerProduct implements OnInit {
     });
 
     this.authService.role$.subscribe(role => {
+      this.userRole = role || '';
+
       if (role === 'Admin') {
         this.router.navigate(['/admin-page']);
       }

@@ -50,11 +50,6 @@
       </div>
 
       <div class="register-form-group">
-        <label for="imageUrl">Profile Image (URL)</label>
-        <input type="text" id="imageUrl" name="imageUrl" [(ngModel)]="model.imageUrl" placeholder="https://..." />
-      </div>
-
-      <div class="register-form-group">
         <div style="display: flex;">
           <label for="username">Username</label>
           <p style="margin-left:5px; color: red;">*</p>
@@ -68,6 +63,18 @@
           <p style="margin-left:5px; color: red;">*</p>
         </div>
         <input type="password" id="password" name="password" [(ngModel)]="model.password" required />
+      </div>
+
+      <div class="register-form-group">
+        <div style="display: flex;">
+          <label for="confirmPassword">Confirm Password</label>
+          <p style="margin-left:5px; color: red;">*</p>
+        </div>
+        <input type="password" id="confirmPassword" name="confirmPassword" [(ngModel)]="model.confirmPassword" required />
+
+        <div *ngIf="model.confirmPassword && model.password !== model.confirmPassword" style="color: #dc3545; font-size: 13px; margin-top: 5px; font-weight: bold;">
+          Passwords do not match!
+        </div>
       </div>
 
       <button type="submit" [disabled]="!registerForm.valid">Register</button>

@@ -15,7 +15,9 @@ import Swal from 'sweetalert2';
 })
 export class Register {
   model: any = {
-    gender: ''
+    gender: '',
+    password: '',
+    confirmPassword: ''
   };
 
   imagePath: string = 'images/bg.png';
@@ -23,6 +25,21 @@ export class Register {
   constructor(private authService: AuthService, private router: Router) { }
 
   onSubmit() {
+    if (this.model.password !== this.model.confirmPassword) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Passwords do not match!',
+        heightAuto: false,
+        customClass: { popup: 'medium-swal' }
+      });
+      return;
+    }
+
+    const payload = { ...this.model };
+
+    delete payload.confirmPassword;
+
     this.authService.register(this.model).subscribe({
       next: () => {
         Swal.fire({
