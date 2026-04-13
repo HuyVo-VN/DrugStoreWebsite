@@ -149,3 +149,46 @@
     box-shadow: 0 4px 10px rgba(93, 135, 168, 0.2); 
 }
 
+/* --- CSS CHO NÚT SOCIAL LOGIN --- */
+.social-login-container {
+  margin-top: 20px;
+}
+
+.social-login-text {
+  color: #666;
+  font-size: 13px;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.social-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  width: 400px;
+}
+
+.btn-social {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-facebook {
+  background-color: #4267B2;
+  color: white;
+}
+
+  .btn-facebook:hover {
+    background-color: #365899;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }

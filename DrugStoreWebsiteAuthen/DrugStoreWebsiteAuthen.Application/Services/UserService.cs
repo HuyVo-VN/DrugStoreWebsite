@@ -1,4 +1,4 @@
-using DrugStoreWebsiteAuthen.Domain;
+﻿using DrugStoreWebsiteAuthen.Domain;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using DrugStoreWebsiteAuthen.Application.Common;
 using DrugStoreWebsiteAuthen.Application.Interfaces;
 using System.Text;
 using Azure;
+using Google.Apis.Auth;
 
 namespace DrugStoreWebsiteAuthen.Application.Services;
 
@@ -521,6 +522,59 @@ public class UserService : IUserService
         {
             _logger.LogError($"Error in AssignRoleToUserAsync: {ex.Message}");
             return IdentityResult.Failed(new IdentityError { Description = "An error occurred while assigning role." });
+        }
+    }
+
+    public async Task<Result<User>> GoogleLoginAsync(string idToken, string clientId)
+    {
+        try
+        {
+            var settings = new GoogleJsonWebSignature.ValidationSettings()
+            {
+                Audience = new List<string>() { clientId }
+            };
+
+            // 1. Google xác minh Token
+            var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+
+            // 2. Kiểm tra xem Email đã tồn tại chưa
+            var user = await _userManager.FindByEmailAsync(payload.Email);
+
+            if (user == null)
+            {
+                // Tự động tạo tài khoản mới nếu lần đầu đăng nhập bằng Google
+                // Thêm random Guid vào Username để chống trùng lặp nếu có người dùng email khác nhưng trùng tên
+                user = new User
+                {
+                    UserName = payload.Email.Split('@')[0] + "_" + Guid.NewGuid().ToString().Substring(0, 4),
+                    Email = payload.Email,
+                    FullName = payload.Name,
+                    EmailConfirmed = true,
+                    // ImageUrl = payload.Picture // Mở comment nếu Entity User của sếp có thuộc tính này
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                {
+                    return Result<User>.Failure(ResultStatus.InternalError, "Unable to create an account from Google.");
+                }
+
+                // Cấp quyền Customer mặc định
+                await _userManager.AddToRoleAsync(user, "Customer");
+            }
+
+            // Trả về User xịn để Controller sinh Token
+            return Result<User>.Success(ResultStatus.Success, user, "Google verification successful");
+        }
+        catch (InvalidJwtException)
+        {
+            _logger.LogWarning("The Google Token is invalid or has expired.");
+            return Result<User>.Failure(ResultStatus.BadRequest, "The Google Token is invalid or has expired!");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "System error when logging in with Google.");
+            return Result<User>.Failure(ResultStatus.InternalError, "A system error occurred while logging in.");
         }
     }
 

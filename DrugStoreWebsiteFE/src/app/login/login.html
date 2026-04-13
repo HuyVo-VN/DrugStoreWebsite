@@ -4,14 +4,14 @@
 
     <form #loginForm="ngForm" (submit)="login(); $event.preventDefault()">
       <div style="margin-bottom: 15px; text-align: left;">
-          <label class="login-label-group">Username</label>
+        <label class="login-label-group">Username</label>
         <div>
           <input [(ngModel)]="username" name="username" required class="login-input" />
         </div>
       </div>
 
       <div style="margin-bottom: 15px; text-align: left;">
-          <label class="login-label-group">Password</label>
+        <label class="login-label-group">Password</label>
         <div>
           <input #passwordInput [(ngModel)]="password" type="password" name="password" required class="login-input" />
         </div>
@@ -25,5 +25,20 @@
     </div>
     <div class="login-horizontal-line"></div>
     <button type="button" class="login-button-secondary" (click)="goToRegister()">Sign Up</button>
+
+    <div class="social-login-container">
+      <p class="social-login-text">Or login with</p>
+      <div class="social-buttons">
+
+        <div style="flex: 1; display: flex; justify-content: center;">
+          <asl-google-signin-button type="standard" size="large" [width]="200"></asl-google-signin-button>
+        </div>
+
+        <button type="button" class="btn-social btn-facebook" (click)="loginWithFacebook()" style="flex: 1;">
+          <i class="fab fa-facebook-f"></i> Facebook
+        </button>
+
+      </div>
+    </div>
   </div>
 </div>

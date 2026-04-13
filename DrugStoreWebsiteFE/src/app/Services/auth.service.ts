@@ -11,6 +11,10 @@ import { environment } from '../../environments/environment';
 export class AuthService {
   private readonly apiUrl = `${environment.authenApiUrl}/api/Auth`;
 
+  private loginStatus = new BehaviorSubject<boolean>(this.isLoggedIn());
+
+  loginStatus$ = this.loginStatus.asObservable();
+
   private usernameSubject = new BehaviorSubject<string>(this.getUsernameFromToken());
   username$ = this.usernameSubject.asObservable();
 
@@ -24,6 +28,10 @@ export class AuthService {
     if (token) {
       this.updateUserInfoFromToken(token);
     }
+  }
+
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem('access_token');
   }
 
   getAccessToken(): string | null {
@@ -50,6 +58,8 @@ export class AuthService {
     localStorage.setItem('refresh_token', refreshToken);
     //update userinfo when have new token
     this.updateUserInfoFromToken(accessToken);
+
+    this.loginStatus.next(true);
   }
 
   login(username: string, password: string): Observable<any> {
@@ -63,6 +73,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    this.loginStatus.next(false);
     this.usernameSubject.next('');
     this.roleSubject.next('');
     this.isRefreshing = false;
@@ -216,5 +227,9 @@ export class AuthService {
 
   clearPassword() {
     sessionStorage.removeItem(this.passwordKey);
+  }
+
+  googleLogin(idToken: string) {
+    return this.http.post<any>(`${this.apiUrl}/google-login`, { idToken });
   }
 }

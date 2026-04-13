@@ -25,4 +25,5 @@ public interface IUserService
     Task<ResponseModel<User>> RegisterUserAsync(User user, string password);
     Task<Result<string>> DeleteAsync(string userId);
     Task<IdentityResult> AssignRoleToUserAsync(string userId, string roleName);
+    Task<Result<User>> GoogleLoginAsync(string idToken, string clientId);
 }

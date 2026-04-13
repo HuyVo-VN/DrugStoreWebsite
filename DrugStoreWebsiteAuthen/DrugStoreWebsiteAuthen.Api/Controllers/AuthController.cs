@@ -1,4 +1,4 @@
-using DrugStoreWebsiteAuthen.Application.DTOs.Request;
+﻿using DrugStoreWebsiteAuthen.Application.DTOs.Request;
 using DrugStoreWebsiteAuthen.Application.DTOs.Response;
 using DrugStoreWebsiteAuthen.Application.Interfaces;
 using DrugStoreWebsiteAuthen.Application.Common;
@@ -82,6 +82,60 @@ namespace DrugStoreWebsiteAuthen.Controllers
             {
                 _logger.LogError(ex, "Error in login process for user {Username}.", request.Username);
                 return BadRequest(Result<string>.Failure(ResultStatus.NotFound, ex.Message));
+            }
+        }
+
+        [HttpPost("google-login")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(object))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ResponseModel<string>))]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDto request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.IdToken))
+                    return BadRequest(Result<string>.Failure(ResultStatus.BadRequest, "Tokens cannot be empty."));
+
+                // Lấy ClientId từ appsettings.json hoặc .env
+                var clientId = Environment.GetEnvironmentVariable("Google__ClientId") ?? _configuration["Google:ClientId"];
+
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    _logger.LogError("SERIOUS ERROR: Google ClientId not found in .env or appsettings!");
+                    return StatusCode(500, Result<string>.Failure(ResultStatus.InternalError, "Google ClientID has not been configured in the backend."));
+                }
+                if (string.IsNullOrEmpty(clientId))
+                    return StatusCode(500, Result<string>.Failure(ResultStatus.InternalError, "Google ClientID has not been configured in the backend."));
+
+                // 1. Xác thực với Google qua UserService
+                var userResult = await _userService.GoogleLoginAsync(request.IdToken, clientId);
+                if (!userResult.Succeeded || userResult.Data == null)
+                    return BadRequest(Result<string>.Failure(ResultStatus.BadRequest, userResult.Message));
+
+                var user = userResult.Data;
+
+                // 2. Sinh JWT Token và Refresh Token giống hệt logic Login thường
+                var accessToken = await _jwtService.GenerateJwtToken(user.UserName);
+                var refreshToken = await _jwtService.GenerateRefreshToken();
+
+                var expirationDaysString = Environment.GetEnvironmentVariable("JWT_REFRESH_EXPIRATION_DAYS");
+                var refreshTokenExpiryDays = int.TryParse(expirationDaysString, out var parsedMinutes) ? parsedMinutes : 15;
+
+                user.RefreshToken = refreshToken;
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenExpiryDays);
+                await _userService.UpdateUserAsync(user);
+
+                // 3. Trả về Token cho Frontend
+                return Ok(new
+                {
+                    token = accessToken,
+                    refreshToken = refreshToken
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Google Login Controller.");
+                return BadRequest(Result<string>.Failure(ResultStatus.InternalError, ex.Message));
             }
         }
 

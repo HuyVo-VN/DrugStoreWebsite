@@ -135,7 +135,7 @@ if (app.Environment.IsDevelopment())
     );
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAll");
 

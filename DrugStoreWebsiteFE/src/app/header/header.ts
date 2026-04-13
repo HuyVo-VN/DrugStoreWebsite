@@ -8,7 +8,8 @@ import { AppRoles } from '../enums/role.enums';
 import { CartService } from '../Services/cart.service';
 import { MatBadgeModule } from '@angular/material/badge';
 import { CategoryService } from '../Services/category.service';
-import { FormsModule } from '@angular/forms'; 
+import { FormsModule } from '@angular/forms';
+import { SocialAuthService } from '@abacritt/angularx-social-login';
 
 @Component({
   selector: 'app-header',
@@ -21,6 +22,7 @@ export class Header implements OnInit {
   public AppRoles = AppRoles;
 
   username = '';
+  fullname = '';
   userRole = '';
   email!: string;
   errorMessage = '';
@@ -32,15 +34,21 @@ export class Header implements OnInit {
   searchKeyword: string = '';
   selectedCategory: string = '';
 
+  isLoggedIn = false;
   constructor(
     private authService: AuthService,
     private router: Router,
     private userService: UserService,
     private cartService: CartService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private socialAuthService: SocialAuthService
   ) { }
 
   ngOnInit() {
+    this.authService.loginStatus$.subscribe(status => {
+      this.isLoggedIn = status;
+    });
+
     this.authService.username$.subscribe((name) => {
       this.username = name;
 
@@ -48,6 +56,7 @@ export class Header implements OnInit {
         this.userService.getUserByUsername(this.username).subscribe({
           next: (res: any) => {
             this.email = res.data.email;
+            this.fullname = res.data.fullName;
           },
         });
       }
@@ -81,6 +90,7 @@ export class Header implements OnInit {
 
 
   logout() {
+    this.socialAuthService.signOut().catch(() => { });
     this.authService.logout();
     Swal.fire({
       icon: 'info',

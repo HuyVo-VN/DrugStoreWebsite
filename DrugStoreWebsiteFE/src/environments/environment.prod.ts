@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
-  // Tạm thời localhost, sau này lên VPS đổi cụm 'localhost' thành 'IP_CỦA_VPS' là xong.
-  authenApiUrl: 'http://103.82.24.142:5001',
-  dataApiUrl: 'http://103.82.24.142:5002',
-  aiApiUrl: 'http://103.82.24.142:8888'
+  authenApiUrl: 'http://drugstore-huyvo.duckdns.org/api/auth',
+  dataApiUrl: 'http://drugstore-huyvo.duckdns.org/api/data',
+  aiApiUrl: 'http://drugstore-huyvo.duckdns.org/api/ai',
+  googleClientId: '412203333687-d7cu6on8ss5f1gic1qadjjvlo9t6jp3k.apps.googleusercontent.com'
 };
