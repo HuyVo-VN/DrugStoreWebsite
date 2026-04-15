@@ -580,7 +580,7 @@ export class CustomerProduct implements OnInit {
           behavior: 'smooth'
         });
       }
-    }, 300);
+    }, 100);
   }
 
   get isSearchOrFilterActive(): boolean {
