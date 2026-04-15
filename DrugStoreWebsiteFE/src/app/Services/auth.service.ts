@@ -91,18 +91,7 @@ export class AuthService {
     const body = { AccessToken: accessToken, RefreshToken: refreshToken };
     this.isRefreshing = true;
 
-    return this.http.post(`${this.apiUrl}/refresh`, body).pipe(
-      tap((response: any) => {
-        const data = response?.data;
-        if (data?.accessToken && data?.refreshToken) {
-          this.saveTokens(data.accessToken, data.refreshToken);
-
-        } else {
-          this.logger.error('Invalid refresh response, logging out.', response);
-        }
-        this.isRefreshing = false;
-      })
-    );
+    return this.http.post(`${this.apiUrl}/refresh`, body);
   }
 
   public getIsRefreshing(): boolean {

@@ -382,8 +382,6 @@ export class CustomerProduct implements OnInit {
           this.totalPages = pagedResult.totalPages || 0;
           this.totalCount = pagedResult.totalCount || 0;
           this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
-
-          window.scrollTo({ top: 0, behavior: 'smooth' }); //scroll to top when pagination
         }
       },
       error: (err) => {
@@ -399,32 +397,27 @@ export class CustomerProduct implements OnInit {
     }
     this.currentPage = page;
 
+    // 1. Chia nhánh gọi data
     if (this.currentListType === 'bestseller') {
       this.loadBestSellersPaged();
-      return;
     }
-    if (this.currentListType === 'hotsale') {
+    else if (this.currentListType === 'hotsale') {
       this.loadHotSalesPaged();
-      return;
     }
-    
-    if (this.currentCollectionId) {
+    else if (this.currentCollectionId) {
       this.loadCollectionProductsPaged();
-      return;
     }
-
-    if (this.currentKeyword && this.currentKeyword.trim() !== '') {
+    else if (this.currentKeyword && this.currentKeyword.trim() !== '') {
       this.performSearch(this.currentKeyword);
-      return;
     }
-
-    if (this.selectedCategoryId) {
+    else if (this.selectedCategoryId) {
       this.toggleFilter();
       this.applyFilter();
-      return;
+    }
+    else {
+      this.loadProducts();
     }
 
-    this.loadProducts();
     this.scrollToProductGrid();
   }
 
@@ -587,7 +580,7 @@ export class CustomerProduct implements OnInit {
           behavior: 'smooth'
         });
       }
-    }, 100);
+    }, 300);
   }
 
   get isSearchOrFilterActive(): boolean {
@@ -629,8 +622,6 @@ export class CustomerProduct implements OnInit {
           this.totalPages = pagedResult.totalPages || 0;
           this.totalCount = pagedResult.totalCount || 0;
           this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
-
-          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         this.loading = false;
       },
@@ -650,8 +641,6 @@ export class CustomerProduct implements OnInit {
           this.totalPages = pagedResult.totalPages || 0;
           this.totalCount = pagedResult.totalCount || 0;
           this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
-
-          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         this.loading = false;
       },
