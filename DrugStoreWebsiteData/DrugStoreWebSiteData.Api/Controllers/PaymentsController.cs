@@ -38,7 +38,7 @@ namespace DrugStoreWebSiteData.Api.Controllers
             }
         }
 
-
+        [AllowAnonymous]
         [HttpGet("payment-callback")]
         public async Task<IActionResult> PaymentCallback()
         {
