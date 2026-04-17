@@ -64,11 +64,6 @@ packages/
 *.db-wal
 
 ############################
-# Entity Framework
-############################
-Migrations/
-
-############################
 # Secrets and configs
 ############################
 appsettings.Development.json
