@@ -65,7 +65,9 @@ export class AuthService {
   login(username: string, password: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, { username, password }).pipe(
       tap((response: any) => {
-        this.saveTokens(response.token, response.refreshToken);
+        if (!response.requires2FA && response.token) {
+          this.saveTokens(response.token, response.refreshToken);
+        }
       })
     );
   }
@@ -220,5 +222,39 @@ export class AuthService {
 
   googleLogin(idToken: string) {
     return this.http.post<any>(`${this.apiUrl}/google-login`, { idToken });
+  }
+
+  changePassword(oldPassword: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/change-password`, { oldPassword, newPassword });
+  }
+
+  // --- Các hàm phục vụ 2FA Google Authenticator ---
+
+  // 1. Xin Backend ảnh QR Code
+  setup2FA(): Observable<any> {
+    // Phải có Token thì Backend mới biết ai đang xin
+    return this.http.get(`${this.apiUrl}/setup-2fa`);
+  }
+
+  // 2. Gửi mã 6 số lúc cài đặt để Backend xác nhận
+  verify2FASetup(code: string): Observable<any> {
+    // Cần truyền code vào body (nhớ bọc trong nháy kép vì Backend nhận string)
+    const headers = { 'Content-Type': 'application/json' };
+    return this.http.post(`${this.apiUrl}/verify-2fa-setup`, JSON.stringify(code), { headers });
+  }
+
+  // 3. Đăng nhập bước 2 (Bắn Username và OTP Code lên)
+  login2FA(username: string, code: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/login-2fa`, { username, code }).pipe(
+      tap((response: any) => {
+        // Lưu token nếu thành công y chang hàm login thường
+        this.saveTokens(response.token, response.refreshToken);
+      })
+    );
+  }
+
+  disable2FA(): Observable<any> {
+    // API post không cần gửi body dữ liệu gì lên cả nên để {}
+    return this.http.post(`${this.apiUrl}/disable-2fa`, {});
   }
 }

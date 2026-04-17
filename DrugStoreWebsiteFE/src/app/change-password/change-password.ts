@@ -1,159 +1,194 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../Services/auth.service';
-import { UserService } from '../Services/user';
 import { FormsModule } from '@angular/forms';
-
-import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
+import Swal from 'sweetalert2';
+import { UserService } from '../Services/user';
+
 @Component({
   selector: 'app-change-password',
+  standalone: true,
   imports: [FormsModule, CommonModule],
   templateUrl: './change-password.html',
   styleUrl: './change-password.css'
 })
 export class ChangePassword implements OnInit {
-  email: string = '';
-  token: string = '';
-  oldPassword: string = '';
-  newPassword: string = '';
-  newConfirmPassword: string = '';
-  errorMessage: string = '';
-  private checkTimeout: any = null;
+  oldPassword = '';
+  newPassword = '';
+  newConfirmPassword = '';
+  errorMessage = '';
 
-  constructor(private route: ActivatedRoute, private router: Router, private authService: AuthService) { }
+  // UX: Đo độ mạnh mật khẩu
+  passwordStrength = 0;
+  strengthText = '';
+  strengthColor = '#ccc';
+
+  // 2FA: Trạng thái bảo mật 2 lớp (Dành cho phần sau)
+  is2FAEnabled = false;
+  show2FASetup = false;
+
+  qrCodeBase64 = '';
+  otpCode = '';
+
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private userService: UserService
+  ) { }
 
   ngOnInit() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const rawEmail = urlParams.get('email');
-    const rawToken = urlParams.get('token');
+    // 1. Lấy username hiện tại đang đăng nhập từ AuthService
+    const currentUsername = this.authService.getUsername();
 
-    if (rawEmail && rawToken) {
-      this.email = rawEmail.trim();
-      this.token = rawToken.trim();
-    } else {
-      this.errorMessage = 'Invalid link (missing email/token).';
-      Swal.fire({
-        icon: 'error',
-          title: 'Invalid Link',
-        heightAuto: false,
-        text: this.errorMessage,
-        showConfirmButton: true,
-        customClass: {
-          popup: 'small-swal'
+    if (currentUsername) {
+      // 2. Gọi API lấy thông tin User để check cờ 2FA
+      this.userService.getUserByUsername(currentUsername).subscribe({
+        next: (res: any) => {
+          // Backend .NET của sếp thường bọc data trong res.data
+          const userProfile = res.data;
+
+          // 3. Cập nhật trạng thái hiển thị
+          if (userProfile && userProfile.twoFactorEnabled !== undefined) {
+            this.is2FAEnabled = userProfile.twoFactorEnabled;
+          }
+        },
+        error: (err) => {
+          console.error('Không lấy được profile user:', err);
         }
       });
     }
   }
-  onOldPasswordInput(event: any) {
-    clearTimeout(this.checkTimeout);
-    this.checkTimeout = setTimeout(() => {
-      const isCorrect = this.authService.compareOldPassword(this.oldPassword);
-      if (!isCorrect && this.oldPassword) {
-        this.errorMessage = "Old password is incorrect! Please check your current password again."
 
-      }
-      else this.errorMessage = '';
-    }, 1000);
+  checkPasswordStrength() {
+    let strength = 0;
+    if (this.newPassword.length >= 6) strength += 1;
+    if (this.newPassword.match(/[A-Z]/)) strength += 1; // Có chữ hoa
+    if (this.newPassword.match(/[a-z]/)) strength += 1; // Có chữ thường
+    if (this.newPassword.match(/[0-9]/)) strength += 1; // Có số
+    if (this.newPassword.match(/[\W_]/)) strength += 1; // Có ký tự đặc biệt (!@#$)
+
+    this.passwordStrength = strength;
+
+    switch (strength) {
+      case 0: case 1: case 2:
+        this.strengthText = 'Weak';
+        this.strengthColor = '#ff4d4d'; // Đỏ
+        break;
+      case 3: case 4:
+        this.strengthText = 'Medium';
+        this.strengthColor = '#ffcc00'; // Vàng
+        break;
+      case 5:
+        this.strengthText = 'Strong';
+        this.strengthColor = '#00cc44'; // Xanh lá
+        break;
+      default:
+        this.strengthText = '';
+        this.strengthColor = '#ccc';
+    }
   }
 
   changePassword() {
-    if (!this.authService.compareOldPassword(this.oldPassword)) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Incorrect',
-        heightAuto: false,
-        text: this.errorMessage,
-        showConfirmButton: true,
-        customClass: {
-          popup: 'small-swal'
-        }
-      }); return;
-    }
+    this.errorMessage = '';
+
     if (this.newPassword !== this.newConfirmPassword) {
       this.errorMessage = 'Passwords do not match.';
-      Swal.fire({
-        icon: 'warning',
-        title: 'Mismatch',
-        heightAuto: false,
-        text: this.errorMessage,
-        showConfirmButton: true,
-        customClass: {
-          popup: 'small-swal'
-        }
-      });
       return;
     }
 
-    if (!this.email || !this.token) {
-      this.errorMessage = 'Missing email or token information.';
-      Swal.fire({
-        icon: 'error',
-        title: 'Missing Info',
-        text: this.errorMessage,
-        timer: 4000,
-        showConfirmButton: true,
-        heightAuto: false,
-
-        customClass: {
-          popup: 'small-swal'
-        }
-      });
+    if (this.passwordStrength < 3) {
+      this.errorMessage = 'New password is too weak. Please include letters, numbers, and special characters.';
       return;
     }
 
-    this.authService.resetPassword(this.email, this.token, this.newPassword, this.newConfirmPassword)
-      .subscribe({
-        next: () => {
-          Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            heightAuto: false,
-            text: 'Your password has been changed successfully!',
-            showConfirmButton: true,
-            customClass: {
-              popup: 'small-swal'
-            },
-            didClose: () => {
-              this.authService.logout();
-              this.router.navigate(['/login']);
-            }
-          });
-        },
-        error: (err) => {
-          if (err.status === 400 && err.error && Array.isArray(err.error)) {
-            this.errorMessage = err.error.map((e: any) => e.description).join('; ');
-          } else {
-            let errorDetail = 'Unknown error.';
-            if (err.error?.message) {
-              errorDetail = err.error.message;
-            } else if (err.statusText) {
-              errorDetail = err.statusText;
-            }
-
-            this.errorMessage = `
-              The password must contain at least 6 characters, including:<br>
-              • At least one uppercase letter (A-Z)<br>
-              • At least one lowercase letter (a-z)<br>
-              • At least one number (0-9)<br>
-              • At least one special character (!@#$...)
-            `;
-
-            Swal.fire({
-              icon: 'error',
-              title: 'Failed',
-              text: 'Invalid password format.',
-              showConfirmButton: true,
-              heightAuto: false,
-              customClass: {
-                popup: 'small-swal'
-              }
-            });
-          }
-        }
-      });
+    // 🚀 GỌI API ĐỔI MẬT KHẨU THẬT SỰ
+    this.authService.changePassword(this.oldPassword, this.newPassword).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Your password has been changed successfully! Please log in again.',
+          heightAuto: false,
+          customClass: { popup: 'small-swal' },
+          showConfirmButton: true
+        }).then(() => {
+          // Chuẩn bảo mật: Đổi pass xong phải xóa token cũ và bắt đăng nhập lại
+          this.authService.logout();
+        });
+      },
+      error: (err) => {
+        // Bắt lỗi từ Backend (ví dụ: Sai pass cũ)
+        this.errorMessage = err.error?.message || 'Incorrect old password or server error.';
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: this.errorMessage,
+          heightAuto: false,
+          customClass: { popup: 'small-swal' }
+        });
+      }
+    });
   }
+
   goBack() {
     window.history.back();
+  }
+
+  // 1. Gọi API lấy hình QR
+  toggle2FASetup() {
+    this.show2FASetup = !this.show2FASetup;
+    if (this.show2FASetup) {
+      this.authService.setup2FA().subscribe({
+        next: (res: any) => {
+          this.qrCodeBase64 = res.qrCodeImage; // Hình ảnh Base64 từ Backend
+        }
+      });
+    }
+  }
+
+  // 2. Gửi mã 6 số để kích hoạt chính thức
+  confirm2FASetup() {
+    this.authService.verify2FASetup(this.otpCode).subscribe({
+      next: (res: any) => {
+        Swal.fire('Thành công', 'Đã bật bảo mật 2 lớp!', 'success');
+        this.is2FAEnabled = true;
+        this.show2FASetup = false;
+      },
+      error: (err) => {
+        Swal.fire('Lỗi', 'Mã OTP không đúng hoặc đã hết hạn', 'error');
+      }
+    });
+  }
+
+  disable2FA() {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You are turning off extra security for your account!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, disable it!',
+      heightAuto: false
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Gọi API xuống Backend
+        this.authService.disable2FA().subscribe({
+          next: () => {
+            // Tắt thành công thì đổi cờ để HTML tự động ẩn giao diện
+            this.is2FAEnabled = false;
+            this.show2FASetup = false;
+            Swal.fire({
+              title: 'Disabled!',
+              text: '2FA has been turned off.',
+              icon: 'success',
+              heightAuto: false
+            });
+          },
+          error: (err) => {
+            Swal.fire('Error', 'Could not disable 2FA', 'error');
+          }
+        });
+      }
+    });
   }
 }

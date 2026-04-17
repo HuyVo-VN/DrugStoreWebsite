@@ -578,6 +578,17 @@ public class UserService : IUserService
         }
     }
 
+    public async Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword)
+    {
+        // _userManager là công cụ quản lý User có sẵn của .NET Identity
+        // Hàm ChangePasswordAsync của nó sẽ tự động:
+        // 1. Kiểm tra mật khẩu cũ (currentPassword) có khớp trong DB không
+        // 2. Kiểm tra mật khẩu mới (newPassword) có đủ độ khó chưa (chữ hoa, số...)
+        // 3. Tự động băm (Hash) mật khẩu mới và lưu đè xuống Database!
+
+        return await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+    }
+
 
 }
 

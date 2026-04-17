@@ -1,5 +1,6 @@
 import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../Services/auth.service';
@@ -12,14 +13,18 @@ import { environment } from '../../environments/environment';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, RouterModule, GoogleSigninButtonModule],
+  imports: [FormsModule, RouterModule, GoogleSigninButtonModule, CommonModule],
   templateUrl: './login.html',
   styleUrls: ['./login.css'],
 })
-export class Login {
+export class Login implements OnInit {
   username = '';
   password = '';
   message = '';
+
+  // Biến điều khiển 2FA
+  requires2FA = false;
+  otpCode = '';
 
   @ViewChild('passwordInput') passwordInput!: ElementRef;
 
@@ -33,30 +38,15 @@ export class Login {
 
   ngOnInit() {
     this.socialAuthService.authState.subscribe((googleUser) => {
-
       if (!googleUser || !googleUser.idToken) {
-        return; 
+        return;
       }
 
       this.authService.googleLogin(googleUser.idToken).subscribe({
         next: (res) => {
           if (res.token) {
             this.authService.saveTokens(res.token, res.refreshToken);
-
-            const role = this.authService.getUserRole();
-
-            Swal.fire({
-              icon: 'success',
-              title: 'Login Successful',
-              text: `Welcome back, ${googleUser.name}!`,
-              timer: 1500,
-              heightAuto: false,
-              showConfirmButton: false
-            }).then(() => {
-              if (role === 'Admin') this.router.navigate(['/admin-page']);
-              else if (role === 'Staff') this.router.navigate(['/product']);
-              else this.router.navigate(['/']);
-            });
+            this.redirectUserByRole(googleUser.name);
           }
         },
         error: (err) => {
@@ -72,59 +62,28 @@ export class Login {
   }
 
   login() {
-    // Call login API via AuthService
     this.authService.login(this.username, this.password).subscribe({
       next: (res) => {
         this.logger.info('Login response:', res);
 
-        // If login is successful and token is returned
-        if (res.token) {
+        // NẾU BACKEND YÊU CẦU 2FA
+        if (res.requires2FA) {
+          this.requires2FA = true;
+          this.message = '';
+        }
+        else if (res.token) {
           this.authService.setPassword(this.password);
-          const role = this.authService.getUserRole();
-
-          Swal.fire({
-            icon: 'success',
-            title: 'Login Successful',
-            timer: 1500,
-            heightAuto: false,
-            showConfirmButton: false
-          }).then(() => {
-            // Redirect user based on their role
-            if (role === 'Admin') {
-              this.router.navigate(['/admin-page']);
-            } else if (role === 'Staff') {
-              this.router.navigate(['/product']);
-            }else
-            {
-              this.router.navigate(['/']);
-            }
-          });
-        } else {
-          Swal.fire({
-          icon: 'error',
-          title: 'Login Failed',
-          text: 'Incorrect username or password!',
-          timer: 2500,
-          showConfirmButton: false,
-          heightAuto: false,
-          allowOutsideClick: false,
-          didClose: () => {
-            this.passwordInput.nativeElement.focus();
-          }
-        });
+          this.redirectUserByRole();
         }
       },
-
       error: (err: HttpErrorResponse) => {
         let title = 'Login Error';
         let text = 'Unable to sign in. Please try again later.';
 
-        if (err.status === 400 || err.status === 402) {
-          title = 'Login Error';
-          text = 'Incorect username or password!';
+        if (err.status === 400 || err.status === 401 || err.status === 402) {
+          text = 'Incorrect username or password!';
         }
 
-        // Handle server or network error
         Swal.fire({
           icon: 'error',
           title: title,
@@ -135,14 +94,58 @@ export class Login {
           allowOutsideClick: false,
           didClose: () => {
             this.message = text;
-            this.passwordInput.nativeElement.focus();
+            if (this.passwordInput) this.passwordInput.nativeElement.focus();
           },
         });
       },
-  });
+    });
   }
 
-  // Navigate to register page
+  // HÀM XỬ LÝ NHẬP MÃ 6 SỐ
+  verify2FALogin() {
+    this.authService.login2FA(this.username, this.otpCode).subscribe({
+      next: (res: any) => {
+        if (res.token) {
+          this.authService.setPassword(this.password);
+          this.redirectUserByRole();
+        }
+      },
+      error: (err) => {
+        this.otpCode = '';
+        Swal.fire({
+          icon: 'error',
+          title: 'Verification Failed',
+          text: 'Invalid or expired 6-digit code. Please try again.',
+          heightAuto: false,
+          customClass: { popup: 'small-swal' }
+        });
+      }
+    });
+  }
+
+  // Hàm phụ trợ để điều hướng user (tránh lặp code)
+  private redirectUserByRole(displayName?: string) {
+    const role = this.authService.getUserRole();
+    const nameToDisplay = displayName || this.username;
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Login Successful',
+      text: `Welcome back, ${nameToDisplay}!`,
+      timer: 1500,
+      heightAuto: false,
+      showConfirmButton: false
+    }).then(() => {
+      if (role === 'Admin') {
+        this.router.navigate(['/admin-page']);
+      } else if (role === 'Staff') {
+        this.router.navigate(['/product']);
+      } else {
+        this.router.navigate(['/']);
+      }
+    });
+  }
+
   goToRegister() {
     this.router.navigate(['/register']);
   }

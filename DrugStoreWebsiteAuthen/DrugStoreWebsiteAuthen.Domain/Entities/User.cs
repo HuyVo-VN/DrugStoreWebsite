@@ -12,6 +12,10 @@ namespace DrugStoreWebsiteAuthen.Domain
 
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiryTime { get; set; }
+
+        public bool TwoFactorEnabled { get; set; } = false;
+
+        public string? TwoFactorSecret { get; set; }
     }
  
 }

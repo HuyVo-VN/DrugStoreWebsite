@@ -94,10 +94,10 @@
               <i class="fa-solid fa-clipboard-list" style="color: #fcaa74; margin-right: 2px"></i>
               My Orders</a
             >
-            <a (click)="sendLink()" style="cursor: pointer">
-              <i class="fa-solid fa-user-gear" style="color: #68e07c; margin-right: 2px"></i> Change
-              Password</a
-            >
+            <a [routerLink]="['/change-password']" style="cursor: pointer; text-decoration: none;">
+              <i class="fa-solid fa-user-gear" style="color: #68e07c; margin-right: 4px;"></i>
+              Change Password
+            </a>
             <a (click)="logout()" style="color: red; cursor: pointer">
               <i class="fa-solid fa-right-from-bracket" style="color: red; margin-right: 2px"></i>
               Log Out</a

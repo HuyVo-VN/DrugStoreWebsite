@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using OtpNet;
+using QRCoder;
 
 namespace DrugStoreWebsiteAuthen.Controllers
 {
@@ -61,6 +63,17 @@ namespace DrugStoreWebsiteAuthen.Controllers
                     return Unauthorized(Result<string>.Failure(ResultStatus.NotFound, "User doesn't exist."));
 
                 var user = userResult.Data;
+
+                if (user.TwoFactorEnabled)
+                {
+                    _logger.LogInformation("User {Username} requires 2FA verification.", user.UserName);
+                    return Ok(new
+                    {
+                        requires2FA = true,
+                        username = user.UserName
+                    });
+                }
+
                 var accessToken = await _jwtService.GenerateJwtToken(user.UserName);
                 var refreshToken = await _jwtService.GenerateRefreshToken();
 
@@ -419,5 +432,176 @@ namespace DrugStoreWebsiteAuthen.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
+
+        [Authorize]
+        [HttpGet("setup-2fa")]
+        public async Task<IActionResult> Setup2FA()
+        {
+            var username = User.Identity?.Name;
+            var userResult = await _userService.GetUserByUserNameAsync(username);
+            if (!userResult.Succeeded) return BadRequest("User not found");
+
+            var user = userResult.Data;
+
+            // 1. Sinh ra một Secret Key ngẫu nhiên (16 byte)
+            var key = KeyGeneration.GenerateRandomKey(20);
+            var secretString = Base32Encoding.ToString(key);
+
+            // 2. Tạm thời lưu Secret này vào user (chưa kích hoạt vội)
+            user.TwoFactorSecret = secretString;
+            await _userService.UpdateUserAsync(user);
+
+            // 3. Tạo đường dẫn theo chuẩn của Google Authenticator
+            var issuer = "DrugStoreHuyVo"; // Tên App sẽ hiện trong điện thoại
+            var uriString = $"otpauth://totp/{issuer}:{user.Email}?secret={secretString}&issuer={issuer}";
+
+            // 4. Dùng QRCoder biến đường dẫn đó thành hình ảnh QR (Base64)
+            using var qrGenerator = new QRCodeGenerator();
+            using var qrCodeData = qrGenerator.CreateQrCode(uriString, QRCodeGenerator.ECCLevel.Q);
+            using var qrCode = new PngByteQRCode(qrCodeData);
+            var qrCodeImage = qrCode.GetGraphic(20);
+
+            var base64QrCode = Convert.ToBase64String(qrCodeImage);
+
+            // 5. Trả về cho Frontend
+            return Ok(new
+            {
+                QrCodeImage = $"data:image/png;base64,{base64QrCode}",
+                ManualSetupKey = secretString
+            });
+        }
+
+        [Authorize]
+        [HttpPost("verify-2fa-setup")]
+        public async Task<IActionResult> Verify2FASetup([FromBody] string code)
+        {
+            var username = User.Identity?.Name;
+            var userResult = await _userService.GetUserByUserNameAsync(username);
+            if (!userResult.Succeeded) return BadRequest("User not found");
+
+            var user = userResult.Data;
+
+            if (string.IsNullOrEmpty(user.TwoFactorSecret))
+                return BadRequest("2FA is not initialized. Please call setup first.");
+
+            // 1. Lấy Secret Key trong DB ra và nạp vào máy tính toán
+            var secretKeyBytes = Base32Encoding.ToBytes(user.TwoFactorSecret);
+            var totp = new Totp(secretKeyBytes);
+
+            // 2. Kiểm tra xem mã 6 số user gửi lên có khớp với thời gian hiện tại không
+            // (Cho phép du di 1 khoảng thời gian 30s đề phòng đồng hồ lệch)
+            bool isCorrect = totp.VerifyTotp(code, out long timeWindowUsed, VerificationWindow.RfcSpecifiedNetworkDelay);
+
+            if (!isCorrect)
+            {
+                return BadRequest(new { status = 400, message = "Invalid 2FA code. Please try again." });
+            }
+
+            // 3. Đúng mã -> Bật cờ kích hoạt chính thức
+            user.TwoFactorEnabled = true;
+            await _userService.UpdateUserAsync(user);
+
+            return Ok(new { status = 200, message = "2FA enabled successfully!" });
+        }
+
+        [HttpPost("login-2fa")]
+        [AllowAnonymous] // Phải để AllowAnonymous vì lúc này user CHƯA CÓ Token
+        public async Task<IActionResult> Login2FA([FromBody] Login2FARequest request)
+        {
+            var userResult = await _userService.GetUserByUserNameAsync(request.Username);
+            if (!userResult.Succeeded || userResult.Data == null)
+                return BadRequest("Tài khoản không tồn tại");
+
+            var user = userResult.Data;
+
+            // Kiểm tra OTP
+            var secretKeyBytes = Base32Encoding.ToBytes(user.TwoFactorSecret);
+            var totp = new Totp(secretKeyBytes);
+            bool isCorrect = totp.VerifyTotp(request.Code, out _);
+
+            if (!isCorrect) return BadRequest(Result<string>.Failure(ResultStatus.BadRequest, "Mã xác thực không đúng"));
+
+            // Nếu đúng -> Sinh Token y hệt như hàm Login thường
+            var accessToken = await _jwtService.GenerateJwtToken(user.UserName);
+            var refreshToken = await _jwtService.GenerateRefreshToken();
+
+            var expirationDaysString = Environment.GetEnvironmentVariable("JWT_REFRESH_EXPIRATION_DAYS");
+            var refreshTokenExpiryDays = int.TryParse(expirationDaysString, out var parsedMinutes) ? parsedMinutes : 15;
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenExpiryDays);
+            await _userService.UpdateUserAsync(user);
+
+            return Ok(new
+            {
+                token = accessToken,
+                refreshToken = refreshToken
+            });
+        }
+
+        [Authorize] // Bắt buộc phải có Token mới được đổi
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            try
+            {
+                // 1. Lấy tên user từ Token đang đăng nhập
+                var username = User.Identity?.Name;
+                if (string.IsNullOrEmpty(username))
+                    return Unauthorized(new { message = "Không xác định được người dùng." });
+
+                var userResult = await _userService.GetUserByUserNameAsync(username);
+                if (!userResult.Succeeded || userResult.Data == null)
+                    return BadRequest(new { message = "User not found." });
+
+                var user = userResult.Data;
+
+                // 2. Kiểm tra mật khẩu cũ có đúng không
+                var isOldPasswordValid = await _userService.ValidateUserAsync(username, request.OldPassword);
+                if (!isOldPasswordValid)
+                {
+                    return BadRequest(new { message = "Mật khẩu cũ không chính xác." });
+                }
+
+                // 3. Thực hiện đổi sang mật khẩu mới (Sếp cần gọi hàm đổi pass của UserManager hoặc UserService ở đây)
+                // Ví dụ: var result = await _userManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
+                // Giả định sếp có hàm ChangePasswordAsync trong IUserService:
+                var result = await _userService.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
+
+                if (!result.Succeeded)
+                {
+                    return BadRequest(new { message = "Không thể đổi mật khẩu. " + string.Join(", ", result.Errors.Select(e => e.Description)) });
+                }
+
+                return Ok(new { status = 200, message = "Đổi mật khẩu thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi đổi mật khẩu cho user.");
+                return StatusCode(500, new { message = "Lỗi hệ thống khi đổi mật khẩu." });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("disable-2fa")]
+        public async Task<IActionResult> Disable2FA()
+        {
+            var username = User.Identity?.Name;
+            if (string.IsNullOrEmpty(username)) return Unauthorized();
+
+            var userResult = await _userService.GetUserByUserNameAsync(username);
+            if (!userResult.Succeeded || userResult.Data == null) return BadRequest("User not found");
+
+            var user = userResult.Data;
+
+            // Tắt cờ và xóa chìa khóa bí mật đi
+            user.TwoFactorEnabled = false;
+            user.TwoFactorSecret = null;
+
+            await _userService.UpdateUserAsync(user);
+
+            return Ok(new { status = 200, message = "2FA disabled successfully!" });
+        }
     }
+
 }

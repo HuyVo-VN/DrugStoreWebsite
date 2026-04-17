@@ -26,4 +26,5 @@ public interface IUserService
     Task<Result<string>> DeleteAsync(string userId);
     Task<IdentityResult> AssignRoleToUserAsync(string userId, string roleName);
     Task<Result<User>> GoogleLoginAsync(string idToken, string clientId);
+    Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword);
 }
