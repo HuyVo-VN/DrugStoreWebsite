@@ -16,6 +16,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Load environment variables from .env file
 DotEnv.Load();
 
+builder.Configuration.AddEnvironmentVariables();
+
 var config = builder.Configuration;
 
 // Regist DbContext
@@ -51,7 +53,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 
 builder.Services.AddEndpointsApiExplorer();

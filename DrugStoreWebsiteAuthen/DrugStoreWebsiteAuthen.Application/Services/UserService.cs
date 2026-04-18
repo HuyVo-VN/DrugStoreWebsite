@@ -386,20 +386,36 @@ public class UserService : IUserService
 
             _logger.LogInformation($"Sending password reset link for email: {email}");
 
+            var subject = "DrugStore - Reset your password";
+            var body = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;'>
+                    <h2 style='color: #008cef; text-align: center;'>DrugStore Security</h2>
+                    <p>Hello <b>{user.FullName ?? user.UserName}</b>,</p>
+                    <p>We received a request to reset the password for the account linked to this email address.</p>
+                    <p>Please click the button below to proceed with changing your password. This link will expire soon for security reasons.</p>
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <a href='{resetLink}' style='background-color: #008cef; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;'>Lấy lại mật khẩu</a>
+                    </div>
+                    <p style='color: #666; font-size: 13px;'>If you don't need a password change, please ignore this email. Your account remains secure.</p>
+                </div>";
+
+            // Gọi Shipper đi giao thư
+            await _emailSender.SendEmailAsync(user.Email, subject, body);
+
             return new ResponseModel<string>
             {
                 Status = 200,
-                Message = "Password reset link created successfully.",
+                Message = "Password reset link created and sent successfully.",
                 Data = resetLink
             };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating reset link.");
+            _logger.LogError(ex, "Error generating or sending reset link.");
             return new ResponseModel<string>
             {
                 Status = 500,
-                Message = "Internal server error.",
+                Message = "Internal server error while sending email.",
             };
         }
     }

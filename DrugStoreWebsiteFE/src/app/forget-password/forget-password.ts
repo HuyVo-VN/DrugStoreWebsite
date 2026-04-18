@@ -1,90 +1,65 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService } from '../Services/auth.service';
+import { Component } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import Swal from 'sweetalert2';
-import { UserService } from '../Services/user';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../Services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-forget-password',
-  imports: [FormsModule, CommonModule],
+  standalone: true,
+  imports: [FormsModule, RouterModule, CommonModule],
   templateUrl: './forget-password.html',
-  styleUrl: './forget-password.css'
+  styleUrls: ['../login/login.css']
 })
-export class ForgetPassword implements OnInit {
-  email!: string;
-  username: string = '';
+export class ForgetPassword {
+  email = '';
+  isLoading = false;
 
-  constructor(private route: ActivatedRoute, private router: Router, private authService: AuthService, private userService: UserService) { }
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) { }
 
-  ngOnInit() {
-    this.authService.username$.subscribe(name => {
-      this.username = name;
+  onSubmit() {
+    if (!this.email) {
+      Swal.fire('Error', 'Please enter your email address!', 'warning');
+      return;
+    }
+
+    this.isLoading = true;
+
+    Swal.fire({
+      title: 'Sending Email...',
+      text: 'Please wait a moment.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
     });
-  }
-  forgetPassword() {
-    const token = this.authService.getAccessToken();
 
-    this.authService.forgetPassword(this.email)
-      .subscribe({
-        next: (res: any) => {
-          if (res.status === 404 || !res.data) {
-            Swal.fire({
-              icon: 'error',
-              title: 'User Not Found',
-              text: res.message || 'No account found with this email.',
-              showConfirmButton: true,
-              heightAuto: false,
-              customClass: { popup: 'small-swal' }
-            });
-            return;
-          }
-
-          let link = res.data;
- 
-          Swal.fire({
-            icon: 'success',
-            title: 'Forget Password',
-            html: `
-            Click <a href="#" id="resetLink" style="color:#007bff; text-decoration:underline;">here</a> to reset your password.
-          `,
-            showCancelButton: true,
-            showConfirmButton: false,
-            heightAuto: false,
-            customClass: { popup: 'small-swal' },
-            didOpen: () => {
-              const resetLink = document.getElementById('resetLink');
-              if (resetLink) {
-                resetLink.addEventListener('click', (e) => {
-                  e.preventDefault();
-                  window.location.href = link;
-                });
-              }
-            }
-          });
-        },
-        error: (err) => {
-          let errorMessage = 'Invalid email address!';
-          if (err.status === 400 && err.error && err.error.errors) {
-            const messages = Object.values(err.error.errors).flat();
-            if (messages.length > 0) {
-              errorMessage = messages.join('\n');
-            }
-          }
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: errorMessage,
-            showConfirmButton: true,
-            heightAuto: false,
-            customClass: { popup: 'small-swal' }
-          });
-        }
-      });
-  }
-
-  goBack() {
-    window.history.back();
+    this.authService.forgetPassword(this.email).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        Swal.fire({
+          icon: 'success',
+          title: 'Link sent!',
+          heightAuto: false,
+          text: 'Please check your email inbox (including your Spam folder) to reset your password.',
+          confirmButtonText: 'Go back to Login'
+        }).then(() => {
+          this.router.navigate(['/login']);
+        });
+      },
+      error: (err) => {
+        this.isLoading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          heightAuto: false,
+          text: err.error?.message || 'No accounts were found with this email address!',
+        });
+      }
+    });
   }
 }

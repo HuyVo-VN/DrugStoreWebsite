@@ -210,6 +210,15 @@ namespace DrugStoreWebsiteAuthen.Controllers
 
                 var baseUrl = _configuration["FrontendUrl"];
                 var response = await _userService.SendPasswordResetLinkAsync(request.Email, baseUrl);
+                if (response.Status == 404)
+                {
+                    return NotFound(response);
+                }
+                else if (response.Status != 200)
+                {
+                    return StatusCode(response.Status, response);
+                }
+
                 return Ok(response);
             }
             catch (Exception ex)
