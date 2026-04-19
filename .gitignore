@@ -25,9 +25,6 @@ obj/
 .env.*
 *.log
 
-# Bỏ qua appsettings cá nhân lúc dev (nếu có)
-appsettings.Development.json
-appsettings.Local.json
 
 # =========================
 # HỆ ĐIỀU HÀNH & CÔNG CỤ
