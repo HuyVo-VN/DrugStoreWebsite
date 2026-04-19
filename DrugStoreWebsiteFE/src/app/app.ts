@@ -15,10 +15,10 @@ import { Product } from './product/product';
 import { CustomerProduct } from './customer-product/customer-product';
 import { Cart } from './cart/cart';
 import { CustomerOrder } from './customer-order/customer-order';
-
 import { CommonModule } from '@angular/common';
 import { AuthService } from './Services/auth.service';
 import { AdminChatbot } from './admin-chatbot/admin-chatbot';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-root',
@@ -42,6 +42,11 @@ export class App implements OnInit {
     // Lắng nghe xem người dùng hiện tại là ai (Khách hay Admin)
     this.authService.role$.subscribe((role) => {
       this.userRole = role;
+    });
+
+    Swal.mixin({
+      heightAuto: false,
+      scrollbarPadding: false
     });
   }
 }

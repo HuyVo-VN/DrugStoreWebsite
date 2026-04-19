@@ -32,6 +32,8 @@ export class ForgetPassword {
     Swal.fire({
       title: 'Sending Email...',
       text: 'Please wait a moment.',
+      heightAuto: false,
+      scrollbarPadding: false,
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
@@ -45,6 +47,7 @@ export class ForgetPassword {
           icon: 'success',
           title: 'Link sent!',
           heightAuto: false,
+          scrollbarPadding: false,
           text: 'Please check your email inbox (including your Spam folder) to reset your password.',
           confirmButtonText: 'Go back to Login'
         }).then(() => {
@@ -57,6 +60,7 @@ export class ForgetPassword {
           icon: 'error',
           title: 'Error',
           heightAuto: false,
+          scrollbarPadding: false,
           text: err.error?.message || 'No accounts were found with this email address!',
         });
       }

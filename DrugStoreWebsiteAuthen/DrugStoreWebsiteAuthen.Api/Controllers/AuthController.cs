@@ -127,6 +127,16 @@ namespace DrugStoreWebsiteAuthen.Controllers
 
                 var user = userResult.Data;
 
+                if (user.TwoFactorEnabled)
+                {
+                    _logger.LogInformation("User {Username} logged in via Google but requires 2FA.", user.UserName);
+                    return Ok(new
+                    {
+                        requires2FA = true,
+                        username = user.UserName
+                    });
+                }
+
                 // 2. Sinh JWT Token và Refresh Token giống hệt logic Login thường
                 var accessToken = await _jwtService.GenerateJwtToken(user.UserName);
                 var refreshToken = await _jwtService.GenerateRefreshToken();

@@ -35,7 +35,8 @@ export class ResetPassword implements OnInit {
           icon: 'error',
           title: 'Link is not valid',
           text: 'The password recovery link is invalid or has expired!',
-          heightAuto: false
+          heightAuto: false,
+          scrollbarPadding: false
         }).then(() => {
           this.router.navigate(['/login']);
         });
@@ -45,7 +46,13 @@ export class ResetPassword implements OnInit {
 
   onSubmit() {
     if (this.newPassword !== this.confirmNewPassword) {
-      Swal.fire('Error', 'The verification password does not match!', 'warning');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Error',
+        text: 'The verification password does not match!',
+        heightAuto: false,
+        scrollbarPadding: false
+      });
       return;
     }
 
@@ -59,7 +66,8 @@ export class ResetPassword implements OnInit {
           title: 'Success!',
           text: 'Your password has been reset. Please log in using your new password.',
           confirmButtonText: 'Login now',
-          heightAuto: false
+          heightAuto: false,
+          scrollbarPadding: false
         }).then(() => {
           this.router.navigate(['/login']);
         });

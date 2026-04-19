@@ -26,6 +26,8 @@ export class Login implements OnInit {
   requires2FA = false;
   otpCode = '';
 
+  isGoogleProcessing = false;
+
   @ViewChild('passwordInput') passwordInput!: ElementRef;
 
   constructor(
@@ -38,18 +40,30 @@ export class Login implements OnInit {
 
   ngOnInit() {
     this.socialAuthService.authState.subscribe((googleUser) => {
-      if (!googleUser || !googleUser.idToken) {
+      if (!googleUser || !googleUser.idToken || this.isGoogleProcessing) {
         return;
       }
 
+      this.isGoogleProcessing = true;
+
       this.authService.googleLogin(googleUser.idToken).subscribe({
-        next: (res) => {
-          if (res.token) {
+        next: (res: any) => {
+
+          this.isGoogleProcessing = false;
+
+          if (res.requires2FA) {
+            this.requires2FA = true;
+            this.username = res.username;
+            this.message = '';
+          }
+
+          else if (res.token) {
             this.authService.saveTokens(res.token, res.refreshToken);
             this.redirectUserByRole(googleUser.name);
           }
         },
         error: (err) => {
+          this.isGoogleProcessing = false;
           Swal.fire({
             icon: 'error',
             title: 'Login Failed',

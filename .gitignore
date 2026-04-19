@@ -1,0 +1,38 @@
+﻿# =========================
+# FRONTEND (ANGULAR / NODE)
+# =========================
+node_modules/
+dist/
+.angular/
+npm-debug.log
+yarn-error.log
+
+# =========================
+# BACKEND (.NET CORE / C#)
+# =========================
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userprefs
+*.dbmdl
+
+# =========================
+# BẢO MẬT & MÔI TRƯỜNG (QUAN TRỌNG)
+# =========================
+.env
+.env.*
+*.log
+
+# Bỏ qua appsettings cá nhân lúc dev (nếu có)
+appsettings.Development.json
+appsettings.Local.json
+
+# =========================
+# HỆ ĐIỀU HÀNH & CÔNG CỤ
+# =========================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
