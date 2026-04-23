@@ -137,6 +137,7 @@ namespace DrugStoreWebsiteAuthen.Controllers
                     });
                 }
 
+
                 // 2. Sinh JWT Token và Refresh Token giống hệt logic Login thường
                 var accessToken = await _jwtService.GenerateJwtToken(user.UserName);
                 var refreshToken = await _jwtService.GenerateRefreshToken();
@@ -154,6 +155,7 @@ namespace DrugStoreWebsiteAuthen.Controllers
                     token = accessToken,
                     refreshToken = refreshToken
                 });
+
             }
             catch (Exception ex)
             {

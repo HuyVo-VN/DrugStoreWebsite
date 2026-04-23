@@ -363,3 +363,26 @@
 .user-message .markdown-body strong {
   color: #fff;
 }
+
+/* --- NÚT ĐÍNH KÈM FILE --- */
+.chat-attach-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: transparent;
+  color: #666;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 18px;
+}
+
+  .chat-attach-btn:hover {
+    color: #0b25b6;
+    background-color: #e3f2fd;
+  }
+
+  .chat-attach-btn:disabled {
+    color: #ccc;
+    cursor: not-allowed;
+  }

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="dotenv.net" Version="4.0.2" />
+    <PackageReference Include="EPPlus" Version="8.5.3" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.15" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.74.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Google" Version="1.74.0-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.74.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DrugStoreWebsiteData\DrugStoreWebSiteData.Infrastructure\DrugStoreWebSiteData.Infrastructure.csproj" />
+    <ProjectReference Include="..\DrugStoreWebsiteAuthen\DrugStoreWebsiteAuthen.Infrastructure\DrugStoreWebsiteAuthen.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

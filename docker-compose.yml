@@ -1,65 +1,58 @@
 ﻿version: '3.8'
 
 services:
-  # 1. Frontend Angular (Chạy ở port 80)
+  # --- CÁC DỊCH VỤ BACKEND & FRONTEND ---
   frontend:
-    build:
-      context: ./DrugStoreWebsiteFE
-      dockerfile: Dockerfile
-    ports:
-      - "4200:80"
-    networks:
-      - drugstore_network
-    depends_on:
-      - authen-api
-      - data-api
-      - ai-service
+    build: ./DrugStoreWebsiteFE
+    ports: ["4200:80"]
+    networks: ["drugstore_network"]
+    depends_on: ["authen-api", "data-api", "ai-service"]
 
-  # 2. Backend Authen API (Chạy ở port 5001)
   authen-api:
-    build:
-      context: ./DrugStoreWebsiteAuthen
-      dockerfile: Dockerfile
-    ports:
-      - "5001:8080" # Map cổng 5001 trên máy sếp vào cổng 8080 của thùng Docker
-    networks:
-      - drugstore_network
-    extra_hosts:                           
-      - "host.docker.internal:host-gateway"
-    env_file:
-      - ./DrugStoreWebsiteAuthen/DrugStoreWebsiteAuthen.Api/.env
-    
+    build: ./DrugStoreWebsiteAuthen
+    ports: ["5001:8080"]
+    networks: ["drugstore_network"]
+    env_file: ["./DrugStoreWebsiteAuthen/DrugStoreWebsiteAuthen.Api/.env"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
 
-  # 3. Backend Data API (Chạy ở port 5002)
   data-api:
-    build:
-      context: ./DrugStoreWebsiteData
-      dockerfile: Dockerfile
-    ports:
-      - "5002:8080" 
-    networks:
-      - drugstore_network
-    extra_hosts:                           
-      - "host.docker.internal:host-gateway"
-    env_file:
-      - ./DrugStoreWebsiteData/DrugStoreWebSiteData.Api/.env
+    build: ./DrugStoreWebsiteData
+    ports: ["5002:8080"]
+    networks: ["drugstore_network"]
+    env_file: ["./DrugStoreWebsiteData/DrugStoreWebSiteData.Api/.env"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
 
-
-  # 4. AI Chatbot Service (Chạy ở port 8888)
   ai-service:
-    build:
-      context: ./DrugStoreWebsiteAI
-      dockerfile: Dockerfile
-    ports:
-      - "8888:8888"
-    networks:
-      - drugstore_network
-    extra_hosts:                           
-      - "host.docker.internal:host-gateway"
-    env_file:
-      - ./DrugStoreWebsiteAI/.env
+    build: ./DrugStoreWebsiteAI
+    ports: ["8888:8888"]
+    networks: ["drugstore_network"]
+    env_file: ["./DrugStoreWebsiteAI/.env"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
 
-# Tạo một mạng LAN ảo để 4 thằng này nhìn thấy nhau
+  # --- HẠ TẦNG BỔ TRỢ ---
+  redis-cache:
+    image: redis:7.2-alpine
+    container_name: drugstore-redis
+    ports: ["6379:6379"]
+    networks: ["drugstore_network"]
+    volumes: ["redis_data:/data"]
+    command: redis-server --appendonly yes
+
+  minio-storage:
+    image: minio/minio:latest
+    container_name: drugstore-minio
+    ports: ["9000:9000", "9001:9001"]
+    environment:
+      - MINIO_ROOT_USER=drugstoreadmin
+      - MINIO_ROOT_PASSWORD=Votanhuy@123
+    volumes: ["minio_data:/data"]
+    networks: ["drugstore_network"]
+    command: server /data --console-address ":9001"
+
 networks:
   drugstore_network:
     driver: bridge
+
+volumes:
+  redis_data:
+  minio_data:

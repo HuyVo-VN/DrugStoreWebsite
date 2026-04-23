@@ -8,6 +8,8 @@ import { marked } from 'marked';
 import { MarkdownPipe } from '../markdown-pipe';
 import { environment } from '../../environments/environment';
 
+import { AiAgentService } from '../Services/ai-agent.service';
+
 
 interface ChatMessage {
   text: string;
@@ -33,14 +35,27 @@ export class AdminChatbot implements OnInit {
     { text: 'Chào sếp! Em là trợ lý AI. Sếp cần em giúp gì hôm nay?', sender: 'ai', time: this.getCurrentTime() }
   ];
   isLoading: boolean = false; // Biến hiển thị trạng thái "AI đang gõ..."
+  progressText: string = 'Thinking...';
 
   // 2. NHÚNG HTTP CLIENT ĐỂ GỌI API
   private http = inject(HttpClient);
+  private aiService = inject(AiAgentService);
   private apiUrl = `${environment.aiApiUrl}/api/chatbot/ask`; // Đường dẫn tới server Python
 
   constructor() { }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    // 👇 1. KHỞI ĐỘNG KẾT NỐI SIGNALR 👇
+    this.aiService.startConnection();
+
+    // 👇 2. LẮNG NGHE ĐÀI PHÁT THANH TỪ BACKEND 👇
+    this.aiService.progressMessage$.subscribe(msg => {
+      if (msg) {
+        this.progressText = msg; // Cập nhật dòng chữ Thinking...
+        this.scrollToBottom();
+      }
+    });
+  }
 
   toggleChatForm(isOpen: boolean) {
     this.isChatFormOpen = isOpen;
@@ -70,6 +85,7 @@ export class AdminChatbot implements OnInit {
 
     // B3: Bật trạng thái Loading và gọi API
     this.isLoading = true;
+    this.progressText = 'Thinking...';
     this.scrollToBottom();
 
     this.http.post<any>(this.apiUrl, { message: userText }).subscribe({
@@ -83,7 +99,63 @@ export class AdminChatbot implements OnInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.messages.push({ text: 'Xin lỗi sếp, hệ thống đang bận. Sếp thử lại sau nhé!', sender: 'ai', time: this.getCurrentTime() });
+
+        // Cỗ máy dịch lỗi siêu cấp chống [object Object]
+        let realError = "Lỗi hệ thống không xác định";
+        if (err.error?.reply) {
+          realError = typeof err.error.reply === 'string' ? err.error.reply : JSON.stringify(err.error.reply);
+        } else if (err.error) {
+          realError = typeof err.error === 'string' ? err.error : JSON.stringify(err.error);
+        } else {
+          realError = err.message;
+        }
+
+        this.messages.push({
+          text: `❌ **Backend báo lỗi:** \n\`\`\`json\n${realError}\n\`\`\`\n\nSếp copy cục này gửi lại tôi nhé!`,
+          sender: 'ai',
+          time: this.getCurrentTime()
+        });
+        this.scrollToBottom();
+      }
+    });
+  }
+
+  onFileSelected(event: any, fileInput: HTMLInputElement): void {
+    const file: File = event.target.files[0];
+    if (!file) return;
+
+    // In thông báo User đã tải file
+    this.messages.push({
+      text: `📁 **Đã tải lên tệp:** \`${file.name}\`\nAI bắt đầu bóc tách...`,
+      sender: 'user',
+      time: this.getCurrentTime()
+    });
+    this.scrollToBottom();
+
+    this.isLoading = true;
+    this.progressText = 'Đang đẩy file lên hệ thống...'; // Chờ SignalR ghi đè
+
+    // Gọi Service bóc tách
+    this.aiService.processInventoryExcel(file).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        fileInput.value = ''; // Reset input file
+
+        // Chuyển cục JSON thành Markdown để in ra chatbox cho đẹp
+        let mdResult = `✅ **Xử lý hoàn tất!**\nĐã bóc tách được **${res.data?.length || 0}** sản phẩm.\n\n`;
+        mdResult += "```json\n" + JSON.stringify(res.data, null, 2) + "\n```";
+
+        this.messages.push({ text: mdResult, sender: 'ai', time: this.getCurrentTime() });
+        this.scrollToBottom();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        fileInput.value = '';
+        this.messages.push({
+          text: `❌ **Lỗi bóc tách:** \n\`${err.message}\``,
+          sender: 'ai',
+          time: this.getCurrentTime()
+        });
         this.scrollToBottom();
       }
     });

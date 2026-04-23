@@ -31,7 +31,7 @@
       <div class="message-wrapper ai-message" *ngIf="isLoading">
         <i class="fa-solid fa-robot message-avatar"></i>
         <div class="message-bubble" style="color: #888; font-style: italic;">
-          Thinking...
+          {{ progressText }}
         </div>
       </div>
 
@@ -39,10 +39,15 @@
 
     <div class="chat-input-area">
 
+      <button type="button" class="chat-attach-btn" (click)="fileInput.click()" [disabled]="isLoading">
+        <i class="fa-solid fa-paperclip"></i>
+      </button>
+      <input type="file" #fileInput hidden accept=".xlsx, .xls" (change)="onFileSelected($event, fileInput)">
+
       <div class="textarea-wrapper">
         <textarea #chatInput
                   [(ngModel)]="currentMessage"
-                  placeholder="Ask me about sales, inventory,..."
+                  placeholder="Hỏi tôi hoặc tải file Excel lên..."
                   rows="1"
                   (input)="autoResize(chatInput)"
                   (keydown.enter)="sendMessage($event, chatInput)">

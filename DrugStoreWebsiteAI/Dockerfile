@@ -1,23 +1,24 @@
-﻿FROM python:3.11-slim
+﻿# Stage 1: Build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY ["*.csproj", "./"]
+RUN dotnet restore
+COPY . .
+RUN dotnet publish -c Release -o /app/publish
 
-# Cài đặt Microsoft ODBC Driver 17 theo chuẩn Debian mới (Không dùng apt-key)
-RUN apt-get update && apt-get install -y curl apt-transport-https gnupg2 unixodbc-dev \
-    && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
-    && curl -fsSL https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update \
-    && ACCEPT_EULA=Y apt-get install -y msodbcsql17 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
+# Stage 2: Run
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
-# Cài thư viện Python
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Cài đặt driver SQL Server để AI kết nối DB
+RUN apt-get update && apt-get install -y curl gnupg2 \
+    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update \
+    && ACCEPT_EULA=Y apt-get install -y msodbcsql17 \
+    && apt-get clean
 
-# Copy code vào
-COPY . .
-
+COPY --from=build /app/publish .
 EXPOSE 8888
-# Lệnh chạy FastAPI
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8888"]
+ENV ASPNETCORE_URLS=http://+:8888
+ENTRYPOINT ["dotnet", "DrugStoreWebsiteAI.dll"]
