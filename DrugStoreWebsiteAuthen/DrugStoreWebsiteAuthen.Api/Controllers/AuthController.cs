@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using OtpNet;
 using QRCoder;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace DrugStoreWebsiteAuthen.Controllers
 {
@@ -29,16 +30,17 @@ namespace DrugStoreWebsiteAuthen.Controllers
         private readonly IEmailSender _emailSender;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthController> _logger;
-
+        private readonly IDistributedCache _cache;
         private readonly IJwtService _jwtService;
 
-        public AuthController(IUserService userService, IEmailSender emailSender, IConfiguration configuration, ILogger<AuthController> logger, IJwtService jwtService)
+        public AuthController(IUserService userService, IEmailSender emailSender, IConfiguration configuration, ILogger<AuthController> logger, IJwtService jwtService, IDistributedCache cache)
         {
             _userService = userService;
             _emailSender = emailSender;
             _configuration = configuration;
             _logger = logger;
             _jwtService = jwtService;
+            _cache = cache;
         }
 
 
@@ -96,6 +98,39 @@ namespace DrugStoreWebsiteAuthen.Controllers
                 _logger.LogError(ex, "Error in login process for user {Username}.", request.Username);
                 return BadRequest(Result<string>.Failure(ResultStatus.NotFound, ex.Message));
             }
+        }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            // 1. Lấy token của user đang gửi lên
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            // 2. Đọc để xem Token này bao giờ hết hạn
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            var expClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Exp)?.Value;
+
+            if (expClaim != null)
+            {
+                // Tính toán thời gian sống còn lại của Token
+                var expTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim));
+                var expiryTimeSpan = expTime.UtcDateTime - DateTime.UtcNow;
+
+                if (expiryTimeSpan > TimeSpan.Zero)
+                {
+                    // 3. Lưu Token vào Redis (Blacklist) đúng bằng thời gian sống còn lại
+                    var cacheOptions = new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = expiryTimeSpan
+                    };
+
+                    await _cache.SetStringAsync($"blacklist:{token}", "revoked", cacheOptions);
+                }
+            }
+
+            return Ok(new { message = "Logout successful! Token has been locked." });
         }
 
         [HttpPost("google-login")]

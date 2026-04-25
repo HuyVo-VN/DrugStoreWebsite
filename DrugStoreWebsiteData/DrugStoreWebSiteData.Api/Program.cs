@@ -12,11 +12,43 @@ using dotenv.net;
 using DrugStoreWebSiteData.Infrastructure.Services;
 using DrugStoreWebSiteData.Application.DTOs.VnPay;
 using DrugStoreWebSiteData.Application.Service;
+using StackExchange.Redis;
 
 DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
+
+// ==========================================
+// 🚀 CẤU HÌNH REDIS CACHE
+// ==========================================
+var redisConnectionString =
+    builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379";
+
+try
+{
+    var multiplexer = await ConnectionMultiplexer.ConnectAsync(
+        redisConnectionString + ",abortConnect=false"
+    );
+
+    builder.Services.AddSingleton<IConnectionMultiplexer>(multiplexer);
+
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = "DrugStore_";
+    });
+
+    Console.WriteLine("✅ Redis connected.");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"❌ Redis failed: {ex.Message}");
+
+    // fallback RAM cache
+    builder.Services.AddDistributedMemoryCache();
+}
+// ==========================================
 
 builder.Services.AddCors(options =>
 {

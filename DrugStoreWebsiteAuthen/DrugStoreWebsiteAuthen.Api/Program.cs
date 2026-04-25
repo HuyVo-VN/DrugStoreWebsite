@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Text;
 using dotenv.net;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 // Load environment variables from .env file
@@ -19,6 +20,37 @@ DotEnv.Load();
 builder.Configuration.AddEnvironmentVariables();
 
 var config = builder.Configuration;
+
+// ==========================================
+// 🚀 CẤU HÌNH REDIS CACHE
+// ==========================================
+var redisConnectionString =
+    builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379";
+
+try
+{
+    var multiplexer = await ConnectionMultiplexer.ConnectAsync(
+        redisConnectionString + ",abortConnect=false"
+    );
+
+    builder.Services.AddSingleton<IConnectionMultiplexer>(multiplexer);
+
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = "DrugStore_";
+    });
+
+    Console.WriteLine("✅ Redis connected.");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"❌ Redis failed: {ex.Message}");
+
+    // fallback RAM cache
+    builder.Services.AddDistributedMemoryCache();
+}
+// ==========================================
 
 // Regist DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -154,6 +186,8 @@ if (app.Environment.IsDevelopment())
 //app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAll");
+
+app.UseMiddleware<DrugStoreWebsiteAuthen.Api.Middlewares.TokenBlacklistMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();

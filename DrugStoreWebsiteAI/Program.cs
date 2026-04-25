@@ -6,7 +6,7 @@ using DrugStoreWebsiteAI.Plugins;
 using DrugStoreWebsiteAuthen.Infrastructure.Persistence;
 using DrugStoreWebSiteData.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-// Đã dọn dẹp các thư viện của OpenAI không cần thiết
+using Minio; // 👈 Đã thêm thư viện MinIO
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,9 +17,9 @@ builder.Configuration.AddEnvironmentVariables();
 // 2. CẤU HÌNH EXCEL
 ExcelPackage.License.SetNonCommercialPersonal("DrugStore Project");
 
-// 3. LẤY CẤU HÌNH AI (Mặc định xài Gemini 2.0 Flash)
+// 3. LẤY CẤU HÌNH AI 
 var apiKey = builder.Configuration["GOOGLE_API_KEY"]!;
-var modelId = builder.Configuration["GEMINI_MODEL"] ?? "gemini-2.0-flash";
+var modelId = builder.Configuration["GEMINI_MODEL"] ?? "gemini-1.5-flash";
 
 // 4. KẾT NỐI DATABASE
 var drugStoreConn = builder.Configuration["DRUGSTORE_CONNECTION"];
@@ -36,7 +36,25 @@ builder.Services.AddDbContext<DrugStoreDbContext>(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(authConn));
 
-// 5. CẤU HÌNH BỘ NÃO SEMANTIC KERNEL (GOOGLE GEMINI NATIVE)
+// =========================================================
+// ĐĂNG KÝ MINIO CLIENT (BẢN FIX LỖI THIẾU HÀM ADDMINIO)
+// =========================================================
+var minioEndpoint = builder.Configuration["Minio:Endpoint"];
+var minioAccessKey = builder.Configuration["Minio:AccessKey"];
+var minioSecretKey = builder.Configuration["Minio:SecretKey"];
+
+// Dùng AddSingleton thủ công để đảm bảo 100% C# nhận diện được MinIO
+builder.Services.AddSingleton<IMinioClient>(sp =>
+{
+    return new MinioClient()
+        .WithEndpoint(minioEndpoint)
+        .WithCredentials(minioAccessKey, minioSecretKey)
+        .Build();
+});
+
+// =========================================================
+// 5. CẤU HÌNH BỘ NÃO SEMANTIC KERNEL (ĐÃ SẮP XẾP LẠI TRẬT TỰ)
+// =========================================================
 builder.Services.AddScoped(sp =>
 {
     var kernelBuilder = Kernel.CreateBuilder();
@@ -44,16 +62,15 @@ builder.Services.AddScoped(sp =>
     // Khởi tạo não Gemini
     kernelBuilder.AddGoogleAIGeminiChatCompletion(modelId, apiKey);
 
-    // Nạp khả năng đọc Excel
-    kernelBuilder.Plugins.AddFromType<InventoryPlugin>();
-
-    // Nạp khả năng chọc Database
+    // BƯỚC 1: LẤY TẤT CẢ ĐỒ NGHỀ RA TRƯỚC (Phải lấy ra rồi mới xài được)
     var drugStoreDb = sp.GetRequiredService<DrugStoreDbContext>();
     var authDb = sp.GetRequiredService<AppDbContext>();
     var env = sp.GetRequiredService<IWebHostEnvironment>();
+    var minioClient = sp.GetRequiredService<IMinioClient>();
 
+    // BƯỚC 2: TIÊM TOÀN BỘ VÀO PLUGIN CÙNG MỘT LÚC (Xóa bỏ phần đăng ký trùng lặp)
     kernelBuilder.Plugins.AddFromObject(
-        new DatabaseInsightPlugin(drugStoreDb, authDb, env),
+        new DatabaseInsightPlugin(drugStoreDb, authDb, env, minioClient),
         "DatabaseInsightPlugin"
     );
 
@@ -66,7 +83,7 @@ builder.Services.AddScoped<DrugStoreWebsiteAI.Services.IExcelParserService, Drug
 
 builder.Services.AddControllers();
 
-// 7. CẤU HÌNH CORS CHUẨN DUY NHẤT (Chống sập SignalR)
+// 7. CẤU HÌNH CORS CHUẨN DUY NHẤT 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
@@ -74,7 +91,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:4200")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); // Bắt buộc phải có để chat Real-time
+              .AllowCredentials();
     });
 });
 

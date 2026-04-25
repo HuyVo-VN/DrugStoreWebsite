@@ -9,6 +9,8 @@ using DrugStoreWebSiteData.Domain.Entities;
 using DrugStoreWebSiteData.Application.DTOs;
 using System.Reflection.Metadata;
 namespace DrugStoreWebSiteData.Application.Services;
+using System.Text.Json;
+using Microsoft.Extensions.Caching.Distributed;
 
 public class ProductService : IProductService
 {
@@ -18,19 +20,22 @@ public class ProductService : IProductService
 
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ProductService> _logger;
+    private readonly IDistributedCache _cache;
 
     public ProductService(
         IProductRepository productRepository,
         ICategoryRepository categoryRepository,
         IUnitOfWork unitOfWork,
         ILogger<ProductService> logger,
-        IPhotoService photoService)
+        IPhotoService photoService,
+        IDistributedCache cache)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
         _photoService = photoService;
+        _cache = cache;
     }
 
     public async Task<Result<ProductResponseDto>> CreateProductAsync(CreateProductRequestDto request)
@@ -77,6 +82,9 @@ public class ProductService : IProductService
 
             // Return the created product as ProductDto
             var responseDto = new ProductResponseDto();
+            await _cache.RemoveAsync("products_all_p1_s15");
+            await _cache.RemoveAsync("products_sale_p1_s10");
+            await _cache.RemoveAsync("products_bestsellers_p1_s10");
             _logger.LogInformation("Product created successfully: {ProductId}", product.Id);
             return Result<ProductResponseDto>.Success(responseDto.mapToProductDto(product));
         }
@@ -117,6 +125,9 @@ public class ProductService : IProductService
             if (result)
             {
                 await _unitOfWork.SaveChangesAsync();
+                await _cache.RemoveAsync("products_all_p1_s15");
+                await _cache.RemoveAsync("products_sale_p1_s10");
+                await _cache.RemoveAsync("products_bestsellers_p1_s10");
                 _logger.LogInformation($"Product with ID: {productId} deleted successfully.");
                 return Result<string>.Success("Product deleted successfully");
             }
@@ -146,6 +157,9 @@ public class ProductService : IProductService
                 }
 
                 await _unitOfWork.SaveChangesAsync();
+                await _cache.RemoveAsync("products_all_p1_s15");
+                await _cache.RemoveAsync("products_sale_p1_s10");
+                await _cache.RemoveAsync("products_bestsellers_p1_s10");
                 _logger.LogInformation($"Product with ID: {productDetail.Id} updated successfully.");
                 return Result<string>.Success("Product updated successfully");
             }
@@ -215,6 +229,9 @@ public class ProductService : IProductService
 
             await _unitOfWork.SaveChangesAsync();
 
+            await _cache.RemoveAsync("products_all_p1_s15");
+            await _cache.RemoveAsync("products_sale_p1_s10");
+            await _cache.RemoveAsync("products_bestsellers_p1_s10");
             var productResponse = new ProductResponseDto();
             _logger.LogInformation("Product with ID: {ProductId} updated successfully.", id);
             return Result<ProductResponseDto>.Success(productResponse.mapToProductDto(productResult));
@@ -230,31 +247,35 @@ public class ProductService : IProductService
     {
         try
         {
+            // Tên thẻ kho có kèm số trang để không bị lộn
+            string cacheKey = $"products_all_p{pageNumber}_s{pageSize}";
 
+            // Lục kho
+            var cachedData = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrEmpty(cachedData))
+            {
+                _logger.LogInformation($"[CACHE HIT] Lấy All Products {cacheKey} từ Redis.");
+                var cachedResult = JsonSerializer.Deserialize<PagedResult<ProductResponseDto>>(cachedData);
+                return Result<PagedResult<ProductResponseDto>>.Success(cachedResult);
+            }
+
+            // Kho trống -> Xuống DB
             var (products, totalCount) = await _productRepository.GetPagedAsync(pageNumber, pageSize);
+            if (products == null) return Result<PagedResult<ProductResponseDto>>.Failure("Product list not found");
 
-            if (products == null)
-            {
-                _logger.LogError("Failed to retrieve products");
-                return Result<PagedResult<ProductResponseDto>>.Failure("Product list not found");
-            }
-            var responseDtos = new List<ProductResponseDto>();
             var dtoHelper = new ProductResponseDto();
-
-            foreach (var product in products)
-            {
-                responseDtos.Add(dtoHelper.mapToProductDto(product));
-            }
-
+            var responseDtos = products.Select(p => dtoHelper.mapToProductDto(p)).ToList();
             var pagedResult = new PagedResult<ProductResponseDto>(responseDtos, totalCount, pageNumber, pageSize);
 
-            _logger.LogInformation("All categories retrieved successfully.");
+            // Cất kho (Lưu 1 tiếng)
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(pagedResult), new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1) });
+
             return Result<PagedResult<ProductResponseDto>>.Success(pagedResult);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while retrieving all products");
-            return Result<PagedResult<ProductResponseDto>>.Failure($"An error occurred while retrieving products: {ex.Message}");
+            return Result<PagedResult<ProductResponseDto>>.Failure($"An error occurred: {ex.Message}");
         }
     }
     public async Task<Result<PagedResult<ProductResponseDto>>> SearchProductsAsync(SearchProductRequestDto requestDto)
@@ -340,16 +361,21 @@ public class ProductService : IProductService
     {
         try
         {
-            var (items, totalCount) = await _productRepository.GetSaleProductsPagedAsync(pageIndex, pageSize);
+            string cacheKey = $"products_sale_p{pageIndex}_s{pageSize}";
 
-            var dtos = items.Select(product =>
+            var cachedData = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrEmpty(cachedData))
             {
-                var dto = new ProductResponseDto();
-                return dto.mapToProductDto(product);
-                
-            }).ToList();
+                _logger.LogInformation($"[CACHE HIT] Lấy Sale Products {cacheKey} từ Redis.");
+                return Result<PagedResult<ProductResponseDto>>.Success(JsonSerializer.Deserialize<PagedResult<ProductResponseDto>>(cachedData));
+            }
 
+            var (items, totalCount) = await _productRepository.GetSaleProductsPagedAsync(pageIndex, pageSize);
+            var dtos = items.Select(p => new ProductResponseDto().mapToProductDto(p)).ToList();
             var pagedResult = new PagedResult<ProductResponseDto>(dtos, totalCount, pageIndex, pageSize);
+
+            // Flash sale thay đổi nhanh, chỉ cache 30 phút
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(pagedResult), new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30) });
 
             return Result<PagedResult<ProductResponseDto>>.Success(pagedResult);
         }
@@ -360,29 +386,50 @@ public class ProductService : IProductService
     }
     public async Task<Result<PagedResult<ProductResponseDto>>> GetBestSellersPagedAsync(int pageIndex, int pageSize)
     {
-        var (items, totalCount) = await _productRepository.GetBestSellersPagedAsync(pageIndex, pageSize);
+        try
+        {
+            string cacheKey = $"products_bestsellers_p{pageIndex}_s{pageSize}";
 
-        var dtos = items.Select(p => {
-            var dto = new ProductResponseDto();
-            return dto.mapToProductDto(p);
-        }).ToList();
+            var cachedData = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrEmpty(cachedData))
+            {
+                _logger.LogInformation($"[CACHE HIT] Lấy Best Sellers {cacheKey} từ Redis.");
+                return Result<PagedResult<ProductResponseDto>>.Success(JsonSerializer.Deserialize<PagedResult<ProductResponseDto>>(cachedData));
+            }
 
-        var pagedResult = new PagedResult<ProductResponseDto>(dtos, totalCount, pageIndex, pageSize);
-        return Result<PagedResult<ProductResponseDto>>.Success(pagedResult);
+            var (items, totalCount) = await _productRepository.GetBestSellersPagedAsync(pageIndex, pageSize);
+            var dtos = items.Select(p => new ProductResponseDto().mapToProductDto(p)).ToList();
+            var pagedResult = new PagedResult<ProductResponseDto>(dtos, totalCount, pageIndex, pageSize);
+
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(pagedResult), new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1) });
+
+            return Result<PagedResult<ProductResponseDto>>.Success(pagedResult);
+        }
+        catch (Exception ex)
+        {
+            return Result<PagedResult<ProductResponseDto>>.Failure($"Error when loading Best Sellers: {ex.Message}");
+        }
     }
 
     public async Task<Result<PagedResult<ProductResponseDto>>> GetProductsByCollectionPagedAsync(Guid collectionId, int pageIndex, int pageSize)
     {
         try
         {
+            // Key này phải kẹp thêm cái ID của collection vào để không bị trùng data
+            string cacheKey = $"products_col_{collectionId}_p{pageIndex}_s{pageSize}";
+
+            var cachedData = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrEmpty(cachedData))
+            {
+                _logger.LogInformation($"[CACHE HIT] Lấy Collection Products {cacheKey} từ Redis.");
+                return Result<PagedResult<ProductResponseDto>>.Success(JsonSerializer.Deserialize<PagedResult<ProductResponseDto>>(cachedData));
+            }
+
             var (items, totalCount) = await _productRepository.GetProductsByCollectionPagedAsync(collectionId, pageIndex, pageSize);
-
-            var dtos = items.Select(p => {
-                var dto = new ProductResponseDto();
-                return dto.mapToProductDto(p);
-            }).ToList();
-
+            var dtos = items.Select(p => new ProductResponseDto().mapToProductDto(p)).ToList();
             var pagedResult = new PagedResult<ProductResponseDto>(dtos, totalCount, pageIndex, pageSize);
+
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(pagedResult), new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1) });
 
             return Result<PagedResult<ProductResponseDto>>.Success(pagedResult);
         }

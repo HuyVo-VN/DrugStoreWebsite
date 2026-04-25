@@ -1,22 +1,19 @@
 ﻿# Stage 1: Build
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ["*.csproj", "./"]
-RUN dotnet restore
+
+# Copy TOÀN BỘ solution vào ảo (Để AI mượn được code DB của Authen và Data)
 COPY . .
-RUN dotnet publish -c Release -o /app/publish
+
+# Restore và Build theo đường dẫn mới
+RUN dotnet restore "DrugStoreWebsiteAI/DrugStoreWebsiteAI.csproj"
+RUN dotnet publish "DrugStoreWebsiteAI/DrugStoreWebsiteAI.csproj" -c Release -o /app/publish
 
 # Stage 2: Run
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
-# Cài đặt driver SQL Server để AI kết nối DB
-RUN apt-get update && apt-get install -y curl gnupg2 \
-    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && curl https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update \
-    && ACCEPT_EULA=Y apt-get install -y msodbcsql17 \
-    && apt-get clean
+# Đã xóa bỏ đoạn cài đặt ODBC Driver lỗi thời, .NET 8 tự xử lý được kết nối SQL!
 
 COPY --from=build /app/publish .
 EXPOSE 8888

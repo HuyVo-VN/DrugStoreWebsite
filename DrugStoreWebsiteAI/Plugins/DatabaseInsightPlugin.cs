@@ -7,6 +7,8 @@ using Microsoft.SemanticKernel;
 using OfficeOpenXml; // For Excel Export
 using DrugStoreWebsiteAuthen.Infrastructure.Persistence;
 using DrugStoreWebSiteData.Infrastructure.Persistence;
+using Minio;
+using Minio.DataModel.Args;
 
 // using DrugStoreWebsiteData.Contexts; // Uncomment and use your actual DbContext namespace
 
@@ -17,12 +19,14 @@ namespace DrugStoreWebsiteAI.Plugins
         private readonly DbContext _drugStoreDb;
         private readonly DbContext _authDb;
         private readonly IWebHostEnvironment _env;
+        private readonly IMinioClient _minioClient;
 
-        public DatabaseInsightPlugin(DbContext drugStoreDb, DbContext authDb, IWebHostEnvironment env)
+        public DatabaseInsightPlugin(DbContext drugStoreDb, DbContext authDb, IWebHostEnvironment env, IMinioClient minioClient)
         {
             _drugStoreDb = drugStoreDb;
             _authDb = authDb;
             _env = env; // Used to get the wwwroot path for saving Excel files
+            _minioClient = minioClient;
         }
 
         [KernelFunction("get_database_schema")]
@@ -156,15 +160,39 @@ namespace DrugStoreWebsiteAI.Plugins
                 worksheet.Cells.AutoFitColumns();
 
                 // Save File
+                // --- LƯU FILE LÊN MINIO CLOUD ---
                 var fileName = $"Report_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-                var exportFolder = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "exports");
-                Directory.CreateDirectory(exportFolder);
-                var filePath = Path.Combine(exportFolder, fileName);
+                var bucketName = "ai-reports"; // Tên thư mục trên MinIO
 
-                await File.WriteAllBytesAsync(filePath, await package.GetAsByteArrayAsync());
+                // 1. Chuyển file Excel thành Stream (Dòng chảy dữ liệu)
+                using var excelStream = new MemoryStream(await package.GetAsByteArrayAsync());
+                excelStream.Position = 0;
 
-                // Return Download Link
-                return $"Export successful. File URL: http://localhost:5097/exports/{fileName}";
+                // 2. Kiểm tra xem Bucket (Thư mục) đã tồn tại chưa, chưa có thì tạo mới
+                bool found = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucketName));
+                if (!found)
+                {
+                    await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(bucketName));
+
+                    // Gắn Policy cho phép tải file public (Vì đây là báo cáo, có thể cần link tải trực tiếp)
+                    var policy = $"{{\"Version\":\"2012-10-17\",\"Statement\":[{{\"Action\":[\"s3:GetObject\"],\"Effect\":\"Allow\",\"Principal\":{{\"AWS\":[\"*\"]}},\"Resource\":[\"arn:aws:s3:::{bucketName}/*\"]}}]}}";
+                    await _minioClient.SetPolicyAsync(new SetPolicyArgs().WithBucket(bucketName).WithPolicy(policy));
+                }
+
+                // 3. Đẩy file lên mây
+                var putObjectArgs = new PutObjectArgs()
+                    .WithBucket(bucketName)
+                    .WithObject(fileName)
+                    .WithStreamData(excelStream)
+                    .WithObjectSize(excelStream.Length)
+                    .WithContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                await _minioClient.PutObjectAsync(putObjectArgs);
+
+                // 4. Trả về đường link tải file vĩnh viễn (Lấy từ Endpoint của MinIO sếp cấu hình trong .env)
+                var minioEndpoint = _env.IsDevelopment() ? "http://localhost:9000" : "http://drugstore-minio:9000"; // Tùy môi trường
+                var fileUrl = $"{minioEndpoint}/{bucketName}/{fileName}";
+
+                return $"Export successful. [Nhấn vào đây để tải báo cáo Excel]({fileUrl})";
 
             }
             catch (Exception ex)

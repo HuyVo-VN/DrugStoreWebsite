@@ -5,6 +5,8 @@ using DrugStoreWebSiteData.Application.Interfaces;
 using DrugStoreWebSiteData.Domain.Entities;
 using DrugStoreWebSiteData.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace DrugStoreWebSiteData.Application.Services;
 
@@ -13,12 +15,19 @@ public class CategoryService : ICategoryService
     private readonly ICategoryRepository _categoryRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<CategoryService> _logger;
+    private readonly IDistributedCache _cache;
 
-    public CategoryService(ICategoryRepository categoryRepository, IUnitOfWork unitOfWork, ILogger<CategoryService> logger)
+    public CategoryService(
+        ICategoryRepository categoryRepository, 
+        IUnitOfWork unitOfWork, 
+        ILogger<CategoryService> logger,
+        IDistributedCache cache
+        )
     {
         _categoryRepository = categoryRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<Result<CategoryResponseDto>> CreateCategoryAsync(CreateCategoryRequestDto request, string currentUser)
@@ -32,6 +41,7 @@ public class CategoryService : ICategoryService
             await _unitOfWork.SaveChangesAsync();
 
             var responseDto = new CategoryResponseDto().mapToCategoryDto(category);
+            await _cache.RemoveAsync("categories_all");
             _logger.LogInformation("Category created successfully: {CategoryId}", category.Id);
 
             return Result<CategoryResponseDto>.Success(responseDto);
@@ -59,6 +69,7 @@ public class CategoryService : ICategoryService
             await _unitOfWork.SaveChangesAsync();
 
             var responseDto = new CategoryResponseDto().mapToCategoryDto(category);
+            await _cache.RemoveAsync("categories_all");
             _logger.LogInformation("Category updated successfully: {CategoryId}", category.Id);
 
             return Result<CategoryResponseDto>.Success(responseDto);
@@ -101,6 +112,7 @@ public class CategoryService : ICategoryService
             if (result)
             {
                 await _unitOfWork.SaveChangesAsync();
+                await _cache.RemoveAsync("categories_all");
                 _logger.LogInformation("Category with ID: {CategoryId} deleted successfully.", categoryId);
                 return Result<string>.Success("Category deleted successfully.");
             }
@@ -124,6 +136,7 @@ public class CategoryService : ICategoryService
                 _categoryRepository.Update(category);
 
                 await _unitOfWork.SaveChangesAsync();
+                await _cache.RemoveAsync("categories_all");
 
                 _logger.LogInformation("Category status updated successfully for ID: {CategoryId}", category.Id);
                 return Result<string>.Success("Category status updated successfully.");
@@ -167,10 +180,29 @@ public class CategoryService : ICategoryService
     {
         try
         {
+            string cacheKey = "categories_all";
+
+            // 1. NGÓ VÀO KHO REDIS TRƯỚC
+            var cachedData = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrEmpty(cachedData))
+            {
+                _logger.LogInformation("Lấy Categories từ REDIS CACHE thành công!");
+                var cachedCategories = JsonSerializer.Deserialize<List<CategoryResponseDto>>(cachedData);
+                return Result<List<CategoryResponseDto>>.Success(cachedCategories);
+            }
+
+            // 2. NẾU REDIS KHÔNG CÓ -> CHẠY XUỐNG SQL SERVER (Code cũ)
             var categories = await _categoryRepository.GetAllAsync();
             var responseDtos = categories.Select(c => new CategoryResponseDto().mapToCategoryDto(c)).ToList();
 
-            _logger.LogInformation("All categories retrieved successfully.");
+            // 3. LƯU LẠI VÀO REDIS ĐỂ LẦN SAU DÙNG (Cất kho trong 1 ngày)
+            var cacheOptions = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1)
+            };
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(responseDtos), cacheOptions);
+
+            _logger.LogInformation("All categories retrieved successfully from Database.");
             return Result<List<CategoryResponseDto>>.Success(responseDtos);
         }
         catch (Exception ex)
