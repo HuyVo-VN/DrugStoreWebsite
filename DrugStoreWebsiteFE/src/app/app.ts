@@ -1,33 +1,26 @@
 import { Component, signal, OnInit } from '@angular/core';
-import { RouterOutlet, RouterModule } from '@angular/router';
-import { Login } from './login/login';
-import { Home } from './home/home';
-import { Register } from './register/register';
-import { routes } from './app.routes';
-import { ForgetPassword } from './forget-password/forget-password';
-import { ResetPassword } from './reset-password/reset-password';
-import { AdminPage } from './admin-page/admin-page';
-import { User } from './user/user';
-import { Footer } from './footer/footer';
-import { Header } from './header/header';
-import { ChangePassword } from './change-password/change-password';
-import { Product } from './product/product';
-import { CustomerProduct } from './customer-product/customer-product';
-import { Cart } from './cart/cart';
-import { CustomerOrder } from './customer-order/customer-order';
+import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './Services/auth.service';
-import { AdminChatbot } from './admin-chatbot/admin-chatbot';
 import Swal from 'sweetalert2';
+
+// CHỈ IMPORT NHỮNG THỨ LÀM BỘ KHUNG GIAO DIỆN (LAYOUT)
+import { Footer } from './footer/footer';
+import { Header } from './header/header';
+import { AdminChatbot } from './admin-chatbot/admin-chatbot';
 
 @Component({
   selector: 'app-root',
-  imports: [
-    RouterOutlet, Login, Home, Register, ForgetPassword, ResetPassword,
-    AdminPage, Footer, Header, User, ChangePassword, Product,
-    CustomerProduct, Cart, CustomerOrder, AdminChatbot, CommonModule],
-
   standalone: true,
+
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    Header,
+    Footer,
+    AdminChatbot
+  ],
+
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -50,4 +43,3 @@ export class App implements OnInit {
     });
   }
 }
-

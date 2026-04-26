@@ -23,7 +23,7 @@ var config = builder.Configuration;
 // 🚀 CẤU HÌNH REDIS CACHE
 // ==========================================
 var redisConnectionString =
-    builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379";
+    builder.Configuration["Redis:ConnectionString"];
 
 try
 {
@@ -135,6 +135,9 @@ builder.Services.AddScoped<IVnPayService, VnPayService>();
 builder.Services.AddAuthorization();
 builder.Services.Configure<VnPayConfig>(builder.Configuration.GetSection("Vnpay"));
 builder.Services.AddScoped<IPhotoService, CloudinaryPhotoService>();
+builder.Services.AddScoped<IMinIoService, MinIoService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 
 
 var app = builder.Build();

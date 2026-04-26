@@ -38,12 +38,15 @@
         <h3>Overview Analytics</h3>
 
         <div class="chart-controls">
-          <select [(ngModel)]="selectedDataType" (change)="onChartChange()">
-            <option value="revenue">Revenue Data</option>
-            <option value="orders">Orders Quantity</option>
+          <select [(ngModel)]="selectedEntity" (change)="onEntityChange()" class="select-box">
+            <option *ngFor="let e of entities" [value]="e.id">{{ e.name }}</option>
           </select>
 
-          <select [(ngModel)]="selectedChartType" (change)="onChartChange()">
+          <select [(ngModel)]="selectedStatType" (change)="onStatTypeChange()" class="select-box">
+            <option *ngFor="let s of currentStatTypes" [value]="s.id">{{ s.name }}</option>
+          </select>
+
+          <select [(ngModel)]="selectedChartType" (change)="onChartTypeChange()" class="select-box">
             <option value="bar">Bar Chart</option>
             <option value="line">Line Chart</option>
             <option value="pie">Pie Chart</option>
@@ -54,6 +57,33 @@
 
       <div class="canvas-wrapper">
         <canvas id="revenueChart" #revenueChart></canvas>
+      </div>
+      <div class="bottom-actions-container">
+
+        <div class="time-filters" *ngIf="showTimeFilters">
+          <select [(ngModel)]="selectedYear" (change)="onTimeChange()" class="select-box filter-time">
+            <option value="all">All years</option>
+            <option *ngFor="let y of years" [value]="y">Year {{y}}</option>
+          </select>
+
+          <select [(ngModel)]="selectedMonth" (change)="onTimeChange()" class="select-box filter-time" [disabled]="selectedYear === 'all'">
+            <option value="all">All Months</option>
+            <option *ngFor="let m of months" [value]="m">Month {{ m }}</option>
+          </select>
+        </div>
+        <div *ngIf="!showTimeFilters"></div> <div class="export-actions">
+          <button class="btn-export btn-excel" (click)="onExportProductsExcel()" [disabled]="isExportingExcel">
+            <i class="fa-solid fa-file-excel" *ngIf="!isExportingExcel"></i>
+            <i class="fa-solid fa-spinner fa-spin" *ngIf="isExportingExcel"></i>
+            {{ isExportingExcel ? 'Creating Excel...' : 'Export Excel' }}
+          </button>
+
+          <button class="btn-export btn-pdf" (click)="onExportOrdersPdf()" [disabled]="isExportingPdf">
+            <i class="fa-solid fa-file-pdf" *ngIf="!isExportingPdf"></i>
+            <i class="fa-solid fa-spinner fa-spin" *ngIf="isExportingPdf"></i>
+            {{ isExportingPdf ? 'Creating PDF...' : 'Export PDF' }}
+          </button>
+        </div>
       </div>
     </div>
 

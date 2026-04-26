@@ -8,6 +8,11 @@ public class PagedResult<T>
     public int CurrentPage { get; set; }
     public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
 
+    public PagedResult()
+    {
+        Items = new List<T>();
+    }
+
     public PagedResult(List<T> items, int totalCount, int pageNumber, int pageSize)
     {
         Items = items;
