@@ -84,15 +84,6 @@ export class CustomerProduct implements OnInit {
   currentCollectionId: string = '';
   currentListType: string = '';
 
-  quickButtons = [
-    { icon: 'fa-solid fa-pills', label: 'Thuốc kê đơn', targetUrl: '/?category=1' },
-    { icon: 'fa-solid fa-kit-medical', label: 'Thực phẩm CN', targetUrl: '/?category=2' },
-    { icon: 'fa-solid fa-stethoscope', label: 'Thiết bị y tế', targetUrl: '/?category=3' },
-    { icon: 'fa-solid fa-baby', label: 'Mẹ & Bé', targetUrl: '/?category=4' },
-    { icon: 'fa-solid fa-hand-holding-heart', label: 'Chăm sóc cá nhân', targetUrl: '/?category=5' },
-    { icon: 'fa-solid fa-percent', label: 'Khuyến mãi', targetUrl: '/promotions' }
-  ];
-
   saleProducts: any[] = [];
 
   getSoldPercent(saleSold: number, saleStock: number): number {

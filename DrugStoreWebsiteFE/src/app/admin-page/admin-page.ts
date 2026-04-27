@@ -176,7 +176,7 @@ export class AdminPage implements OnInit, AfterViewInit {
         }
       },
       error: (err: any) => {
-        console.error('Lỗi khi tải dữ liệu biểu đồ', err);
+        console.error('Error loading chart data', err);
       }
     });
   }
