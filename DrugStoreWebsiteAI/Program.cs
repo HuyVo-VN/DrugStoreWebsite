@@ -6,28 +6,28 @@ using DrugStoreWebsiteAI.Plugins;
 using DrugStoreWebsiteAuthen.Infrastructure.Persistence;
 using DrugStoreWebSiteData.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Minio; // 👈 Đã thêm thư viện MinIO
+using Minio;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. ĐỌC BIẾN MÔI TRƯỜNG TỪ .ENV
+// Read .ENV
 DotEnv.Load();
 builder.Configuration.AddEnvironmentVariables();
 
-// 2. CẤU HÌNH EXCEL
+// Get EXCEL config
 ExcelPackage.License.SetNonCommercialPersonal("DrugStore Project");
 
-// 3. LẤY CẤU HÌNH AI 
+// Get AI Config
 var apiKey = builder.Configuration["GOOGLE_API_KEY"]!;
 var modelId = builder.Configuration["GEMINI_MODEL"] ?? "gemma-4-31b-it";
 
-// 4. KẾT NỐI DATABASE
+// Connect DATABASE
 var drugStoreConn = builder.Configuration["DRUGSTORE_CONNECTION"];
 var authConn = builder.Configuration["AUTH_CONNECTION"];
 
 if (string.IsNullOrEmpty(drugStoreConn) || string.IsNullOrEmpty(authConn))
 {
-    throw new Exception("🛑 Không tìm thấy chuỗi kết nối trong file .env!");
+    throw new Exception("🛑 Connection string not found in .env file!");
 }
 
 builder.Services.AddDbContext<DrugStoreDbContext>(options =>
@@ -36,14 +36,13 @@ builder.Services.AddDbContext<DrugStoreDbContext>(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(authConn));
 
-// =========================================================
-// ĐĂNG KÝ MINIO CLIENT (BẢN FIX LỖI THIẾU HÀM ADDMINIO)
-// =========================================================
+// ====================
+// SIGN IN MINIO CLIENT
+// ====================
 var minioEndpoint = builder.Configuration["Minio:Endpoint"];
 var minioAccessKey = builder.Configuration["Minio:AccessKey"];
 var minioSecretKey = builder.Configuration["Minio:SecretKey"];
 
-// Dùng AddSingleton thủ công để đảm bảo 100% C# nhận diện được MinIO
 builder.Services.AddSingleton<IMinioClient>(sp =>
 {
     return new MinioClient()
@@ -52,23 +51,22 @@ builder.Services.AddSingleton<IMinioClient>(sp =>
         .Build();
 });
 
-// =========================================================
-// 5. CẤU HÌNH BỘ NÃO SEMANTIC KERNEL (ĐÃ SẮP XẾP LẠI TRẬT TỰ)
-// =========================================================
+// ==================================
+//  SEMANTIC KERNEL CONFIGURATION
+// ==================================
 builder.Services.AddScoped(sp =>
 {
     var kernelBuilder = Kernel.CreateBuilder();
 
-    // Khởi tạo não Gemini
+    // Start Gemini
     kernelBuilder.AddGoogleAIGeminiChatCompletion(modelId, apiKey);
 
-    // BƯỚC 1: LẤY TẤT CẢ ĐỒ NGHỀ RA TRƯỚC (Phải lấy ra rồi mới xài được)
+    // Get all funtion
     var drugStoreDb = sp.GetRequiredService<DrugStoreDbContext>();
     var authDb = sp.GetRequiredService<AppDbContext>();
     var env = sp.GetRequiredService<IWebHostEnvironment>();
     var minioClient = sp.GetRequiredService<IMinioClient>();
 
-    // BƯỚC 2: TIÊM TOÀN BỘ VÀO PLUGIN CÙNG MỘT LÚC (Xóa bỏ phần đăng ký trùng lặp)
     kernelBuilder.Plugins.AddFromObject(
         new DatabaseInsightPlugin(drugStoreDb, authDb, env, minioClient),
         "DatabaseInsightPlugin"
@@ -77,13 +75,12 @@ builder.Services.AddScoped(sp =>
     return kernelBuilder.Build();
 });
 
-// 6. ĐĂNG KÝ CÁC DỊCH VỤ (SERVICES)
+// sign up services
 builder.Services.AddScoped<DrugStoreWebsiteAI.Services.IAiAgentService, DrugStoreWebsiteAI.Services.AiAgentService>();
 builder.Services.AddScoped<DrugStoreWebsiteAI.Services.IExcelParserService, DrugStoreWebsiteAI.Services.ExcelParserService>();
 
 builder.Services.AddControllers();
 
-// 7. CẤU HÌNH CORS CHUẨN DUY NHẤT 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
@@ -107,7 +104,6 @@ app.UseSwaggerUI();
 
 app.UseStaticFiles();
 
-// ÉP DÙNG ĐÚNG CÁI CORS ĐÃ KHAI BÁO
 app.UseCors("AllowAngular");
 
 app.MapControllers();

@@ -145,7 +145,6 @@ namespace DrugStoreWebsiteAI.Plugins
                 dataTable.Load(reader); // Load all data for export
 
                 // Generate Excel File
-                ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
                 using var package = new ExcelPackage();
                 var worksheet = package.Workbook.Worksheets.Add("Report");
                 worksheet.Cells["A1"].LoadFromDataTable(dataTable, true);
@@ -188,16 +187,16 @@ namespace DrugStoreWebsiteAI.Plugins
                     .WithContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                 await _minioClient.PutObjectAsync(putObjectArgs);
 
-                // 4. Trả về đường link tải file vĩnh viễn (Lấy từ Endpoint của MinIO sếp cấu hình trong .env)
-                var minioEndpoint = _env.IsDevelopment() ? "http://localhost:9000" : "http://drugstore-minio:9000"; // Tùy môi trường
+                // 4. Return link
+                var minioEndpoint = _env.IsDevelopment() ? "http://localhost:9000" : "http://drugstore-minio:9000";
                 var fileUrl = $"{minioEndpoint}/{bucketName}/{fileName}";
 
-                return $"Export successful. [Nhấn vào đây để tải báo cáo Excel]({fileUrl})";
+                return $"Export successful. [Click here to download the Excel report.]({fileUrl})";
 
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\n\n[LỖI DATABASE KINH HOÀNG]: {ex.Message}\n\n");
+                Console.WriteLine($"\n\n[HORRIFYING DATABASE ERROR]: {ex.Message}\n\n");
                 return $"Export Error: {ex.Message}";
             }
         }

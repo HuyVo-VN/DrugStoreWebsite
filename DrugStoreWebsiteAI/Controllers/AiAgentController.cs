@@ -26,7 +26,7 @@ namespace DrugStoreWebsiteAI.Controllers
         public async Task<IActionResult> Ask([FromBody] ChatRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.message))
-                return BadRequest(new { status = "error", message = "Tin nhắn trống!" });
+                return BadRequest(new { status = "error", message = "Empty message!" });
 
             try
             {
@@ -42,7 +42,7 @@ namespace DrugStoreWebsiteAI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { status = "error", reply = "Hệ thống AI đang bảo trì: " + ex.Message });
+                return StatusCode(500, new { status = "error", reply = "The AI ​​system is undergoing maintenance:" + ex.Message });
             }
         }
 
@@ -50,15 +50,15 @@ namespace DrugStoreWebsiteAI.Controllers
         public async Task<IActionResult> UploadExcel(IFormFile file)
         {
             if (file == null || file.Length == 0)
-                return BadRequest(new { message = "Không tìm thấy file tệp tin!" });
+                return BadRequest(new { message = "File not found!" });
 
             var extension = Path.GetExtension(file.FileName).ToLower();
             if (extension != ".xlsx" && extension != ".xls")
-                return BadRequest(new { message = "Chỉ chấp nhận định dạng Excel (.xlsx, .xls)!" });
+                return BadRequest(new { message = "Only Excel format is accepted. (.xlsx, .xls)!" });
 
             try
             {
-                // 1. Dùng "Đôi mắt" bóc tách Excel thành JSON
+                // Excute Excel to JSON
                 var rawData = await _excelParser.ParseExcelDynamicAsync(file);
 
                 // --- TRẠM DỪNG CHÂN ---
@@ -68,41 +68,39 @@ namespace DrugStoreWebsiteAI.Controllers
                 return Ok(new
                 {
                     status = 200,
-                    message = "Bóc tách Excel thành công!",
+                    message = "Excel data extraction successful!",
                     totalRows = rawData.Count,
                     dataPreview = rawData
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Lỗi khi đọc file: " + ex.Message });
+                return StatusCode(500, new { message = "Error while reading file: " + ex.Message });
             }
         }
 
         [HttpPost("process-inventory")]
         public async Task<IActionResult> ProcessInventory(IFormFile file, [FromForm] string connectionId = "")
         {
-            if (file == null || file.Length == 0) return BadRequest("File không hợp lệ.");
+            if (file == null || file.Length == 0) return BadRequest("Invalid file.");
 
             try
             {
-                // 1. Bóc tách Excel thành JSON thô
+                // excute Excel to RAW JSON
                 var rawData = await _excelParser.ParseExcelDynamicAsync(file);
 
-                // 2. Đưa cho AI xử lý thông minh
                 var aiResultJson = await _aiService.ProcessRawDataWithAiAsync(rawData, connectionId);
 
-                // Trả về kết quả đã được AI bóc tách
                 return Ok(new
                 {
                     status = 200,
-                    message = "AI đã xử lý dữ liệu thành công!",
-                    data = JsonSerializer.Deserialize<object>(aiResultJson) // 👈 HẾT LỖI TẠI ĐÂY
+                    message = "The AI ​​processed the data successfully!",
+                    data = JsonSerializer.Deserialize<object>(aiResultJson)
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Lỗi hệ thống: {ex.Message}");
+                return StatusCode(500, $"System error: {ex.Message}");
             }
         }
     }

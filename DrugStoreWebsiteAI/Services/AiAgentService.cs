@@ -61,7 +61,7 @@ namespace DrugStoreWebsiteAI.Services
             // 1. KIỂM TRA BẢO VỆ
             if (rawData == null || !rawData.Any()) return "[]";
 
-            await SendProgress(connectionId, "Đang trích xuất Tiêu đề cột gửi cho AI (Siêu tiết kiệm Token)...");
+            await SendProgress(connectionId, "Extracting column headers to send to AI (Super Savings Token)...");
 
             // 2. CHỈ LẤY TIÊU ĐỀ CỘT (Headers) - Trọng lượng siêu nhẹ!
             var headers = rawData.First().Keys.ToList();
@@ -82,15 +82,14 @@ namespace DrugStoreWebsiteAI.Services
     }}
     Chỉ trả về JSON, không giải thích. Phải giữ nguyên tên cột gốc có trong danh sách tao đưa.";
 
-            await SendProgress(connectionId, "AI đang lập bản đồ ánh xạ (Mapping Rules)...");
+            await SendProgress(connectionId, "AI is mapping rules...");
 
             // Gọi AI (Tốn chưa tới 100 Token)
             var result = await _kernel.InvokePromptAsync(prompt);
             var mappingRuleStr = result.ToString().Replace("```json", "").Replace("```", "").Trim();
 
-            await SendProgress(connectionId, "Đã có bản đồ từ AI! C# đang dùng cơ bắp xử lý hàng ngàn dòng Excel...");
+            await SendProgress(connectionId, "We already have maps from AI! C# is using its muscles to process thousands of Excel rows...");
 
-            // 4. DÙNG C# XỬ LÝ TOÀN BỘ DỮ LIỆU TẠI LOCAL (Miễn phí, 1 mili-giây)
             try
             {
                 using var jsonDoc = JsonDocument.Parse(mappingRuleStr);
@@ -105,7 +104,6 @@ namespace DrugStoreWebsiteAI.Services
                     var specs = new Dictionary<string, string>();
                     var images = new List<string>();
 
-                    // Quét từng cột trong dòng hiện tại
                     foreach (var kvp in row)
                     {
                         var colName = kvp.Key;
@@ -114,7 +112,7 @@ namespace DrugStoreWebsiteAI.Services
                         if (IsColumnInArray(root, "BaseInfo", colName)) baseInfo[colName] = colValue;
                         else if (IsColumnInArray(root, "SaleInfo", colName)) saleInfo[colName] = colValue;
                         else if (IsColumnInArray(root, "Images", colName)) images.Add(colValue);
-                        else specs[colName] = colValue; // Còn lại nhét hết vào Specs
+                        else specs[colName] = colValue;
                     }
 
                     standardizedDataList.Add(new
@@ -126,12 +124,12 @@ namespace DrugStoreWebsiteAI.Services
                     });
                 }
 
-                await SendProgress(connectionId, "Xử lý hoàn tất! Trả kết quả về giao diện.");
+                await SendProgress(connectionId, "Processing complete! Return the results to the interface.");
                 return JsonSerializer.Serialize(standardizedDataList);
             }
             catch (Exception ex)
             {
-                return $"[{{\"Error\": \"Lỗi khi áp dụng bản đồ AI: {ex.Message}\"}}]";
+                return $"[{{\"Error\": \"Error when applying AI maps: {ex.Message}\"}}]";
             }
         }
 
@@ -190,17 +188,17 @@ namespace DrugStoreWebsiteAI.Services
 
                 var result = await _kernel.InvokePromptAsync(prompt, new KernelArguments(executionSettings));
 
-                return result.ToString() ?? "Hệ thống AI không trả về kết quả.";
+                return result.ToString() ?? "The AI ​​system did not return any results.";
             }
             catch (Microsoft.SemanticKernel.HttpOperationException ex) when (ex.Message.Contains("429"))
             {
                 // Bắt gọn lỗi văng 429 của Google
-                return "⚠️ **Hệ thống AI đang quá tải.** Hạn mức API Miễn phí chỉ cho phép 15 câu hỏi/phút. Sếp vui lòng đợi khoảng 60 giây rồi thử lại nhé!";
+                return "⚠️ **The AI ​​system is overloaded.** The free API limit is only 15 questions per minute. Please wait about 60 seconds and try again!";
             }
             catch (Exception ex)
             {
                 // Các lỗi sập server khác
-                return $"❌ **Đã xảy ra lỗi hệ thống:** {ex.Message}";
+                return $"❌ **A system error has occurred.:** {ex.Message}";
             }
         }
     }
