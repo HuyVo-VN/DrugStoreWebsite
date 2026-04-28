@@ -19,7 +19,7 @@ ExcelPackage.License.SetNonCommercialPersonal("DrugStore Project");
 
 // 3. LẤY CẤU HÌNH AI 
 var apiKey = builder.Configuration["GOOGLE_API_KEY"]!;
-var modelId = builder.Configuration["GEMINI_MODEL"] ?? "gemini-1.5-flash";
+var modelId = builder.Configuration["GEMINI_MODEL"] ?? "gemma-4-31b-it";
 
 // 4. KẾT NỐI DATABASE
 var drugStoreConn = builder.Configuration["DRUGSTORE_CONNECTION"];

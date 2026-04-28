@@ -35,15 +35,6 @@
 
       </div>
 
-      <div class="hero-quick-actions">
-        <div class="quick-action-item" *ngFor="let btn of quickButtons" (click)="navigateToAction(btn.targetUrl)">
-          <div class="action-icon-wrapper">
-            <i [class]="btn.icon"></i>
-          </div>
-          <span class="action-label">{{ btn.label }}</span>
-        </div>
-      </div>
-
     </div>
 
     <div class="flash-sale-section" *ngIf="saleProducts.length > 0 && !isSearchOrFilterActive">
