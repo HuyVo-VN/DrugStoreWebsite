@@ -1,4 +1,4 @@
-using Xunit;
+﻿using Xunit;
 using Moq;
 using DrugStoreWebSiteData.Infrastructure.Services;
 using Microsoft.AspNetCore.Hosting;
@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using FluentAssertions;
 
 namespace DrugStoreWebSiteData.Application.Tests
 {
@@ -33,30 +34,38 @@ namespace DrugStoreWebSiteData.Application.Tests
 
             _imageService = new ImageService(_mockEnvironment.Object, _mockLogger.Object);
         }
-
         [Fact]
-        public async Task SaveImageAsync_ShouldReturnNull_WhenFileIsNull()
-        {
-            // Act
-            var result = await _imageService.SaveImageAsync(null);
-
-            // Assert
-            Assert.Null(result);
-        }
-
-        [Fact]
-        public async Task SaveImageAsync_ShouldReturnNull_WhenFileLengthIsZero()
+        public async Task SaveImageAsync_WhenFileIsNull_ShouldThrowArgumentException()
         {
             // Arrange
-            var mockFile = new Mock<IFormFile>();
-            mockFile.Setup(f => f.Length).Returns(0);
+            Microsoft.AspNetCore.Http.IFormFile? file = null;
+            string folderName = "test-folder";
 
             // Act
-            var result = await _imageService.SaveImageAsync(mockFile.Object);
+            // Đóng gói hành động gọi hàm vào một Func để FluentAssertions bắt lỗi
+            Func<Task> action = async () => await _imageService.SaveImageAsync(file!, folderName);
 
             // Assert
-            Assert.Null(result);
+            // Kịch bản đúng: Phải ném ra lỗi ArgumentException
+            await action.Should().ThrowAsync<ArgumentException>();
         }
+
+        [Fact]
+        public async Task SaveImageAsync_WhenFileLengthIsZero_ShouldThrowArgumentException()
+        {
+            // Arrange
+            var mockFile = new Mock<Microsoft.AspNetCore.Http.IFormFile>();
+            mockFile.Setup(f => f.Length).Returns(0); // Giả lập file có dung lượng = 0
+            string folderName = "test-folder";
+
+            // Act
+            Func<Task> action = async () => await _imageService.SaveImageAsync(mockFile.Object, folderName);
+
+            // Assert
+            // Kịch bản đúng: Phải ném ra lỗi ArgumentException
+            await action.Should().ThrowAsync<ArgumentException>();
+        }
+
 
         [Fact]
         public void DeleteImage_ShouldNotThrowError_WhenPathIsInvalid()
