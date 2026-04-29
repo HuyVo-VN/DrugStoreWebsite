@@ -30,10 +30,8 @@ namespace DrugStoreWebsiteAI.Controllers
 
             try
             {
-                // Gọi Não Giao Tiếp
                 var replyMessage = await _aiService.ChatAsync(req.message);
 
-                // Trả về đúng format mà file admin-chatbox.ts của sếp đang mong đợi
                 return Ok(new
                 {
                     status = "success",
@@ -60,10 +58,6 @@ namespace DrugStoreWebsiteAI.Controllers
             {
                 // Excute Excel to JSON
                 var rawData = await _excelParser.ParseExcelDynamicAsync(file);
-
-                // --- TRẠM DỪNG CHÂN ---
-                // Hiện tại ta chỉ trả về JSON để sếp test. 
-                // Ở bước tiếp theo, ta sẽ ném biến 'rawData' này vào cho Semantic Kernel đọc!
 
                 return Ok(new
                 {

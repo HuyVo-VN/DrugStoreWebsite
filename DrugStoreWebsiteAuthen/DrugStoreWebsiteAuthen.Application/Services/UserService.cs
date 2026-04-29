@@ -558,15 +558,12 @@ public class UserService : IUserService
 
             if (user == null)
             {
-                // Tự động tạo tài khoản mới nếu lần đầu đăng nhập bằng Google
-                // Thêm random Guid vào Username để chống trùng lặp nếu có người dùng email khác nhưng trùng tên
                 user = new User
                 {
                     UserName = payload.Email.Split('@')[0] + "_" + Guid.NewGuid().ToString().Substring(0, 4),
                     Email = payload.Email,
                     FullName = payload.Name,
                     EmailConfirmed = true,
-                    // ImageUrl = payload.Picture // Mở comment nếu Entity User của sếp có thuộc tính này
                 };
 
                 var createResult = await _userManager.CreateAsync(user);
@@ -579,7 +576,7 @@ public class UserService : IUserService
                 await _userManager.AddToRoleAsync(user, "Customer");
             }
 
-            // Trả về User xịn để Controller sinh Token
+            // Trả về User để Controller sinh Token
             return Result<User>.Success(ResultStatus.Success, user, "Google verification successful");
         }
         catch (InvalidJwtException)
@@ -596,12 +593,6 @@ public class UserService : IUserService
 
     public async Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword)
     {
-        // _userManager là công cụ quản lý User có sẵn của .NET Identity
-        // Hàm ChangePasswordAsync của nó sẽ tự động:
-        // 1. Kiểm tra mật khẩu cũ (currentPassword) có khớp trong DB không
-        // 2. Kiểm tra mật khẩu mới (newPassword) có đủ độ khó chưa (chữ hoa, số...)
-        // 3. Tự động băm (Hash) mật khẩu mới và lưu đè xuống Database!
-
         return await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
     }
 

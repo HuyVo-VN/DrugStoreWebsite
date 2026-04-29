@@ -19,12 +19,12 @@ namespace DrugStoreWebsiteAuthen.Api.Middlewares
 
             if (!string.IsNullOrEmpty(token))
             {
-                // 2. Ngó vào Redis xem Token này có nằm trong sổ đen không
+                // 2. Vào Redis xem Token này có nằm trong sổ đen không
                 var isBlacklisted = await cache.GetStringAsync($"blacklist:{token}");
 
                 if (!string.IsNullOrEmpty(isBlacklisted))
                 {
-                    // 3. Nếu có -> Đuổi thẳng cổ (Báo lỗi 401)
+                    // 3. Nếu có -> kick (Báo lỗi 401)
                     context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                     context.Response.ContentType = "application/json";
                     await context.Response.WriteAsync("{\"message\": \"Token has been revoked (Logout). Please log in again!\"}");

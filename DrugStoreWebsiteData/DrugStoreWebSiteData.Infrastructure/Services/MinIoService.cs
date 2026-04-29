@@ -24,12 +24,10 @@ namespace DrugStoreWebSiteData.Infrastructure.Services
             _configuration = configuration;
             _logger = logger;
 
-            // Đọc thẳng từ file .env
             var endpoint = _configuration["MINIO_ENDPOINT"];
             var accessKey = _configuration["MINIO_ACCESS_KEY"];
             var secretKey = _configuration["MINIO_SECRET_KEY"];
 
-            // Khởi tạo tay sai MinIO
             _minioClient = new MinioClient()
                 .WithEndpoint(endpoint)
                 .WithCredentials(accessKey, secretKey)
@@ -40,21 +38,19 @@ namespace DrugStoreWebSiteData.Infrastructure.Services
         {
             try
             {
-                // 1. Kiểm tra xem rổ 'reports' đã có chưa, chưa có thì tự động tạo mới
                 var bucketExistArgs = new BucketExistsArgs().WithBucket(_bucketName);
                 bool found = await _minioClient.BucketExistsAsync(bucketExistArgs);
                 if (!found)
                 {
                     await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(_bucketName));
 
-                    // Cấp quyền Public Read cho cái rổ này (Để Angular gọi link tải được file về)
+                    // Cấp quyền Public Read cho cái rổ này
                     var policy = $@"{{""Version"":""2012-10-17"",""Statement"":[{{""Action"":[""s3:GetObject""],""Effect"":""Allow"",""Principal"":{{""AWS"":[""*""]}},""Resource"":[""arn:aws:s3:::{_bucketName}/*""]}}]}}";
                     await _minioClient.SetPolicyAsync(new SetPolicyArgs().WithBucket(_bucketName).WithPolicy(policy));
 
                     _logger.LogInformation($"A new Bucket has been created.: {_bucketName}");
                 }
 
-                // 2. Chuyển mảng Byte thành Dòng chảy (Stream) và ném lên MinIO
                 using var stream = new MemoryStream(fileData);
                 var putObjectArgs = new PutObjectArgs()
                     .WithBucket(_bucketName)
@@ -66,13 +62,13 @@ namespace DrugStoreWebSiteData.Infrastructure.Services
                 await _minioClient.PutObjectAsync(putObjectArgs);
                 _logger.LogInformation($"File uploaded successfully: {fileName}");
 
-                // 3. Trả về đường link để tải file (Nên dùng localhost để Frontend truy cập được từ bên ngoài)
+                // 3. Trả về đường link để tải file 
                 // Lưu ý: Cổng API là 9000, cổng giao diện MinIO là 9001
                 return $"http://localhost:9000/{_bucketName}/{fileName}";
             }
             catch (MinioException e)
             {
-                _logger.LogError($"Lỗi MinIO: {e.Message}");
+                _logger.LogError($"Error MinIO: {e.Message}");
                 throw new Exception("The internal warehousing system is experiencing problems.");
             }
         }

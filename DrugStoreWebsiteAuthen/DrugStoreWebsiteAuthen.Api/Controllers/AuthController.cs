@@ -503,7 +503,7 @@ namespace DrugStoreWebsiteAuthen.Controllers
             var key = KeyGeneration.GenerateRandomKey(20);
             var secretString = Base32Encoding.ToString(key);
 
-            // 2. Tạm thời lưu Secret này vào user (chưa kích hoạt vội)
+            // 2. Tạm thời lưu Secret này vào user
             user.TwoFactorSecret = secretString;
             await _userService.UpdateUserAsync(user);
 
@@ -545,7 +545,6 @@ namespace DrugStoreWebsiteAuthen.Controllers
             var totp = new Totp(secretKeyBytes);
 
             // 2. Kiểm tra xem mã 6 số user gửi lên có khớp với thời gian hiện tại không
-            // (Cho phép du di 1 khoảng thời gian 30s đề phòng đồng hồ lệch)
             bool isCorrect = totp.VerifyTotp(code, out long timeWindowUsed, VerificationWindow.RfcSpecifiedNetworkDelay);
 
             if (!isCorrect)
@@ -561,7 +560,7 @@ namespace DrugStoreWebsiteAuthen.Controllers
         }
 
         [HttpPost("login-2fa")]
-        [AllowAnonymous] // Phải để AllowAnonymous vì lúc này user CHƯA CÓ Token
+        [AllowAnonymous]
         public async Task<IActionResult> Login2FA([FromBody] Login2FARequest request)
         {
             var userResult = await _userService.GetUserByUserNameAsync(request.Username);
@@ -619,9 +618,6 @@ namespace DrugStoreWebsiteAuthen.Controllers
                     return BadRequest(new { message = "Mật khẩu cũ không chính xác." });
                 }
 
-                // 3. Thực hiện đổi sang mật khẩu mới (Sếp cần gọi hàm đổi pass của UserManager hoặc UserService ở đây)
-                // Ví dụ: var result = await _userManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
-                // Giả định sếp có hàm ChangePasswordAsync trong IUserService:
                 var result = await _userService.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
 
                 if (!result.Succeeded)
@@ -650,7 +646,6 @@ namespace DrugStoreWebsiteAuthen.Controllers
 
             var user = userResult.Data;
 
-            // Tắt cờ và xóa chìa khóa bí mật đi
             user.TwoFactorEnabled = false;
             user.TwoFactorSecret = null;
 

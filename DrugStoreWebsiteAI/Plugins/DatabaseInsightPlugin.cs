@@ -161,9 +161,9 @@ namespace DrugStoreWebsiteAI.Plugins
                 // Save File
                 // --- LƯU FILE LÊN MINIO CLOUD ---
                 var fileName = $"Report_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-                var bucketName = "ai-reports"; // Tên thư mục trên MinIO
+                var bucketName = "ai-reports";
 
-                // 1. Chuyển file Excel thành Stream (Dòng chảy dữ liệu)
+                // 1. Chuyển file Excel thành Stream 
                 using var excelStream = new MemoryStream(await package.GetAsByteArrayAsync());
                 excelStream.Position = 0;
 
