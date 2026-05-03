@@ -26,8 +26,8 @@ export class AiAgentService {
 
     this.hubConnection
       .start()
-      .then(() => console.log('🟢 Đã kết nối thành công với Tổng đài AI (SignalR)'))
-      .catch(err => console.error('🔴 Lỗi kết nối SignalR: ', err));
+      .then(() => console.log('🟢 Successfully connected to the AI ​​Call Center (SignalR)'))
+      .catch(err => console.error('🔴 SignalR connection error: ', err));
 
     // Lắng nghe sự kiện "ReceiveAiProgress" từ C# (AiAgentService.cs) gửi xuống
     this.hubConnection.on('ReceiveAiProgress', (message: string) => {
@@ -45,6 +45,6 @@ export class AiAgentService {
     formData.append('connectionId', connectionId);
 
     // Gọi API của Controller bên C#
-    return this.http.post(`${environment.aiApiUrl}/api/ai-agent/process-inventory`, formData);
+    return this.http.post(`${environment.aiApiUrl}/api/chatbot/process-inventory`, formData);
   }
 }
