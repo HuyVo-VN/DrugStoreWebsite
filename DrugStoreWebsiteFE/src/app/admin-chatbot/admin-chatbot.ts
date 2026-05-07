@@ -8,7 +8,7 @@ import { marked } from 'marked';
 import { MarkdownPipe } from '../markdown-pipe';
 import { environment } from '../../environments/environment';
 
-import { AiAgentService } from '../Services/ai-agent.service';
+import { AiAgentService } from '../Services/chatbot.service';
 
 
 interface ChatMessage {
