@@ -27,10 +27,10 @@ jobs:
           sudo rm -rf ./DrugStoreWebsiteFE/.angular/cache
           
           # 3. BUILD MỚI 100% KHÔNG XÀI CACHE CHO TẤT CẢ SERVICES
-          sudo docker compose build --no-cache
+          sudo docker-compose build --no-cache
           
           # 4. KHỞI ĐỘNG LẠI HỆ THỐNG TRƠN TRU
-          sudo docker compose up -d
+          sudo docker-compose up -d
           
           # 5. Dọn dẹp Image rác để VPS không bị đầy ổ cứng
           sudo docker image prune -af
