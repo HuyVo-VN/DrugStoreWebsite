@@ -39,6 +39,12 @@
 
     <div class="chat-input-area">
 
+      <div class="selected-file-preview" *ngIf="selectedFile">
+        <i class="fa-solid fa-file-excel"></i>
+        <span>{{ selectedFile.name }}</span>
+        <button (click)="removeSelectedFile()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
       <button type="button" class="chat-attach-btn" (click)="fileInput.click()" [disabled]="isLoading">
         <i class="fa-solid fa-paperclip"></i>
       </button>

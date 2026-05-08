@@ -3,6 +3,8 @@ using Microsoft.SemanticKernel.Connectors.Google;
 using System.Text.Json;
 using DrugStoreWebsiteAI.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.SemanticKernel.ChatCompletion;
+using DrugStoreWebsiteAI.Controllers;
 
 namespace DrugStoreWebsiteAI.Services
 {
@@ -10,7 +12,7 @@ namespace DrugStoreWebsiteAI.Services
     {
         Task<string> ProcessRawDataWithAiAsync(List<Dictionary<string, string>> rawData);
         Task<string> ProcessRawDataWithAiAsync(List<Dictionary<string, string>> rawData, string connectionId);
-        Task<string> ChatAsync(string userMessage);
+        Task<string> ChatAsync(List<AiAgentController.ChatMessageDto> messages);
     }
 
     public class AiAgentService : IAiAgentService
@@ -31,18 +33,15 @@ namespace DrugStoreWebsiteAI.Services
 
             // Đây là "Câu lệnh thần thánh" (Prompt) để dạy Gemini cách phân loại dữ liệu
             var prompt = $@"
-            Bạn là một chuyên gia bóc tách dữ liệu Dược phẩm chuẩn hóa. 
-            Tôi sẽ đưa cho bạn một danh sách JSON thô bóc từ Excel. 
-            Nhiệm vụ của bạn là phân tích ngữ nghĩa của các 'Key' (Tên cột) và chuyển đổi nó về cấu trúc chuẩn sau:
-
-            1. 'BaseInfo': Chứa các trường cơ bản (Tên, Giá, Số lượng, Danh mục, Trạng thái, Mô tả).
-            2. 'SaleInfo': Chứa các trường liên quan đến giảm giá, khuyến mãi, % sale.
-            3. 'Specifications': TẤT CẢ các cột còn lại (Thành phần, Chỉ định, Cách dùng, Hạn dùng, Nhà sản xuất...) hãy gom hết vào đây dưới dạng Key-Value.
-            4. 'Images': Nếu cột nào chứa link ảnh hoặc tên file ảnh, hãy đưa vào mảng này.
-
-            Yêu cầu: Chỉ trả về duy nhất chuỗi JSON kết quả, không giải thích gì thêm.
-            
-            DỮ LIỆU ĐẦU VÀO:
+            You are a specialist in extracting standardized pharmaceutical data.
+            I will give you a list of raw JSON extracted from Excel.
+            Your task is to analyze the semantics of the 'Keys' (column names) and convert it to the following standard structure:
+            1. 'BaseInfo': Contains the basic fields (Name, Price, Quantity, Category, Status, Description).
+            2. 'SaleInfo': Contains fields related to discounts, promotions, and sales percentages.
+            3. 'Specifications': All remaining columns (Ingredients, Indications, Usage, Expiration Date, Manufacturer, etc.) should be grouped here as Key-Values.
+            4. 'Images': If any column contains image links or image file names, include them in this array.
+            Requirement: Return only the resulting JSON string, without any further explanation.
+            INPUT DATA:
             {jsonInput}";
 
             // Gửi yêu cầu cho Gemini
@@ -69,18 +68,18 @@ namespace DrugStoreWebsiteAI.Services
 
             // 3. PROMPT HOA TIÊU (Chỉ bắt AI tạo Rule Mapping)
             var prompt = $@"
-    Mày là chuyên gia phân tích dữ liệu Dược phẩm. 
-    Tao có danh sách các tên cột từ file Excel như sau: {headersJson}
+            You are a pharmaceutical data analyst. 
+            I have a list of column names from an Excel file as follows: {headersJson}
 
-    Hãy tạo một bản đồ (Mapping Rule) chuẩn hóa theo định dạng JSON duy nhất.
-    Yêu cầu cấu trúc JSON trả về:
-    {{
-        ""BaseInfo"": [""Mã cột Tên thuốc"", ""Mã cột Giá"", ""Mã cột Số lượng"", ""Mã cột Danh mục""],
-        ""SaleInfo"": [""Mã cột Khuyến mãi"", ""Mã cột Giảm giá""],
-        ""Images"": [""Mã cột Link ảnh""],
-        ""Specifications"": [""Tất cả các cột còn lại (Thành phần, HDSD, NSX...)""]
-    }}
-    Chỉ trả về JSON, không giải thích. Phải giữ nguyên tên cột gốc có trong danh sách tao đưa.";
+            Create a normalized mapping rule in a single JSON format.
+            Required JSON structure to return:
+            {{
+                ""BaseInfo"": [""Column code Drug name"", ""Column code Price"", ""Column code Quantity"", ""Column code Category""],
+                ""SaleInfo"": [""Column code Sale"", ""Column code Promo""],
+                ""Images"": [""Column code link picture""],
+                ""Specifications"": [""All remaining columns (Ingredients, Instructions for Use, Manufacturer, etc.)""]
+            }}
+            It only returns JSON, without explanation. The original column names in the list I provide must be preserved.";
 
             await SendProgress(connectionId, "AI is mapping rules...");
 
@@ -156,48 +155,34 @@ namespace DrugStoreWebsiteAI.Services
             }
         }
 
-        public async Task<string> ChatAsync(string userMessage)
+        public async Task<string> ChatAsync(List<AiAgentController.ChatMessageDto> messages)
         {
             try
             {
-                var executionSettings = new PromptExecutionSettings
-                {
-                    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
-                };
+                var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
 
-                var prompt = $@"
+                var chatHistory = new ChatHistory($@"
                 You are the Super Admin AI Agent for a DrugStore ecosystem.
-                You have access to 'DrugStore' and 'Auth' databases via SQL Views.
+                DECISION MATRIX:
+                1. GREETINGS: Answer briefly in English.
+                2. QUERIES: Call 'get_database_schema' -> 'execute_readonly_sql_query'.
+                3. EXPORT FILE: Call 'export_data_to_excel'.
+                4. IMPORT EXCEL: If Admin says 'Yes', 'Ok', 'Enter warehouse', 'Save' Or words or phrases that are something like ""I agree"". After uploading the file, find the session key (cacheKey) in the previous conversation and call the function. 'import_approved_inventory_data'.
+                ");
 
-                DECISION MATRIX (Strict Rules):
-                1. GREETINGS & CAPABILITIES: If the user says 'hello', 'chào', or asks 'What can you do?' / 'Bạn làm được gì':
-                   - DO NOT call any SQL or Export functions.
-                   - Just reply warmly in Vietnamese, listing your capabilities (e.g., Tra cứu doanh thu, Kiểm tra kho, Tìm thông tin khách hàng, Xuất báo cáo Excel...) using bullet points.
-                
-                2. DATABASE QUERIES: If the user explicitly asks for specific data (e.g., 'How many products?', 'Top 5 best sellers', 'Doanh thu hôm nay'):
-                   - Call 'get_database_schema' to understand the tables.
-                   - Then, call 'execute_readonly_sql_query' to fetch the data.
-                   - Format the result beautifully in Markdown.
-                
-                3. EXPORT FILE: If the user explicitly asks to 'xuất Excel', 'tải file', 'xuất báo cáo':
-                   - DO NOT use the readonly query.
-                   - Call 'export_data_to_excel' INSTEAD.
-                   - Reply with the Markdown hyperlink.
+                foreach (var msg in messages)
+                {
+                    if (msg.Role == "user") chatHistory.AddUserMessage(msg.Content);
+                    else if (msg.Role == "ai") chatHistory.AddAssistantMessage(msg.Content);
+                }
 
-                Admin's input: {userMessage}";
+                var executionSettings = new PromptExecutionSettings { FunctionChoiceBehavior = FunctionChoiceBehavior.Auto() };
+                var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory, executionSettings, _kernel);
 
-                var result = await _kernel.InvokePromptAsync(prompt, new KernelArguments(executionSettings));
-
-                return result.ToString() ?? "The AI ​​system did not return any results.";
-            }
-            catch (Microsoft.SemanticKernel.HttpOperationException ex) when (ex.Message.Contains("429"))
-            {
-                // Bắt gọn lỗi văng 429 của Google
-                return "⚠️ **The AI ​​system is overloaded.** The free API limit is only 15 questions per minute. Please wait about 60 seconds and try again!";
+                return result.Content ?? "The AI system did not return any results.";
             }
             catch (Exception ex)
             {
-                // Các lỗi sập server khác
                 return $"❌ **A system error has occurred.:** {ex.Message}";
             }
         }

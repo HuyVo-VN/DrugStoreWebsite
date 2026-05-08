@@ -7,6 +7,7 @@ using DrugStoreWebsiteAuthen.Infrastructure.Persistence;
 using DrugStoreWebSiteData.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Minio;
+using Microsoft.Extensions.Caching.Distributed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +36,7 @@ builder.Services.AddDbContext<DrugStoreDbContext>(options =>
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(authConn));
+
 
 // ====================
 // SIGN IN MINIO CLIENT
@@ -66,9 +68,10 @@ builder.Services.AddScoped(sp =>
     var authDb = sp.GetRequiredService<AppDbContext>();
     var env = sp.GetRequiredService<IWebHostEnvironment>();
     var minioClient = sp.GetRequiredService<IMinioClient>();
+    var cache = sp.GetRequiredService<IDistributedCache>();
 
     kernelBuilder.Plugins.AddFromObject(
-        new DatabaseInsightPlugin(drugStoreDb, authDb, env, minioClient),
+        new DatabaseInsightPlugin(drugStoreDb, authDb, env, minioClient, cache),
         "DatabaseInsightPlugin"
     );
 
@@ -79,6 +82,7 @@ builder.Services.AddScoped(sp =>
 builder.Services.AddScoped<DrugStoreWebsiteAI.Services.IAiAgentService, DrugStoreWebsiteAI.Services.AiAgentService>();
 builder.Services.AddScoped<DrugStoreWebsiteAI.Services.IExcelParserService, DrugStoreWebsiteAI.Services.ExcelParserService>();
 
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>

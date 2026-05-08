@@ -36,9 +36,12 @@ export class AiAgentService {
   }
 
   // --- 2. GỬI FILE EXCEL LÊN BACKEND ---
-  public processInventoryExcel(file: File): Observable<any> {
+  public processInventoryExcel(file: File, userMessage: string): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
+
+    // Đẩy lời dặn của Admin (userMessage) vào form
+    formData.append('userMessage', userMessage);
 
     // Lấy ID kết nối hiện tại để C# biết đường gửi tin nhắn tiến độ về đúng người
     const connectionId = this.hubConnection?.connectionId || '';

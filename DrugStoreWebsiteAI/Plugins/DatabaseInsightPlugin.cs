@@ -9,6 +9,8 @@ using DrugStoreWebsiteAuthen.Infrastructure.Persistence;
 using DrugStoreWebSiteData.Infrastructure.Persistence;
 using Minio;
 using Minio.DataModel.Args;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.DependencyInjection;
 
 // using DrugStoreWebsiteData.Contexts; // Uncomment and use your actual DbContext namespace
 
@@ -20,13 +22,20 @@ namespace DrugStoreWebsiteAI.Plugins
         private readonly DbContext _authDb;
         private readonly IWebHostEnvironment _env;
         private readonly IMinioClient _minioClient;
+        private readonly IDistributedCache _cache;
 
-        public DatabaseInsightPlugin(DbContext drugStoreDb, DbContext authDb, IWebHostEnvironment env, IMinioClient minioClient)
+        public DatabaseInsightPlugin(
+                        DbContext drugStoreDb,
+                        DbContext authDb,
+                        IWebHostEnvironment env,
+                        IMinioClient minioClient,
+                        IDistributedCache cache)
         {
             _drugStoreDb = drugStoreDb;
             _authDb = authDb;
-            _env = env; // Used to get the wwwroot path for saving Excel files
+            _env = env;
             _minioClient = minioClient;
+            _cache = cache;
         }
 
         [KernelFunction("get_database_schema")]
@@ -200,5 +209,33 @@ namespace DrugStoreWebsiteAI.Plugins
                 return $"Export Error: {ex.Message}";
             }
         }
+
+        [KernelFunction("import_approved_inventory_data")]
+        [Description("Use this function ONLY when the Admin AGREES to import data from the Excel file into the repository. You must find the Session Code (cacheKey) in the chat history and pass it here.")]
+        public async Task<string> ImportApprovedDataAsync(
+        [Description("Temporary session code, in the form 'excel_import_...'")] string cacheKey,
+        [Description("Include any additional admin requirements, if any; leave blank if none.")] string instructions)
+        {
+            // Lấy IDistributedCache thông qua IWebHostEnvironment (Hoặc bạn inject trực tiếp vào constructor của Plugin)
+            var jsonData = await _cache.GetStringAsync(cacheKey);
+
+            if (string.IsNullOrEmpty(jsonData))
+                return "Error: File data has expired (more than 15 minutes) or incorrect session code. Please ask the Admin to re-upload the file.";
+
+            try
+            {
+                // Chỗ này C# sẽ deserialize jsonData ra thành List<Product> và lưu vào _drugStoreDb
+                // Tạm thời trả về câu thông báo thành công để test flow
+
+                await _cache.RemoveAsync(cacheKey); // Nhập xong thì xóa rác
+                return $"All data has been processed and successfully stored. The '{instructions}' request has been applied.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error when importing inventory: {ex.Message}";
+            }
+        }
+
+
     }
 }

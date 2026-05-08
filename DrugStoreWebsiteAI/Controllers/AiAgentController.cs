@@ -1,6 +1,7 @@
 ﻿using DrugStoreWebsiteAI.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace DrugStoreWebsiteAI.Controllers
 {
@@ -10,27 +11,34 @@ namespace DrugStoreWebsiteAI.Controllers
     {
         private readonly IExcelParserService _excelParser;
         private readonly IAiAgentService _aiService;
+        private readonly IDistributedCache _cache;
 
-        public AiAgentController(IExcelParserService excelParser, IAiAgentService aiService)
+        public AiAgentController(IExcelParserService excelParser, IAiAgentService aiService, IDistributedCache cache)
         {
             _excelParser = excelParser;
             _aiService = aiService;
+            _cache = cache;
+        }
+        public class ChatMessageDto
+        {
+            public string Role { get; set; } = string.Empty;
+            public string Content { get; set; } = string.Empty;
         }
 
         public class ChatRequest
         {
-            public string message { get; set; } = string.Empty;
+            public List<ChatMessageDto> Messages { get; set; } = new();
         }
 
         [HttpPost("ask")]
         public async Task<IActionResult> Ask([FromBody] ChatRequest req)
         {
-            if (string.IsNullOrWhiteSpace(req.message))
+            if (req.Messages == null || !req.Messages.Any())
                 return BadRequest(new { status = "error", message = "Empty message!" });
 
             try
             {
-                var replyMessage = await _aiService.ChatAsync(req.message);
+                var replyMessage = await _aiService.ChatAsync(req.Messages);
 
                 return Ok(new
                 {
@@ -74,21 +82,37 @@ namespace DrugStoreWebsiteAI.Controllers
         }
 
         [HttpPost("process-inventory")]
-        public async Task<IActionResult> ProcessInventory(IFormFile file, [FromForm] string connectionId = "")
+        public async Task<IActionResult> ProcessInventory(IFormFile file, [FromForm] string connectionId = "", [FromForm] string userMessage = "")
         {
             if (file == null || file.Length == 0) return BadRequest("Invalid file.");
 
             try
             {
-                // excute Excel to RAW JSON
                 var rawData = await _excelParser.ParseExcelDynamicAsync(file);
-
                 var aiResultJson = await _aiService.ProcessRawDataWithAiAsync(rawData, connectionId);
+
+                // Save excuted Json to Redis
+                var cacheKey = $"excel_import_{Guid.NewGuid()}";
+                await _cache.SetStringAsync(cacheKey, aiResultJson, new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15)
+                });
+
+                // 2. Tạo câu trả lời định hướng cho AI
+                string aiReply;
+                if (string.IsNullOrWhiteSpace(userMessage))
+                {
+                    aiReply = $"\r\nI have finished extracting the Excel file (Session code: `{cacheKey}`). Boss, please take a look at the table below. What do you want to do next?";
+                }
+                else
+                {
+                    aiReply = $"\r\nI have read the file and noted the command: '{userMessage}' (Session code: `{cacheKey}`). Boss, please check the table below. If it's OK, type 'Agree' so I can process it.";
+                }
 
                 return Ok(new
                 {
                     status = 200,
-                    message = "The AI ​​processed the data successfully!",
+                    reply = aiReply,
                     data = JsonSerializer.Deserialize<object>(aiResultJson)
                 });
             }
