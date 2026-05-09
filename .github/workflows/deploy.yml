@@ -25,6 +25,8 @@ jobs:
           
           # 2. TIÊU DIỆT TÀN DƯ CỦA CACHE ANGULAR TRƯỚC KHI BUILD
           sudo rm -rf ./DrugStoreWebsiteFE/.angular/cache
+
+          sudo docker-compose down
           
           # 3. BUILD MỚI 100% KHÔNG XÀI CACHE CHO TẤT CẢ SERVICES
           sudo docker-compose build --no-cache
