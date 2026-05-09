@@ -11,6 +11,7 @@ using Minio;
 using Minio.DataModel.Args;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
+using DrugStoreWebSiteData.Domain.Entities;
 
 // using DrugStoreWebsiteData.Contexts; // Uncomment and use your actual DbContext namespace
 
@@ -18,15 +19,15 @@ namespace DrugStoreWebsiteAI.Plugins
 {
     public class DatabaseInsightPlugin
     {
-        private readonly DbContext _drugStoreDb;
-        private readonly DbContext _authDb;
+        private readonly DrugStoreDbContext _drugStoreDb;
+        private readonly AppDbContext _authDb;
         private readonly IWebHostEnvironment _env;
         private readonly IMinioClient _minioClient;
         private readonly IDistributedCache _cache;
 
         public DatabaseInsightPlugin(
-                        DbContext drugStoreDb,
-                        DbContext authDb,
+                        DrugStoreDbContext drugStoreDb,
+                        AppDbContext authDb,
                         IWebHostEnvironment env,
                         IMinioClient minioClient,
                         IDistributedCache cache)
@@ -83,7 +84,9 @@ namespace DrugStoreWebsiteAI.Plugins
             if (!sqlQuery.TrimStart().StartsWith("SELECT", StringComparison.OrdinalIgnoreCase))
                 return "Error: Only SELECT queries are allowed.";
 
-            var dbContext = targetDatabase.Equals("Auth", StringComparison.OrdinalIgnoreCase) ? _authDb : _drugStoreDb;
+            DbContext dbContext = targetDatabase.Equals("Auth", StringComparison.OrdinalIgnoreCase)
+            ? _authDb
+            : _drugStoreDb;
 
             try
             {
@@ -140,7 +143,9 @@ namespace DrugStoreWebsiteAI.Plugins
             if (!sqlQuery.TrimStart().StartsWith("SELECT", StringComparison.OrdinalIgnoreCase))
                 return "Error: Only SELECT queries are allowed.";
 
-            var dbContext = targetDatabase.Equals("Auth", StringComparison.OrdinalIgnoreCase) ? _authDb : _drugStoreDb;
+            DbContext dbContext = targetDatabase.Equals("Auth", StringComparison.OrdinalIgnoreCase)
+            ? _authDb
+            : _drugStoreDb;
 
             try
             {
@@ -211,28 +216,169 @@ namespace DrugStoreWebsiteAI.Plugins
         }
 
         [KernelFunction("import_approved_inventory_data")]
-        [Description("Use this function ONLY when the Admin AGREES to import data from the Excel file into the repository. You must find the Session Code (cacheKey) in the chat history and pass it here.")]
+        [Description("Use this function ONLY when the Admin AGREES to import data from the Excel file into the warehouse. You must find the Session Code (cacheKey) in the chat history and pass it here.")]
         public async Task<string> ImportApprovedDataAsync(
-        [Description("Temporary session code, in the form 'excel_import_...'")] string cacheKey,
-        [Description("Include any additional admin requirements, if any; leave blank if none.")] string instructions)
+            [Description("Temporary session code in the format 'excel_import_...'")]
+            string cacheKey,
+            [Description("GUID of the category selected by the Admin for imported products. Retrieve it using the get_all_categories function.")]
+            string categoryId,
+            [Description("Additional instructions from the Admin for handling missing data. Example: 'If price is missing set it to 100000, if stock is missing set it to 50'.")]
+            string instructions)
         {
-            // Lấy IDistributedCache thông qua IWebHostEnvironment (Hoặc bạn inject trực tiếp vào constructor của Plugin)
+            // Lấy Cache từ Environment
             var jsonData = await _cache.GetStringAsync(cacheKey);
 
-            if (string.IsNullOrEmpty(jsonData))
-                return "Error: File data has expired (more than 15 minutes) or incorrect session code. Please ask the Admin to re-upload the file.";
+            if (string.IsNullOrEmpty(jsonData)) return "Error: File expired or incorrect session code.";
+            if (!Guid.TryParse(categoryId, out Guid catId)) return "Error: Invalid CategoryId. Please ask the Admin.";
 
             try
             {
-                // Chỗ này C# sẽ deserialize jsonData ra thành List<Product> và lưu vào _drugStoreDb
-                // Tạm thời trả về câu thông báo thành công để test flow
+                // Chuyển đổi JSON thành danh sách các phần tử động
+                using var jsonDoc = JsonDocument.Parse(jsonData);
+                var records = jsonDoc.RootElement.EnumerateArray();
+                var productsToAdd = new List<Product>();
 
-                await _cache.RemoveAsync(cacheKey); // Nhập xong thì xóa rác
-                return $"All data has been processed and successfully stored. The '{instructions}' request has been applied.";
+                string lowerInstructions = instructions.ToLower();
+
+                // Quét từng dòng dữ liệu Excel đã được AI chuẩn hóa
+                foreach (var record in records)
+                {
+                    // --- XỬ LÝ BASE INFO ---
+                    string productName = "The product is unnamed.";
+                    decimal price = 0;
+                    int stock = 0;
+
+                    if (record.TryGetProperty("BaseInfo", out var baseInfo))
+                    {
+                        // Quét các key do AI giữ nguyên từ file Excel
+                        foreach (var prop in baseInfo.EnumerateObject())
+                        {
+                            var key = prop.Name.ToLower();
+                            var val = prop.Value.GetString() ?? "";
+
+                            if (key.Contains("tên") || key.Contains("name")) productName = val;
+                            else if (key.Contains("giá") || key.Contains("price")) decimal.TryParse(val, out price);
+                            else if (key.Contains("tồn") || key.Contains("số lượng") || key.Contains("stock") || key.Contains("quantity") || key.Contains("quantities")) int.TryParse(val, out stock);
+                        }
+                    }
+                    // --- BÙ DỮ LIỆU THIẾU TỪ LỜI DẶN CỦA ADMIN ---
+                    // Nếu không tìm thấy giá trong Excel, quét xem Admin có dặn giá mặc định không
+                    if (price == 0 && (lowerInstructions.Contains("giá") || lowerInstructions.Contains("price")))
+                    {
+                        var words = lowerInstructions.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var word in words)
+                        {
+                            if (decimal.TryParse(word, out decimal parsedPrice))
+                            {
+                                price = parsedPrice;
+                                break;
+                            }
+                        }
+                    }
+                    // Nếu không có tồn kho trong Excel, quét xem Admin có dặn mặc định không
+                    if (stock == 0 &&
+                    (
+                        lowerInstructions.Contains("tồn") ||
+                        lowerInstructions.Contains("số lượng") ||
+                        lowerInstructions.Contains("stock") ||
+                        lowerInstructions.Contains("quantity")
+                    ))
+                    {
+                        var words = lowerInstructions.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var word in words)
+                        {
+                            if (int.TryParse(word, out int parsedStock))
+                            {
+                                stock = parsedStock;
+                                break;
+                            }
+                        }
+                    }
+
+                    // --- XỬ LÝ SALE INFO ---
+                    int discountPercent = 0;
+                    if (record.TryGetProperty("SaleInfo", out var saleInfo))
+                    {
+                        foreach (var prop in saleInfo.EnumerateObject())
+                        {
+                            var key = prop.Name.ToLower();
+                            var val = prop.Value.GetString() ?? "";
+
+                            if (key.Contains("giảm") || key.Contains("khuyến mãi") || key.Contains("sale") || key.Contains("promo"))
+                            {
+                                // Xóa dấu % nếu có rồi ép kiểu
+                                int.TryParse(val.Replace("%", "").Trim(), out discountPercent);
+                            }
+                        }
+                    }
+
+                    // --- XỬ LÝ SPECIFICATIONS (Gom toàn bộ thành chuỗi JSON) ---
+                    string specsJson = "[]";
+                    if (record.TryGetProperty("Specifications", out var specs))
+                    {
+                        // Gom tất cả thành phần, HDSD, NSX... vào đúng 1 cột theo thiết kế Database
+                        specsJson = specs.GetRawText();
+                    }
+
+                    // --- XỬ LÝ ẢNH ---
+                    string imageUrl = string.Empty;
+                    if (record.TryGetProperty("Images", out var images) && images.GetArrayLength() > 0)
+                    {
+                        imageUrl = images[0].GetString() ?? string.Empty;
+                    }
+
+                    // 5. Khởi tạo Entity Product (Dùng đúng Constructor của bạn)
+                    var newProduct = new Product(
+                        name: productName,
+                        description: "Data is automatically imported from AI.",
+                        price: price,
+                        stock: stock,
+                        categoryId: catId,
+                        discountPercent: discountPercent,
+                        discountEndDate: discountPercent > 0 ? DateTime.UtcNow.AddDays(7) : null,
+                        saleStock: discountPercent > 0 ? stock : 0, // Mặc định cho bán hết stock hiện tại
+                        specifications: specsJson
+                    );
+
+                    // Cập nhật thêm ảnh vì Constructor không có trường ImageUrl
+                    newProduct.ImageUrl = imageUrl;
+
+                    productsToAdd.Add(newProduct);
+                }
+
+                // 6. Lưu xuống Database Data
+                _drugStoreDb.Products.AddRange(productsToAdd);
+                await _drugStoreDb.SaveChangesAsync();
+
+                // 7. Dọn dẹp RAM
+                await _cache.RemoveAsync(cacheKey);
+
+                return $"Confirmation successful! The {productsToAdd.Count} product has been processed and saved to the database. The instruction '{instructions}' has been recorded.";
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"\n\n[Error when IMPORT to DB]: {ex.ToString()}\n\n");
                 return $"Error when importing inventory: {ex.Message}";
+            }
+        }
+
+        [KernelFunction("get_all_categories")]
+        [Description("Get a list of existing Categories in the system along with their IDs. Use this function to advise the Admin on which category to put a product into.")]
+        public async Task<string> GetAllCategoriesAsync()
+        {
+            try
+            {
+                // Trả về tên và ID để AI biết đường gọi hàm Import
+                var categories = await _drugStoreDb.Categories
+                    .Select(c => new { c.Id, c.Name })
+                    .ToListAsync();
+
+                if (!categories.Any()) return "No categories have been created in the current system.";
+                return JsonSerializer.Serialize(categories);
+            }
+            catch (Exception ex)
+            {
+                return $"Error when querying Categories: {ex.Message}";
             }
         }
 

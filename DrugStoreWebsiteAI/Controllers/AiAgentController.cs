@@ -89,25 +89,25 @@ namespace DrugStoreWebsiteAI.Controllers
             try
             {
                 var rawData = await _excelParser.ParseExcelDynamicAsync(file);
+
+                // Kiểm tra an toàn nếu file Excel rỗng
+                if (rawData == null || !rawData.Any())
+                    return BadRequest(new { status = "error", reply = "The Excel file contains no data or is incorrectly formatted." });
+
                 var aiResultJson = await _aiService.ProcessRawDataWithAiAsync(rawData, connectionId);
 
-                // Save excuted Json to Redis
+                // Lưu JSON vào Redis
                 var cacheKey = $"excel_import_{Guid.NewGuid()}";
                 await _cache.SetStringAsync(cacheKey, aiResultJson, new DistributedCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15)
                 });
 
-                // 2. Tạo câu trả lời định hướng cho AI
-                string aiReply;
-                if (string.IsNullOrWhiteSpace(userMessage))
-                {
-                    aiReply = $"\r\nI have finished extracting the Excel file (Session code: `{cacheKey}`). Boss, please take a look at the table below. What do you want to do next?";
-                }
-                else
-                {
-                    aiReply = $"\r\nI have read the file and noted the command: '{userMessage}' (Session code: `{cacheKey}`). Boss, please check the table below. If it's OK, type 'Agree' so I can process it.";
-                }
+                // Lấy danh sách tên cột từ dòng đầu tiên của Excel
+                var headersList = rawData.First().Keys.ToList();
+
+                // Nhờ AI phân tích xem thiếu đủ cột gì, kết hợp với lời dặn để tự tạo câu trả lời
+                string aiReply = await _aiService.AnalyzeHeadersAsync(headersList, cacheKey, userMessage);
 
                 return Ok(new
                 {
@@ -118,6 +118,7 @@ namespace DrugStoreWebsiteAI.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"\n\n[ERROR 500 PROCESS INVENTORY]: {ex.ToString()}\n\n");
                 return StatusCode(500, $"System error: {ex.Message}");
             }
         }

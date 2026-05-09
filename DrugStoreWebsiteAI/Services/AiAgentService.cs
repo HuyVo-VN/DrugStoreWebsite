@@ -13,6 +13,7 @@ namespace DrugStoreWebsiteAI.Services
         Task<string> ProcessRawDataWithAiAsync(List<Dictionary<string, string>> rawData);
         Task<string> ProcessRawDataWithAiAsync(List<Dictionary<string, string>> rawData, string connectionId);
         Task<string> ChatAsync(List<AiAgentController.ChatMessageDto> messages);
+        Task<string> AnalyzeHeadersAsync(List<string> headers, string cacheKey, string userMessage);
     }
 
     public class AiAgentService : IAiAgentService
@@ -167,7 +168,11 @@ namespace DrugStoreWebsiteAI.Services
                 1. GREETINGS: Answer briefly in English.
                 2. QUERIES: Call 'get_database_schema' -> 'execute_readonly_sql_query'.
                 3. EXPORT FILE: Call 'export_data_to_excel'.
-                4. IMPORT EXCEL: If Admin says 'Yes', 'Ok', 'Enter warehouse', 'Save' Or words or phrases that are something like ""I agree"". After uploading the file, find the session key (cacheKey) in the previous conversation and call the function. 'import_approved_inventory_data'.
+                4. INVENTORY MANAGEMENT (MOST IMPORTANT):
+                    - When the Admin is reviewing the Excel file, if the Admin asks which categories are available, CALL the 'get_all_categories' function to list them for the Admin to choose from.
+                    - If the Admin issues the command 'Agree', 'Import into inventory', YOU MUST CHECK IF YOU KNOW THE CATEGORY (CategoryId).
+                    - If you don't know: Firmly ask the Admin, 'Which category do you want this batch of goods to go to?'.
+                    - If you already know: Call the 'import_approved_inventory_data' function with the corresponding cacheKey, CategoryId, and any missing data requests from the Admin.
                 ");
 
                 foreach (var msg in messages)
@@ -185,6 +190,26 @@ namespace DrugStoreWebsiteAI.Services
             {
                 return $"❌ **A system error has occurred.:** {ex.Message}";
             }
+        }
+
+        public async Task<string> AnalyzeHeadersAsync(List<string> headers, string cacheKey, string userMessage)
+        {
+            var prompt = $@"
+            You are an AI assistant analyzing warehouse data.
+            The admin has just uploaded an Excel file with the following columns: {string.Join(", ", headers)}.
+    
+            For successful inventory entry, the system MUST have 4 data fields: Drug Name, Price, Quantity (In Stock), and Category.
+    
+            Task: Write ONE reply message to the Admin:
+            1. Acknowledge that the file has been read (Session code is required: `{cacheKey}`).
+            2. Analyze whether the existing Excel columns contain ALL 4 required fields (Semantic mapping, e.g., 'Unit Price' = Amount, 'Type' = Category).
+            3. IF MISSING: Clearly list the missing fields. Specifically, ask your boss for guidance on how to fill in the missing data (e.g., 'What default price would you like to set?', 'Which category would you like this shipment to be placed in? Do you need me to list the existing categories for you to choose from?').
+            4. IF SUFFICIENT: Inform your boss to check the data sheet and type 'Approve' to enter it into inventory.
+    
+            Return only the message content; absolutely no JSON formatting.";
+
+            var result = await _kernel.InvokePromptAsync(prompt);
+            return result.ToString() ?? $"Read the Excel file (Sesion Code: `{cacheKey}`). Please check the data.";
         }
     }
 }

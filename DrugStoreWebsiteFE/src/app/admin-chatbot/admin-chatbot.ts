@@ -15,6 +15,7 @@ interface ChatMessage {
   text: string;
   sender: 'user' | 'ai';
   time: string;
+  tableData?: any[];
 }
 
 @Component({
@@ -103,13 +104,17 @@ export class AdminChatbot implements OnInit {
           this.isLoading = false;
           this.selectedFile = null; // Gửi xong thì xóa file tạm đi
 
-          // Format câu trả lời của AI và chèn Data JSON vào Markdown
-          let mdResult = res.reply + `\n\n`;
-          if (res.data) {
-            mdResult += "```json\n" + JSON.stringify(res.data, null, 2) + "\n```";
-          }
+          let mdResult = res.reply;
 
-          this.messages.push({ text: mdResult, sender: 'ai', time: this.getCurrentTime() });
+          // Kiểm tra xem có dữ liệu trả về và có phải là mảng không
+          let excelData = (res.data && Array.isArray(res.data)) ? res.data : null;
+
+          this.messages.push({
+            text: mdResult,
+            sender: 'ai',
+            time: this.getCurrentTime(),
+            tableData: excelData
+          });
           this.scrollToBottom();
         },
         error: (err) => {
