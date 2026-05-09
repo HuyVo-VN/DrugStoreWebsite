@@ -33,7 +33,7 @@ export class AdminChatbot implements OnInit {
 
   // 1. MẢNG LƯU LỊCH SỬ CHAT (Khởi tạo sẵn 1 câu chào của AI)
   messages: ChatMessage[] = [
-    { text: 'Chào sếp! Em là trợ lý AI. Sếp cần em giúp gì hôm nay?', sender: 'ai', time: this.getCurrentTime() }
+    { text: 'Hi boss! I am the AI ​​assistant.How can I help you today?', sender: 'ai', time: this.getCurrentTime() }
   ];
   isLoading: boolean = false; // Biến hiển thị trạng thái "AI đang gõ..."
   progressText: string = 'Thinking...';
