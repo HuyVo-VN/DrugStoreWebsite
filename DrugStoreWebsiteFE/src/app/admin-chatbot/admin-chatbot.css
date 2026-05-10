@@ -180,6 +180,10 @@
   max-width: 85%;
   position: relative;
   margin-bottom: 25px;
+  min-width: 0;
+}
+.chat-panel.maximized .message-wrapper {
+  max-width: 95%;
 }
 
 .chat-footer {
@@ -201,6 +205,10 @@
   font-size: 14px;
   line-height: 1.4;
   position: relative;
+  min-width: 0;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .message-time {
@@ -369,6 +377,8 @@
 /* --- FORMAT RIÊNG CHO ĐOẠN TEXT ĐÃ RENDER MARKDOWN --- */
 .markdown-body {
   line-height: 1.6;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
   .markdown-body p {
@@ -424,13 +434,13 @@
 
 /* Preview file */
 .selected-file-preview {
-  width: 100%;
+  width: auto;
+  margin: 10px 15px 10px 15px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  margin: 10px 15px 0 15px;
-  margin-bottom: 4px;
   background: #f8fafc;
   border: 1px solid #dbeafe;
   border-radius: 12px;
