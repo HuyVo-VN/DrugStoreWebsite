@@ -52,8 +52,32 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: slideInUp 0.3s ease-out; /* Hiệu ứng hiện ra mượt mà */
+  transition: width 0.3s ease, height 0.3s ease;
 }
+
+  /* Kích thước khi bấm phóng to */
+.chat-panel.maximized {
+    width: 800px;
+    height: 85vh;
+}
+
+.header-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.action-btn {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+  .action-btn:hover {
+    color: #0b25b6;
+  }
 
 @keyframes slideInUp {
   from {
@@ -155,6 +179,14 @@
   gap: 8px;
   max-width: 85%;
   position: relative;
+  margin-bottom: 25px;
+}
+
+.chat-footer {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
 }
 
 .message-avatar {
@@ -214,13 +246,13 @@
 .chat-input-area {
   background-color: white;
   padding: 10px 15px;
-  border-top: 1px solid #e5e7eb;
   display: flex;
   gap: 10px;
   align-items: flex-end;
   padding: 12px;
   background: #ffffff;
   position: relative;
+  border-top: none;
 }
 
   .chat-input-area textarea {
@@ -397,6 +429,7 @@
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
+  margin: 10px 15px 0 15px;
   margin-bottom: 4px;
   background: #f8fafc;
   border: 1px solid #dbeafe;

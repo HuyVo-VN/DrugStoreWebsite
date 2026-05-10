@@ -29,6 +29,7 @@ export class AdminChatbot implements OnInit {
   isChatFormOpen: boolean = false;
   currentMessage: string = '';
   selectedFile: File | null = null;
+  isMaximized: boolean = false;
 
   @ViewChild('chatBody') private chatBodyContent!: ElementRef;
 
@@ -204,6 +205,14 @@ export class AdminChatbot implements OnInit {
         this.chatBodyContent.nativeElement.scrollTop = this.chatBodyContent.nativeElement.scrollHeight;
       }, 50);
     } catch (err) { }
+  }
+
+  toggleMaximize(event: Event) {
+    event.stopPropagation();
+    this.isMaximized = !this.isMaximized;
+
+    // Khi phóng to/thu nhỏ, scroll xuống cuối để không bị mất dấu tin nhắn
+    setTimeout(() => this.scrollToBottom(), 100);
   }
 
 }

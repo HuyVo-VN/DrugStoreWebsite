@@ -5,7 +5,7 @@
     <span class="chat-fab-status"></span>
   </button>
 
-  <div class="chat-panel" *ngIf="isChatFormOpen">
+  <div class="chat-panel" *ngIf="isChatFormOpen" [class.maximized]="isMaximized">
 
     <div class="chat-header">
       <div class="chat-header-info">
@@ -15,16 +15,18 @@
           <p class="ai-status"><span class="status-dot"></span> Ready to help</p>
         </div>
       </div>
-      <button type="button" class="chat-close-btn" (click)="toggleChatForm(false)">✖</button>
+      <div class="header-actions">
+        <button type="button" class="action-btn" (click)="toggleMaximize($event)">
+          <i class="fa-solid" [ngClass]="isMaximized ? 'fa-compress' : 'fa-expand'"></i>
+        </button>
+        <button type="button" class="chat-close-btn" (click)="toggleChatForm(false)">✖</button>
+      </div>
     </div>
 
     <div class="chat-body" #chatBody>
-
       <div *ngFor="let msg of messages" class="message-wrapper" [ngClass]="msg.sender === 'ai' ? 'ai-message' : 'user-message'">
         <i *ngIf="msg.sender === 'ai'" class="fa-solid fa-robot message-avatar"></i>
-
         <div class="message-bubble markdown-body" [innerHTML]="msg.text | markdown"></div>
-
         <span class="message-time">{{ msg.time }}</span>
       </div>
 
@@ -34,37 +36,38 @@
           {{ progressText }}
         </div>
       </div>
-
     </div>
 
-    <div class="chat-input-area">
-
+    <div class="chat-footer">
       <div class="selected-file-preview" *ngIf="selectedFile">
         <i class="fa-solid fa-file-excel"></i>
         <span>{{ selectedFile.name }}</span>
         <button (click)="removeSelectedFile()"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <button type="button" class="chat-attach-btn" (click)="fileInput.click()" [disabled]="isLoading">
-        <i class="fa-solid fa-paperclip"></i>
-      </button>
-      <input type="file" #fileInput hidden accept=".xlsx, .xls" (change)="onFileSelected($event, fileInput)">
+      <div class="chat-input-area">
+        <button type="button" class="chat-attach-btn" (click)="fileInput.click()" [disabled]="isLoading">
+          <i class="fa-solid fa-paperclip"></i>
+        </button>
+        <input type="file" #fileInput hidden accept=".xlsx, .xls" (change)="onFileSelected($event, fileInput)">
 
-      <div class="textarea-wrapper">
-        <textarea #chatInput
-                  [(ngModel)]="currentMessage"
-                  placeholder="Hỏi tôi hoặc tải file Excel lên..."
-                  rows="1"
-                  (input)="autoResize(chatInput)"
-                  (keydown.enter)="sendMessage($event, chatInput)">
-        </textarea>
+        <div class="textarea-wrapper">
+          <textarea #chatInput
+                    [(ngModel)]="currentMessage"
+                    placeholder="Hỏi tôi hoặc tải file Excel lên..."
+                    rows="1"
+                    (input)="autoResize(chatInput)"
+                    (keydown.enter)="sendMessage($event, chatInput)">
+          </textarea>
+        </div>
+
+        <button type="button" class="chat-send-btn"
+                (click)="sendMessage($event, chatInput)"
+                [disabled]="isLoading || (!currentMessage.trim() && !selectedFile)">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
       </div>
 
-      <button type="button" class="chat-send-btn" (click)="sendMessage($event, chatInput)" [disabled]="!currentMessage.trim()">
-        <i class="fa-solid fa-paper-plane"></i>
-      </button>
     </div>
 
   </div>
-
-</div>
