@@ -48,7 +48,16 @@ namespace DrugStoreWebsiteAI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { status = "error", reply = "The AI ​​system is undergoing maintenance:" + ex.Message });
+                //return StatusCode(500, new { status = "error", reply = "The AI ​​system is undergoing maintenance:" + ex.Message });
+                // Semantic Kernel thường giấu thông báo chi tiết trong InnerException hoặc HTTP response
+                string detail = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+
+                // In ra log console toàn bộ cây lỗi để sếp đọc trên VPS
+                Console.WriteLine("\n\n=== LỖI GOOGLE 500 ===");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("======================\n\n");
+
+                return StatusCode(500, $"Lỗi chi tiết: {detail}");
             }
         }
 
@@ -118,9 +127,19 @@ namespace DrugStoreWebsiteAI.Controllers
             }
             catch (Exception ex)
             {
-                var realError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                Console.WriteLine($"\n\n[ERROR 500 PROCESS INVENTORY]: {ex.ToString()}\n\n");
-                return StatusCode(500, $"System error: {realError}");
+                //var realError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                //Console.WriteLine($"\n\n[ERROR 500 PROCESS INVENTORY]: {ex.ToString()}\n\n");
+                //return StatusCode(500, $"System error: {realError}");
+
+                // Semantic Kernel thường giấu thông báo chi tiết trong InnerException hoặc HTTP response
+                string detail = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+
+                // In ra log console toàn bộ cây lỗi để sếp đọc trên VPS
+                Console.WriteLine("\n\n=== LỖI GOOGLE 500 ===");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("======================\n\n");
+
+                return StatusCode(500, $"Lỗi chi tiết: {detail}");
             }
         }
     }
