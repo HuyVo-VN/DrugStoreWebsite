@@ -118,8 +118,9 @@ namespace DrugStoreWebsiteAI.Controllers
             }
             catch (Exception ex)
             {
+                var realError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
                 Console.WriteLine($"\n\n[ERROR 500 PROCESS INVENTORY]: {ex.ToString()}\n\n");
-                return StatusCode(500, $"System error: {ex.Message}");
+                return StatusCode(500, $"System error: {realError}");
             }
         }
     }
