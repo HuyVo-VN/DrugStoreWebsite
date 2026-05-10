@@ -316,8 +316,52 @@ namespace DrugStoreWebsiteAI.Plugins
                     string specsJson = "[]";
                     if (record.TryGetProperty("Specifications", out var specs))
                     {
-                        // Gom tất cả thành phần, HDSD, NSX... vào đúng 1 cột theo thiết kế Database
-                        specsJson = specs.GetRawText();
+                        try
+                        {
+                            var specList = new List<object>();
+
+                            // Case 1: AI returns an Object of type {"Component": "...", "Usage": "..."}
+                            if (specs.ValueKind == JsonValueKind.Object)
+                            {
+                                foreach (var prop in specs.EnumerateObject())
+                                {
+                                    specList.Add(new { key = prop.Name, value = prop.Value.GetString() ?? "" });
+                                }
+                            }
+                            // Case 2: AI returns a pre-made array.
+                            else if (specs.ValueKind == JsonValueKind.Array)
+                            {
+                                foreach (var item in specs.EnumerateArray())
+                                {
+                                    if (item.ValueKind == JsonValueKind.Object)
+                                    {
+                                        // Linh hoạt bắt key-value
+                                        string k = item.TryGetProperty("key", out var kProp) ? kProp.GetString() :
+                                                   item.TryGetProperty("Key", out var kProp2) ? kProp2.GetString() : "";
+                                        string v = item.TryGetProperty("value", out var vProp) ? vProp.GetString() :
+                                                   item.TryGetProperty("Value", out var vProp2) ? vProp2.GetString() : "";
+
+                                        if (!string.IsNullOrEmpty(k))
+                                        {
+                                            specList.Add(new { key = k, value = v });
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Use UnsafeRelaxedJsonEscaping to force C# to retain Vietnamese characters with diacritics.
+                            var options = new JsonSerializerOptions
+                            {
+                                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                            };
+
+                            specsJson = JsonSerializer.Serialize(specList, options);
+                        }
+                        catch (Exception)
+                        {
+                            // Fallback an toàn nếu có lỗi parse
+                            specsJson = "[]";
+                        }
                     }
 
                     // --- XỬ LÝ ẢNH ---
