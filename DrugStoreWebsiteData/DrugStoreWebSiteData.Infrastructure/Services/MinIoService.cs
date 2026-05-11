@@ -1,4 +1,5 @@
 ﻿using DrugStoreWebSiteData.Application.Interfaces;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Minio;
@@ -7,6 +8,7 @@ using Minio.Exceptions;
 using System.IO;
 using System.Threading.Tasks;
 using System;
+using Microsoft.AspNetCore.Hosting;
 
 namespace DrugStoreWebSiteData.Infrastructure.Services
 {
@@ -15,14 +17,16 @@ namespace DrugStoreWebSiteData.Infrastructure.Services
         private readonly IMinioClient _minioClient;
         private readonly IConfiguration _configuration;
         private readonly ILogger<MinIoService> _logger;
+        private readonly IWebHostEnvironment _env;
 
         // Tạo sẵn một cái rổ (bucket) tên là 'reports' để chuyên chứa báo cáo
         private readonly string _bucketName = "reports";
 
-        public MinIoService(IConfiguration configuration, ILogger<MinIoService> logger)
+        public MinIoService(IConfiguration configuration, ILogger<MinIoService> logger, IWebHostEnvironment env)
         {
             _configuration = configuration;
             _logger = logger;
+            _env = env;
 
             var endpoint = _configuration["MINIO_ENDPOINT"];
             var accessKey = _configuration["MINIO_ACCESS_KEY"];
@@ -44,10 +48,6 @@ namespace DrugStoreWebSiteData.Infrastructure.Services
                 {
                     await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(_bucketName));
 
-                    // Cấp quyền Public Read cho cái rổ này
-                    var policy = $@"{{""Version"":""2012-10-17"",""Statement"":[{{""Action"":[""s3:GetObject""],""Effect"":""Allow"",""Principal"":{{""AWS"":[""*""]}},""Resource"":[""arn:aws:s3:::{_bucketName}/*""]}}]}}";
-                    await _minioClient.SetPolicyAsync(new SetPolicyArgs().WithBucket(_bucketName).WithPolicy(policy));
-
                     _logger.LogInformation($"A new Bucket has been created.: {_bucketName}");
                 }
 
@@ -62,9 +62,30 @@ namespace DrugStoreWebSiteData.Infrastructure.Services
                 await _minioClient.PutObjectAsync(putObjectArgs);
                 _logger.LogInformation($"File uploaded successfully: {fileName}");
 
-                // 3. Trả về đường link để tải file 
-                // Lưu ý: Cổng API là 9000, cổng giao diện MinIO là 9001
-                return $"http://localhost:9000/{_bucketName}/{fileName}";
+                // TẠO PRE-SIGNED URL (LINK CÓ CHỮ KÝ BẢO MẬT, TỰ HỦY SAU 24 GIỜ)
+                var presignedArgs = new PresignedGetObjectArgs()
+                    .WithBucket(_bucketName)
+                    .WithObject(fileName)
+                    .WithExpiry(900); // 900 giây = 15 p
+
+                string rawPresignedUrl = await _minioClient.PresignedGetObjectAsync(presignedArgs);
+
+                // ĐỔI TÊN MIỀN ẢO TRONG DOCKER THÀNH TÊN MIỀN THẬT QUA NGINX
+                string finalUrl = rawPresignedUrl;
+                var internalEndpoint = _configuration["MINIO_ENDPOINT"];
+
+                if (!_env.IsDevelopment())
+                {
+                    string publicHost = "https://drugstore-huyvo.duckdns.org/minio-files";
+                    finalUrl = rawPresignedUrl.Replace($"http://{internalEndpoint}", publicHost);
+                }
+                else
+                {
+                    // Chạy ở localhost
+                    finalUrl = rawPresignedUrl.Replace($"http://{internalEndpoint}", "http://localhost:9000");
+                }
+
+                return finalUrl;
             }
             catch (MinioException e)
             {

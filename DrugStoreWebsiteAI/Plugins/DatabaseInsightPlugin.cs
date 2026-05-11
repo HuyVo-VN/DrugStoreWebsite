@@ -201,11 +201,25 @@ namespace DrugStoreWebsiteAI.Plugins
                     .WithContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                 await _minioClient.PutObjectAsync(putObjectArgs);
 
-                // 4. Return link
-                var minioEndpoint = _env.IsDevelopment() ? "http://localhost:9000" : "http://drugstore-minio:9000";
-                var fileUrl = $"{minioEndpoint}/{bucketName}/{fileName}";
+                var presignedArgs = new PresignedGetObjectArgs()
+                    .WithBucket(bucketName)
+                    .WithObject(fileName)
+                    .WithExpiry(86400);
 
-                return $"Export successful. [Click here to download the Excel report.]({fileUrl})";
+                string rawPresignedUrl = await _minioClient.PresignedGetObjectAsync(presignedArgs);
+
+                // 4. Return link
+                string finalUrl = rawPresignedUrl;
+
+                if (!_env.IsDevelopment())
+                {
+                    string internalHost = "http://drugstore-minio:9000";
+                    string publicHost = "https://drugstore-huyvo.duckdns.org/minio-files";
+
+                    finalUrl = rawPresignedUrl.Replace(internalHost, publicHost);
+                }
+
+                return $"Export successful. [Click here to download the Excel report.]({finalUrl})";
 
             }
             catch (Exception ex)
