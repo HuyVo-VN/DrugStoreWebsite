@@ -249,6 +249,7 @@ namespace DrugStoreWebsiteAI.Plugins
                 {
                     // --- XỬ LÝ BASE INFO ---
                     string productName = "The product is unnamed.";
+                    string description = string.Empty;
                     decimal price = 0;
                     int stock = 0;
 
@@ -263,6 +264,10 @@ namespace DrugStoreWebsiteAI.Plugins
                             if (key.Contains("tên") || key.Contains("name")) productName = val;
                             else if (key.Contains("giá") || key.Contains("price")) decimal.TryParse(val, out price);
                             else if (key.Contains("tồn") || key.Contains("số lượng") || key.Contains("stock") || key.Contains("quantity") || key.Contains("quantities")) int.TryParse(val, out stock);
+                            else if (key.Contains("mô tả") || key.Contains("description") || key.Contains("chi tiết") || key.Contains("detail"))
+                            {
+                                description = val;
+                            }
                         }
                     }
                     // --- BÙ DỮ LIỆU THIẾU TỪ LỜI DẶN CỦA ADMIN ---
@@ -297,6 +302,11 @@ namespace DrugStoreWebsiteAI.Plugins
                                 break;
                             }
                         }
+                    }
+                    // Nếu không có mô tả, dừng toàn bộ tiến trình và báo lỗi cho Admin
+                    if (string.IsNullOrEmpty(description) || description.Length < 5)
+                    {
+                        return $"❌ Inventory error: Product '{productName}' detailed descriptive information is missing. Please check the Excel file again.";
                     }
 
                     // --- XỬ LÝ SALE INFO ---
@@ -378,7 +388,7 @@ namespace DrugStoreWebsiteAI.Plugins
                     // 5. Khởi tạo Entity Product (Dùng đúng Constructor của bạn)
                     var newProduct = new Product(
                         name: productName,
-                        description: "Data is automatically imported from AI.",
+                        description: description,
                         price: price,
                         stock: stock,
                         categoryId: catId,
