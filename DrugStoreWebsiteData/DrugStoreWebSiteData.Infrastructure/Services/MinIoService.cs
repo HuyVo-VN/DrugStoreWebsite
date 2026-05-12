@@ -70,20 +70,12 @@ namespace DrugStoreWebSiteData.Infrastructure.Services
 
                 string rawPresignedUrl = await _minioClient.PresignedGetObjectAsync(presignedArgs);
 
-                // ĐỔI TÊN MIỀN ẢO TRONG DOCKER THÀNH TÊN MIỀN THẬT QUA NGINX
-                string finalUrl = rawPresignedUrl;
-                var internalEndpoint = _configuration["MINIO_ENDPOINT"];
+                string publicHost = "https://drugstore-huyvo.duckdns.org/minio-files";
 
-                if (!_env.IsDevelopment())
-                {
-                    string publicHost = "https://drugstore-huyvo.duckdns.org/minio-files";
-                    finalUrl = rawPresignedUrl.Replace($"http://{internalEndpoint}", publicHost);
-                }
-                else
-                {
-                    // Chạy ở localhost
-                    finalUrl = rawPresignedUrl.Replace($"http://{internalEndpoint}", "http://localhost:9000");
-                }
+                string finalUrl = rawPresignedUrl
+                    .Replace("http://localhost:9000", publicHost)
+                    .Replace("http://127.0.0.1:9000", publicHost)
+                    .Replace("http://drugstore-minio:9000", publicHost);
 
                 return finalUrl;
             }
