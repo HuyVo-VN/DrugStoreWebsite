@@ -90,10 +90,8 @@ namespace DrugStoreWebsiteAI.Plugins
 
             try
             {
-                // 1. LẤY CONNECTION NHƯNG KHÔNG DÙNG "USING"
                 var connection = dbContext.Database.GetDbConnection();
 
-                // 2. KIỂM TRA TRẠNG THÁI CỬA: Nếu đóng thì mở ra
                 bool wasClosed = connection.State == ConnectionState.Closed;
                 if (wasClosed)
                 {
@@ -129,7 +127,7 @@ namespace DrugStoreWebsiteAI.Plugins
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\n\n[LỖI DATABASE KINH HOÀNG]: {ex.Message}\n\n");
+                Console.WriteLine($"\n\n[DATABASE ERROR]: {ex.Message}\n\n");
                 return $"SQL Error: {ex.Message}";
             }
         }

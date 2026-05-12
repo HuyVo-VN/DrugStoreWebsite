@@ -54,7 +54,7 @@
         <div class="textarea-wrapper">
           <textarea #chatInput
                     [(ngModel)]="currentMessage"
-                    placeholder="Hỏi tôi hoặc tải file Excel lên..."
+                    placeholder="Ask me or upload the Excel file..."
                     rows="1"
                     (input)="autoResize(chatInput)"
                     (keydown.enter)="sendMessage($event, chatInput)">
