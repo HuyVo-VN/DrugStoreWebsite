@@ -51,6 +51,9 @@ namespace DrugStoreWebSiteData.Infrastructure.Services
                     _logger.LogInformation($"A new Bucket has been created.: {_bucketName}");
                 }
 
+                var policy = $@"{{""Version"":""2012-10-17"",""Statement"":[{{""Action"":[""s3:GetObject""],""Effect"":""Allow"",""Principal"":{{""AWS"":[""*""]}},""Resource"":[""arn:aws:s3:::{_bucketName}/*""]}}]}}";
+                await _minioClient.SetPolicyAsync(new SetPolicyArgs().WithBucket(_bucketName).WithPolicy(policy));
+
                 using var stream = new MemoryStream(fileData);
                 var putObjectArgs = new PutObjectArgs()
                     .WithBucket(_bucketName)
@@ -62,21 +65,9 @@ namespace DrugStoreWebSiteData.Infrastructure.Services
                 await _minioClient.PutObjectAsync(putObjectArgs);
                 _logger.LogInformation($"File uploaded successfully: {fileName}");
 
-                // TẠO PRE-SIGNED URL (LINK CÓ CHỮ KÝ BẢO MẬT, TỰ HỦY SAU 24 GIỜ)
-                var presignedArgs = new PresignedGetObjectArgs()
-                    .WithBucket(_bucketName)
-                    .WithObject(fileName)
-                    .WithExpiry(900); // 900 giây = 15 p
-
-                string rawPresignedUrl = await _minioClient.PresignedGetObjectAsync(presignedArgs);
-
+                // TẠO LINK TRỰC TIẾP
                 string publicHost = "https://drugstore-huyvo.duckdns.org/minio-files";
-
-                string finalUrl = rawPresignedUrl
-                    .Replace("http://minio-storage:9000", publicHost)
-                    .Replace("http://localhost:9000", publicHost)
-                    .Replace("http://127.0.0.1:9000", publicHost)
-                    .Replace("http://drugstore-minio:9000", publicHost);
+                string finalUrl = $"{publicHost}/{_bucketName}/{fileName}";
 
                 return finalUrl;
             }

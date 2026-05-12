@@ -184,11 +184,11 @@ namespace DrugStoreWebsiteAI.Plugins
                 if (!found)
                 {
                     await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(bucketName));
-
-                    // Gắn Policy cho phép tải file public (Vì đây là báo cáo, có thể cần link tải trực tiếp)
-                    var policy = $"{{\"Version\":\"2012-10-17\",\"Statement\":[{{\"Action\":[\"s3:GetObject\"],\"Effect\":\"Allow\",\"Principal\":{{\"AWS\":[\"*\"]}},\"Resource\":[\"arn:aws:s3:::{bucketName}/*\"]}}]}}";
-                    await _minioClient.SetPolicyAsync(new SetPolicyArgs().WithBucket(bucketName).WithPolicy(policy));
                 }
+
+                // 👉 ÉP BUỘC GẮN POLICY PUBLIC CHO BUCKET (Bỏ ra ngoài khối IF để đảm bảo rổ nào cũng được mở khóa)
+                var policy = $"{{\"Version\":\"2012-10-17\",\"Statement\":[{{\"Action\":[\"s3:GetObject\"],\"Effect\":\"Allow\",\"Principal\":{{\"AWS\":[\"*\"]}},\"Resource\":[\"arn:aws:s3:::{bucketName}/*\"]}}]}}";
+                await _minioClient.SetPolicyAsync(new SetPolicyArgs().WithBucket(bucketName).WithPolicy(policy));
 
                 // 3. Đẩy file lên mây
                 var putObjectArgs = new PutObjectArgs()
@@ -199,26 +199,18 @@ namespace DrugStoreWebsiteAI.Plugins
                     .WithContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                 await _minioClient.PutObjectAsync(putObjectArgs);
 
-                var presignedArgs = new PresignedGetObjectArgs()
-                    .WithBucket(bucketName)
-                    .WithObject(fileName)
-                    .WithExpiry(86400);
-
-                string rawPresignedUrl = await _minioClient.PresignedGetObjectAsync(presignedArgs);
-
-                // 4. Return link
-                string finalUrl = rawPresignedUrl;
+                // 👉 4. TRẢ VỀ LINK PUBLIC TRỰC TIẾP (Tuyệt đối KHÔNG dùng Presigned Url hay Replace)
+                string publicHost = "http://localhost:9000"; // Mặc định cho lúc sếp code máy nhà
 
                 if (!_env.IsDevelopment())
                 {
-                    string internalHost = "http://drugstore-minio:9000";
-                    string publicHost = "https://drugstore-huyvo.duckdns.org/minio-files";
-
-                    finalUrl = rawPresignedUrl.Replace(internalHost, publicHost);
+                    // Chạy trên VPS thì gắn tên miền thật
+                    publicHost = "https://drugstore-huyvo.duckdns.org/minio-files";
                 }
 
-                return $"Export successful. [Click here to download the Excel report.]({finalUrl})";
+                string finalUrl = $"{publicHost}/{bucketName}/{fileName}";
 
+                return $"Export successful. [Click here to download the Excel report.]({finalUrl})";
             }
             catch (Exception ex)
             {
