@@ -65,8 +65,17 @@ public class ReportService : IReportService
                 workbook.SaveAs(stream);
                 var content = stream.ToArray();
 
-                // Đẩy lên MinIO
-                return await _minIoService.UploadFileAsync(content, $"Report_Excel_{DateTime.Now:yyyyMMddHHmmss}.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                // TẠO TÊN FILE ĐỘNG
+                string timeSuffix = "AllTime";
+                if (year.HasValue && year > 0)
+                {
+                    timeSuffix = (month.HasValue && month > 0) ? $"{month}_{year}" : $"{year}";
+                }
+
+                // Format: BaoCao_LoaiDuLieu_LoaiThongKe_ThoiGian_Timestamp.xlsx
+                string fileName = $"Report_{entity}_{statType}_{timeSuffix}_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+
+                return await _minIoService.UploadFileAsync(content, fileName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             }
         }
     }
@@ -125,8 +134,17 @@ public class ReportService : IReportService
             document.GeneratePdf(stream);
             var content = stream.ToArray();
 
-            // Đẩy lên MinIO
-            return await _minIoService.UploadFileAsync(content, $"Report_Pdf_{DateTime.Now:yyyyMMddHHmmss}.pdf", "application/pdf");
+            // TẠO TÊN FILE ĐỘNG
+            string timeSuffix = "AllTime";
+            if (year.HasValue && year > 0)
+            {
+                timeSuffix = (month.HasValue && month > 0) ? $"{month}_{year}" : $"{year}";
+            }
+
+            // Format: BaoCao_LoaiDuLieu_LoaiThongKe_ThoiGian_Timestamp.pdf
+            string fileName = $"Report_{entity}_{statType}_{timeSuffix}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+
+            return await _minIoService.UploadFileAsync(content, fileName, "application/pdf");
         }
     }
 
