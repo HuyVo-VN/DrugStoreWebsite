@@ -62,27 +62,54 @@ export class AdminCategory implements OnInit {
 
   saveCategory() {
     if (!this.formData.name.trim()) {
-      Swal.fire('Warning', 'The category name cannot be left blank!', 'warning');
+      Swal.fire({
+        title: 'Warning',
+        text: 'The category name cannot be left blank!',
+        icon: 'warning',
+        heightAuto: false
+      });
       return;
     }
 
     if (this.isEditMode && this.currentCategoryId) {
       this.categoryService.updateCategory(this.currentCategoryId, this.formData).subscribe({
         next: () => {
-          Swal.fire('Success', 'The catalog has been updated!', 'success');
+          Swal.fire({
+            title: 'Success',
+            text: 'The catalog has been updated!',
+            icon: 'success',
+            heightAuto: false
+          });
           this.closeModal();
           this.loadCategories();
         },
-        error: (err) => Swal.fire('Error', err.error?.message || 'Unable to update', 'error')
+        error: (err) =>
+          Swal.fire({
+          title: 'Error',
+          text: err.error?.message || 'Unable to update',
+          icon: 'error',
+          heightAuto: false
+        })
       });
     } else {
       this.categoryService.createCategory(this.formData).subscribe({
         next: () => {
-          Swal.fire('Success', 'New category added!', 'success');
+          Swal.fire({
+            title: 'Success',
+            text: 'New category added!',
+            icon: 'success',
+            heightAuto: false
+          });
           this.closeModal();
           this.loadCategories();
         },
-        error: (err) => Swal.fire('Error', err.error?.message || 'Cannot create new', 'error')
+        error: (err) =>
+          Swal.fire({
+            title: 'Error',
+            text: err.error?.message || 'Cannot create new',
+            icon: 'error',
+            heightAuto: false
+          })
       });
     }
   }
