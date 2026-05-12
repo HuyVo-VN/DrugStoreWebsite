@@ -73,6 +73,7 @@ namespace DrugStoreWebSiteData.Infrastructure.Services
                 string publicHost = "https://drugstore-huyvo.duckdns.org/minio-files";
 
                 string finalUrl = rawPresignedUrl
+                    .Replace("http://minio-storage:9000", publicHost)
                     .Replace("http://localhost:9000", publicHost)
                     .Replace("http://127.0.0.1:9000", publicHost)
                     .Replace("http://drugstore-minio:9000", publicHost);
