@@ -34,4 +34,4 @@ jobs:
           sudo docker-compose up -d
 
           # 5. Dọn dẹp Image rác để VPS không bị đầy ổ cứng
-          sudo docker image prune -af"
+          sudo docker image prune -af
