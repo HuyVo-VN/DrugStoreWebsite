@@ -20,62 +20,18 @@ jobs:
           
           cd ~/DrugStoreWebsite
           
-          echo "=== 1. KÉO CODE MỚI NHẤT ==="
-          # Lưu lại trạng thái commit CŨ trước khi pull
+          # 1. ÉP KÉO CODE MỚI NHẤT (Vượt qua mọi lỗi Conflict)
           git pull origin main
-          
-          echo "=== 2. QUÉT SỰ THAY ĐỔI ==="
-          # ORIG_HEAD là cọc mốc lưu commit trước khi pull. 
-          # git diff sẽ soi xem từ cọc mốc đó đến hiện tại có file nào bị đổi
-          CHANGED_FILES=$(git diff --name-only ORIG_HEAD HEAD)
-          echo "Danh sách file thay đổi:"
-          echo "$CHANGED_FILES"
 
-          # Chuẩn bị 1 biến trống để hứng tên các service cần xóa
-          SERVICES_TO_BUILD=""
+          # 2. TIÊU DIỆT TÀN DƯ CỦA CACHE ANGULAR TRƯỚC KHI BUILD
+          sudo rm -rf ./DrugStoreWebsiteFE/.angular/cache
+          sudo docker-compose down
 
-          # Dùng grep để soi xem có thay đổi ở thư mục nào thì gọi tên service đó
-          if echo "$CHANGED_FILES" | grep -q "DrugStoreWebsiteFE/"; then
-            echo "-> Phát hiện sửa Frontend"
-            SERVICES_TO_BUILD="$SERVICES_TO_BUILD frontend"
-            sudo rm -rf ./DrugStoreWebsiteFE/.angular/cache
-          fi
-          
-          if echo "$CHANGED_FILES" | grep -q "DrugStoreWebsiteAuthen/"; then
-            echo "-> Phát hiện sửa Authen API"
-            SERVICES_TO_BUILD="$SERVICES_TO_BUILD authen-api"
-          fi
-          
-          if echo "$CHANGED_FILES" | grep -q "DrugStoreWebsiteData/"; then
-            echo "-> Phát hiện sửa Data API"
-            SERVICES_TO_BUILD="$SERVICES_TO_BUILD data-api"
-          fi
-          
-          if echo "$CHANGED_FILES" | grep -q "DrugStoreWebsiteAI/"; then
-            echo "-> Phát hiện sửa AI Service"
-            SERVICES_TO_BUILD="$SERVICES_TO_BUILD ai-service"
-          fi
+          # 3. BUILD MỚI 100% KHÔNG XÀI CACHE CHO TẤT CẢ SERVICES
+          sudo docker-compose build --no-cache
 
-          echo "=== 3. THỰC THI BUILD VÀ DEPLOY ==="
-          if echo "$CHANGED_FILES" | grep -q "docker-compose.yml"; then
-            echo "Phát hiện thay đổi hạ tầng! Tiến hành cập nhật toàn bộ..."
-            # Dùng lệnh down để đập hạ tầng cũ đi xây lại nếu có đổi cấu hình
-            sudo docker-compose down
-            sudo docker-compose up -d --build
-            
-          # Nếu có service cần build thì chỉ build đúng bọn nó
-          elif [ -n "$SERVICES_TO_BUILD" ]; then
-            echo "CHỈ BUILD VÀ RESTART CÁC SERVICE: $SERVICES_TO_BUILD"
-            
-            sudo docker-compose rm -fsv $SERVICES_TO_BUILD
-            
-            # Sau đó mới build và up lên lại
-            sudo docker-compose up -d --build $SERVICES_TO_BUILD
-            
-          else
-            echo "Không có thay đổi nào ở Code logic. Giữ nguyên hệ thống."
-          fi
-          
-          echo "=== 4. DỌN DẸP Ổ CỨNG ==="
-          # Vẫn giữ lệnh dọn rác để VPS không bị nổ ổ cứng
-          sudo docker image prune -af
+          # 4. KHỞI ĐỘNG LẠI HỆ THỐNG TRƠN TRU
+          sudo docker-compose up -d
+
+          # 5. Dọn dẹp Image rác để VPS không bị đầy ổ cứng
+          sudo docker image prune -af"
