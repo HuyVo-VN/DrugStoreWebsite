@@ -236,7 +236,12 @@ export class AdminPage implements OnInit, AfterViewInit {
     this.isExportingExcel = true;
     this.dashboardService.exportDynamicExcel(this.selectedEntity, this.selectedStatType, this.selectedYear, this.selectedMonth).subscribe({
       next: (res: any) => {
-        if (res && res.downloadUrl) window.open(res.downloadUrl, '_blank');
+        if (res && res.downloadUrl) {
+          const a = document.createElement('a');
+          a.href = res.downloadUrl;
+          a.target = '_blank';
+          a.click();
+        }
         this.isExportingExcel = false;
       },
       error: (err: any) => {
@@ -251,7 +256,12 @@ export class AdminPage implements OnInit, AfterViewInit {
     this.isExportingPdf = true;
     this.dashboardService.exportDynamicPdf(this.selectedEntity, this.selectedStatType, this.selectedYear, this.selectedMonth).subscribe({
       next: (res: any) => {
-        if (res && res.downloadUrl) window.open(res.downloadUrl, '_blank');
+        if (res && res.downloadUrl) {
+          const a = document.createElement('a');
+          a.href = res.downloadUrl;
+          a.target = '_blank';
+          a.click();
+        }
         this.isExportingPdf = false;
       },
       error: (err: any) => {
