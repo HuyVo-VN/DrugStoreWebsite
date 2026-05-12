@@ -57,16 +57,19 @@ jobs:
           fi
 
           echo "=== 3. THỰC THI BUILD VÀ DEPLOY ==="
-          # Trường hợp đặc biệt: Nếu sửa tận gốc file docker-compose thì build lại hết
           if echo "$CHANGED_FILES" | grep -q "docker-compose.yml"; then
             echo "Phát hiện thay đổi hạ tầng! Tiến hành cập nhật toàn bộ..."
+            # Dùng lệnh down để đập hạ tầng cũ đi xây lại nếu có đổi cấu hình
+            sudo docker-compose down
             sudo docker-compose up -d --build
             
           # Nếu có service cần build thì chỉ build đúng bọn nó
           elif [ -n "$SERVICES_TO_BUILD" ]; then
             echo "CHỈ BUILD VÀ RESTART CÁC SERVICE: $SERVICES_TO_BUILD"
-            # Lệnh này cực kỳ xịn: Nó chỉ build và thay thế các container được chỉ định. 
-            # Các container khác (như Redis, MinIO) vẫn sống và phục vụ khách hàng bình thường! (Zero Downtime)
+            
+            sudo docker-compose rm -fsv $SERVICES_TO_BUILD
+            
+            # Sau đó mới build và up lên lại
             sudo docker-compose up -d --build $SERVICES_TO_BUILD
             
           else
