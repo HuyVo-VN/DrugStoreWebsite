@@ -207,14 +207,18 @@ namespace DrugStoreWebsiteAI.Services
             var prompt = $@"
             You are an AI assistant analyzing warehouse data.
             The admin has just uploaded an Excel file with the following columns: {string.Join(", ", headers)}.
-    
-            For successful inventory entry, the system MUST have 4 data fields: Drug Name, Price, Quantity (In Stock), Description and Category.
-    
-            Task: Write ONE reply message to the Admin:
+            
+            [CRITICAL CONTEXT]: The admin also attached this message along with the file: ""{userMessage}""
+
+            For successful inventory entry, the system MUST have these core data fields: Drug Name, Price, Quantity (In Stock), Description and Category.
+
+            Task: Write ONE reply message to the Admin in VIETNAMESE:
             1. Acknowledge that the file has been read (Session code is required: `{cacheKey}`).
-            2. Analyze whether the existing Excel columns contain ALL 4 required fields (Semantic mapping, e.g., 'Unit Price' = Amount, 'Type' = Category).
-            3. IF MISSING: Clearly list the missing fields. Specifically, ask your boss for guidance on how to fill in the missing data (e.g., 'What default price would you like to set?', 'Which category would you like this shipment to be placed in? Do you need me to list the existing categories for you to choose from?').
-            4. IF SUFFICIENT: Inform your boss to check the data sheet and type 'Approve' to enter it into inventory.
+            2. Analyze whether the existing Excel columns contain the required fields.
+            3. [CHECK THE ADMIN'S MESSAGE FIRST]: If a required field (like Category or Description) is missing from the Excel columns, YOU MUST check if the Admin ALREADY provided it in their attached message (e.g., ""I want to add these to Bone Joint Health category""). 
+               - If they DID provide it in the message, DO NOT ask them again. Just politely acknowledge that you will apply that information.
+            4. IF STILL MISSING: Only ask for guidance if the information is missing from BOTH the file AND the admin's message.
+            5. IF SUFFICIENT (or covered by the admin's message): Present a brief summary and explicitly ask for final confirmation: ""Valid data and available. Next, are you sure you want to proceed with receiving this shipment?"".
     
             Return only the message content; absolutely no JSON formatting.";
 

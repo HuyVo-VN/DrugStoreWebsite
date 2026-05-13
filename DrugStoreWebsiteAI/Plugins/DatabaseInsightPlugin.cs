@@ -406,27 +406,41 @@ namespace DrugStoreWebsiteAI.Plugins
                         imageUrl = images[0].GetString() ?? string.Empty;
                     }
 
-                    // 5. Khởi tạo Entity Product (Dùng đúng Constructor của bạn)
-                    var newProduct = new Product(
-                        name: productName,
-                        description: description,
-                        price: price,
-                        stock: stock,
-                        categoryId: catId,
-                        discountPercent: discountPercent,
-                        discountEndDate: discountPercent > 0 ? DateTime.UtcNow.AddDays(7) : null,
-                        saleStock: discountPercent > 0 ? stock : 0, // Mặc định cho bán hết stock hiện tại
-                        specifications: specsJson
-                    );
+                    // CHỐNG TRÙNG LẶP: Kiểm tra xem sản phẩm đã có trong DB chưa
+                    var existingProduct = await _drugStoreDb.Products
+                                            .FirstOrDefaultAsync(p => p.Name.ToLower() == productName.ToLower());
 
-                    // Cập nhật thêm ảnh vì Constructor không có trường ImageUrl
-                    newProduct.ImageUrl = imageUrl;
+                    if (existingProduct != null)
+                    {
+                        // Nếu có rồi -> Cập nhật tồn kho và giá mới
+                        existingProduct.AddStockAndUpdatePrice(stock, price);
 
-                    productsToAdd.Add(newProduct);
+                    }
+                    else
+                    {
+                        // Nếu chưa có -> Tạo mới hoàn toàn
+                        var newProduct = new Product(
+                            name: productName,
+                            description: description,
+                            price: price,
+                            stock: stock,
+                            categoryId: catId,
+                            discountPercent: discountPercent,
+                            discountEndDate: discountPercent > 0 ? DateTime.UtcNow.AddDays(7) : null,
+                            saleStock: discountPercent > 0 ? stock : 0,
+                            specifications: specsJson
+                        );
+                        newProduct.ImageUrl = imageUrl;
+                        productsToAdd.Add(newProduct);
+                    }
                 }
 
                 // 6. Lưu xuống Database Data
-                _drugStoreDb.Products.AddRange(productsToAdd);
+                if (productsToAdd.Any())
+                {
+                    _drugStoreDb.Products.AddRange(productsToAdd);
+                }
+
                 await _drugStoreDb.SaveChangesAsync();
 
                 // 7. Dọn dẹp RAM

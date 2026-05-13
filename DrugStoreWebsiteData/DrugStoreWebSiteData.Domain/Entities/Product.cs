@@ -115,5 +115,23 @@ namespace DrugStoreWebSiteData.Domain.Entities
             SaleSold = 0;
         }
 
+        /// <summary>
+        /// Accumulate inventory upon receiving goods and update prices (if any).
+        /// </summary>
+        public void AddStockAndUpdatePrice(int addedStock, decimal newPrice)
+        {
+            if (addedStock > 0)
+            {
+                Stock += addedStock;
+            }
+
+            if (newPrice > 0)
+            {
+                Price = newPrice;
+            }
+
+            UpdatedAt = DateTime.UtcNow;
+        }
+
     }
 }
