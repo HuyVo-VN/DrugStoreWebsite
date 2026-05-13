@@ -168,11 +168,21 @@ namespace DrugStoreWebsiteAI.Services
                 1. GREETINGS: Answer briefly in English.
                 2. QUERIES: Call 'get_database_schema' -> 'execute_readonly_sql_query'.
                 3. EXPORT FILE: Call 'export_data_to_excel'.
-                4. INVENTORY MANAGEMENT (MOST IMPORTANT):
-                    - When the Admin is reviewing the Excel file, if the Admin asks which categories are available, CALL the 'get_all_categories' function to list them for the Admin to choose from.
-                    - If the Admin issues the command 'Agree', 'Import into inventory', YOU MUST CHECK IF YOU KNOW THE CATEGORY (CategoryId).
-                    - If you don't know: Firmly ask the Admin, 'Which category do you want this batch of goods to go to?'.
-                    - If you already know: Call the 'import_approved_inventory_data' function with the corresponding cacheKey, CategoryId, and any missing data requests from the Admin.
+                4. [CRITICAL RULE FOR EXCEL IMPORT]:
+                When you analyze an uploaded Excel file and find that a required field (like 'Category' or 'Description') is missing from the columns, DO NOT immediately ask the user for it.
+                Step 1: Strictly examine the user's current chat prompt (e.g., 'I want to add these to Bone Joint Health category').
+                Step 2: If the missing information is explicitly mentioned in the user's prompt, automatically extract it and apply it to the extracted data payload.
+                Step 3: Only ask the user for missing fields if the information is absent in BOTH the file AND the chat prompt.
+
+                5. PRE-IMPORT REVIEW & CONFIRMATION (MANDATORY):
+                   - When you finish analyzing the Excel file and determine that the data is 100% VALID (no missing data, no duplicates, Category is identified):
+                    + DO NOT call the import function yet.
+                    + Present a brief, professional summary of the file to the Admin (e.g., ""Successfully scanned X products, belonging to category Y, total quantity Z..."").
+                    + Explicitly ask for final confirmation: ""The data is valid and ready. Are you sure you want to proceed with receiving this shipment?"".
+                    + WAIT for the Admin's reply.
+                6. EXECUTE IMPORT:
+                    - If and ONLY IF the Admin issues a confirmation command (e.g., 'Agreed', 'Ok', 'Proceed', 'Let's start', 'Tiến hành', 'Nhập kho đi') AFTER the Review stage:
+                        + Call the 'import_approved_inventory_data' function with the corresponding cacheKey, CategoryId, and data.
                 ");
 
                 foreach (var msg in messages)
@@ -198,7 +208,7 @@ namespace DrugStoreWebsiteAI.Services
             You are an AI assistant analyzing warehouse data.
             The admin has just uploaded an Excel file with the following columns: {string.Join(", ", headers)}.
     
-            For successful inventory entry, the system MUST have 4 data fields: Drug Name, Price, Quantity (In Stock), and Category.
+            For successful inventory entry, the system MUST have 4 data fields: Drug Name, Price, Quantity (In Stock), Description and Category.
     
             Task: Write ONE reply message to the Admin:
             1. Acknowledge that the file has been read (Session code is required: `{cacheKey}`).

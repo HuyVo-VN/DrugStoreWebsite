@@ -253,20 +253,41 @@ namespace DrugStoreWebsiteAI.Plugins
                     decimal price = 0;
                     int stock = 0;
 
-                    if (record.TryGetProperty("BaseInfo", out var baseInfo))
+                    void CheckAndAssign(string k, string v)
                     {
-                        // Quét các key do AI giữ nguyên từ file Excel
+                        if (k.Contains("tên") || k.Contains("name")) productName = v;
+                        else if (k.Contains("giá") || k.Contains("price")) decimal.TryParse(v, out price);
+                        else if (k.Contains("tồn") || k.Contains("số lượng") || k.Contains("stock") || k.Contains("quantity") || k.Contains("quantities")) int.TryParse(v, out stock);
+                        else if (k.Contains("mô tả") || k.Contains("description") || k.Contains("chi tiết") || k.Contains("detail")) description = v;
+                    }
+
+                    // QUÉT LỚP NGOÀI CÙNG (Đề phòng JSON phẳng)
+                    foreach (var prop in record.EnumerateObject())
+                    {
+                        if (prop.Value.ValueKind != JsonValueKind.Object && prop.Value.ValueKind != JsonValueKind.Array)
+                        {
+                            CheckAndAssign(prop.Name.ToLower(), prop.Value.ToString());
+                        }
+                    }
+
+                    // QUÉT TRONG BASE INFO (Cấu trúc chuẩn)
+                    if (record.TryGetProperty("BaseInfo", out var baseInfo) && baseInfo.ValueKind == JsonValueKind.Object)
+                    {
                         foreach (var prop in baseInfo.EnumerateObject())
                         {
-                            var key = prop.Name.ToLower();
-                            var val = prop.Value.GetString() ?? "";
+                            CheckAndAssign(prop.Name.ToLower(), prop.Value.ToString());
+                        }
+                    }
 
-                            if (key.Contains("tên") || key.Contains("name")) productName = val;
-                            else if (key.Contains("giá") || key.Contains("price")) decimal.TryParse(val, out price);
-                            else if (key.Contains("tồn") || key.Contains("số lượng") || key.Contains("stock") || key.Contains("quantity") || key.Contains("quantities")) int.TryParse(val, out stock);
-                            else if (key.Contains("mô tả") || key.Contains("description") || key.Contains("chi tiết") || key.Contains("detail"))
+                    // QUÉT VỚT TRONG SPECIFICATIONS (Phòng hờ bị nhóm nhầm thành thông số kỹ thuật)
+                    if (string.IsNullOrEmpty(description) && record.TryGetProperty("Specifications", out var fallbackSpecs) && fallbackSpecs.ValueKind == JsonValueKind.Object)
+                    {
+                        foreach (var prop in fallbackSpecs.EnumerateObject())
+                        {
+                            var subKey = prop.Name.ToLower();
+                            if (subKey.Contains("mô tả") || subKey.Contains("description") || subKey.Contains("chi tiết"))
                             {
-                                description = val;
+                                description = prop.Value.ToString();
                             }
                         }
                     }
@@ -350,10 +371,10 @@ namespace DrugStoreWebsiteAI.Plugins
                                     if (item.ValueKind == JsonValueKind.Object)
                                     {
                                         // Linh hoạt bắt key-value
-                                        string k = item.TryGetProperty("key", out var kProp) ? kProp.GetString() :
-                                                   item.TryGetProperty("Key", out var kProp2) ? kProp2.GetString() : "";
-                                        string v = item.TryGetProperty("value", out var vProp) ? vProp.GetString() :
-                                                   item.TryGetProperty("Value", out var vProp2) ? vProp2.GetString() : "";
+                                        string k = item.TryGetProperty("key", out var kProp) ? kProp.GetString() ?? "" :
+                                                   item.TryGetProperty("Key", out var kProp2) ? kProp2.GetString() ?? "" : "";
+                                        string v = item.TryGetProperty("value", out var vProp) ? vProp.GetString() ?? "" :
+                                                   item.TryGetProperty("Value", out var vProp2) ? vProp2.GetString() ?? "" : "";
 
                                         if (!string.IsNullOrEmpty(k))
                                         {
