@@ -12,6 +12,7 @@ using Minio.DataModel.Args;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using DrugStoreWebSiteData.Domain.Entities;
+using System.Text.RegularExpressions;
 
 // using DrugStoreWebsiteData.Contexts; // Uncomment and use your actual DbContext namespace
 
@@ -291,20 +292,7 @@ namespace DrugStoreWebsiteAI.Plugins
                             }
                         }
                     }
-                    // --- BÙ DỮ LIỆU THIẾU TỪ LỜI DẶN CỦA ADMIN ---
-                    // Nếu không tìm thấy giá trong Excel, quét xem Admin có dặn giá mặc định không
-                    if (price == 0 && (lowerInstructions.Contains("giá") || lowerInstructions.Contains("price")))
-                    {
-                        var words = lowerInstructions.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                        foreach (var word in words)
-                        {
-                            if (decimal.TryParse(word, out decimal parsedPrice))
-                            {
-                                price = parsedPrice;
-                                break;
-                            }
-                        }
-                    }
+                    
                     // Nếu không có tồn kho trong Excel, quét xem Admin có dặn mặc định không
                     if (stock == 0 &&
                     (
@@ -324,10 +312,59 @@ namespace DrugStoreWebsiteAI.Plugins
                             }
                         }
                     }
-                    // Nếu không có mô tả, dừng toàn bộ tiến trình và báo lỗi cho Admin
+
+                    // ================================================================
+                    // --- BÙ DỮ LIỆU THIẾU TỪ LỜI DẶN CỦA ADMIN (CHỈ XỬ LÝ BASE INFO) ---
+                    // Sử dụng Regex thông minh để quét từ khóa và "gắp" đúng giá trị
+                    // ================================================================
+
+                    // 1. Bù Giá (Price) - Tìm chữ "giá" hoặc "price" và lấy con số đầu tiên sau nó
+                    if (price == 0 && (lowerInstructions.Contains("giá") || lowerInstructions.Contains("price")))
+                    {
+                        var match = Regex.Match(instructions, @"(?i)(?:giá|price)\D*(\d+)");
+                        if (match.Success && decimal.TryParse(match.Groups[1].Value, out decimal parsedPrice)) price = parsedPrice;
+                    }
+
+                    // 2. Bù Tồn kho (Stock) - Tìm chữ "tồn", "số lượng" hoặc "stock" và lấy con số sau nó
+                    if (stock == 0 && (lowerInstructions.Contains("tồn") || lowerInstructions.Contains("số lượng") || lowerInstructions.Contains("stock") || lowerInstructions.Contains("quantity")))
+                    {
+                        var match = Regex.Match(instructions, @"(?i)(?:tồn|số lượng|stock|quantity)\D*(\d+)");
+                        if (match.Success && int.TryParse(match.Groups[1].Value, out int parsedStock)) stock = parsedStock;
+                    }
+
+                    // 3. Bù Tên sản phẩm (Product Name) - Tìm chữ "tên" hoặc "name", lấy chuỗi trong ngoặc đơn/kép
+                    if ((productName == "The product is unnamed." || string.IsNullOrEmpty(productName)) &&
+                        (lowerInstructions.Contains("tên") || lowerInstructions.Contains("name")))
+                    {
+                        var match = Regex.Match(instructions, @"(?i)(?:tên|name)[^""']*[""'](.*?)[""']");
+                        if (match.Success) productName = match.Groups[1].Value;
+                    }
+
+                    // 4. Bù Mô tả (Description) - Tìm chữ "mô tả", "description", "replace", lấy chuỗi trong ngoặc
+                    if (string.IsNullOrEmpty(description) &&
+                        (lowerInstructions.Contains("mô tả") || lowerInstructions.Contains("description") || lowerInstructions.Contains("replace")))
+                    {
+                        var match = Regex.Match(instructions, @"(?i)(?:mô tả|description|replace)[^""']*[""'](.*?)[""']");
+                        if (match.Success)
+                        {
+                            description = match.Groups[1].Value;
+                        }
+                        else
+                        {
+                            // Fallback nếu Admin dặn bù mô tả nhưng quên gõ dấu ngoặc kép
+                            description = "Admin approved to bypass description.";
+                        }
+                    }
+
+                    // --- KIỂM TRA CHỐT CHẶN CUỐI CÙNG (GUARDRAILS) ---
+                    // C# sẽ kiểm tra lại 1 lần nữa sau khi đã cố gắng bù dữ liệu
                     if (string.IsNullOrEmpty(description) || description.Length < 5)
                     {
                         return $"❌ Inventory error: Product '{productName}' detailed descriptive information is missing. Please check the Excel file again.";
+                    }
+                    if (price <= 0)
+                    {
+                        return $"❌ Inventory error: Product '{productName}' price is missing or invalid (Must be > 0).";
                     }
 
                     // --- XỬ LÝ SALE INFO ---
@@ -446,7 +483,7 @@ namespace DrugStoreWebsiteAI.Plugins
                 // 7. Dọn dẹp RAM
                 await _cache.RemoveAsync(cacheKey);
 
-                return $"Confirmation successful! The {productsToAdd.Count} product has been processed and saved to the database. The instruction '{instructions}' has been recorded.";
+                return $"Confirmation successful! Total {records.Count()} products have been processed (Created or Updated) and saved to the database. The instruction '{instructions}' has been recorded.";
             }
             catch (Exception ex)
             {

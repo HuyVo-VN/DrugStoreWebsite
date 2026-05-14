@@ -5,6 +5,7 @@ using DrugStoreWebSiteData.Application.Interfaces;
 using DrugStoreWebSiteData.Domain.Entities;
 using DrugStoreWebSiteData.Domain.Enums;
 using DrugStoreWebSiteData.Domain.Interfaces;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
 namespace DrugStoreWebSiteData.Infrastructure.Services;
@@ -15,15 +16,21 @@ public class OrderService : IOrderService
     private readonly IProductRepository _productRepository;
     private readonly ILogger<OrderService> _logger;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IDistributedCache _cache;
 
 
-    public OrderService(IOrderRepository orderRepository, IProductRepository productRepository, ILogger<OrderService> logger, IUnitOfWork unitOfWork)
+    public OrderService(
+        IOrderRepository orderRepository, 
+        IProductRepository productRepository, 
+        ILogger<OrderService> logger, 
+        IUnitOfWork unitOfWork,
+        IDistributedCache cache)
     {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
         _logger = logger;
         _unitOfWork = unitOfWork;
-
+        _cache = cache;
     }
 
     public async Task<Result<List<OrderResponseDto>>> GetAllOrdersAsync()
@@ -172,6 +179,10 @@ public class OrderService : IOrderService
             }
 
             await _unitOfWork.SaveChangesAsync();
+
+            await _cache.RemoveAsync("products_sale_p1_s10");
+
+            await _cache.RemoveAsync("products_bestsellers_p1_s10");
 
             var response = new OrderResponseDto().MapToOrderDto(newOrder);
 
