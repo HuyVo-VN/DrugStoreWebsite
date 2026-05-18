@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { ProductService } from '../Services/product.service';
@@ -17,17 +17,27 @@ import { AppRoles } from '../enums/role.enums';
 import { BannerService } from '../Services/banner.service';
 import { CollectionService } from '../Services/collection.service';
 import { environment } from '../../environments/environment';
-
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { CurrencyConverterPipe } from '../currency-converter.pipe';
 
 @Component({
   selector: 'app-customer-product',
   standalone: true,
-  imports: [CommonModule, RouterModule, CurrencyPipe, FormsModule, MatFormFieldModule, MatSelectModule, MatInputModule, MatProgressSpinnerModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    TranslateModule,
+    CurrencyConverterPipe
+  ],
   templateUrl: './customer-product.html',
   styleUrl: './customer-product.css',
-
 })
-export class CustomerProduct implements OnInit {
+export class CustomerProduct implements OnInit, OnDestroy {
   products: any[] = [];
   private readonly baseUrl = `${environment.dataApiUrl}`;
   private readonly defaultImage = '/images/default-product.png';
@@ -41,8 +51,8 @@ export class CustomerProduct implements OnInit {
     private authService: AuthService,
     private route: ActivatedRoute,
     private bannerService: BannerService,
-    private collectionService: CollectionService
-
+    private collectionService: CollectionService,
+    private translate: TranslateService
   ) { }
 
   currentPage: number = 1;
@@ -130,13 +140,11 @@ export class CustomerProduct implements OnInit {
 
           this.currentKeyword = params['search'] || '';
           this.selectedCategoryId = params['category'] || '';
-          // Bắt thêm 2 tham số mới
           this.currentListType = params['type'] || '';
           this.currentCollectionId = params['collectionId'] || '';
 
-          this.currentPage = 1; // Luôn reset về trang 1 khi URL đổi
+          this.currentPage = 1;
 
-          // --- LOGIC RẼ NHÁNH ---
           if (this.currentListType === 'bestseller') {
             this.loadBestSellersPaged();
           }
@@ -173,7 +181,6 @@ export class CustomerProduct implements OnInit {
   }
 
   ngOnDestroy() {
-    // Delete interval when leave page to escapes memory leak
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
     }
@@ -187,10 +194,9 @@ export class CustomerProduct implements OnInit {
       if (!this.saleProducts || this.saleProducts.length === 0) return;
 
       const now = new Date().getTime();
-
       const endDateString = this.saleProducts[0].discountEndDate;
 
-      if (!endDateString) return; 
+      if (!endDateString) return;
 
       const endTime = new Date(endDateString).getTime();
       const diff = endTime - now;
@@ -210,10 +216,8 @@ export class CustomerProduct implements OnInit {
     }, 1000);
   }
 
-  // --- LOGIC FOR BANNER SLIDER ---
   startBannerSlide() {
     this.pauseBannerSlide();
-
     this.slideInterval = setInterval(() => {
       this.nextBanner();
     }, 4000);
@@ -222,7 +226,7 @@ export class CustomerProduct implements OnInit {
   pauseBannerSlide() {
     if (this.slideInterval) {
       clearInterval(this.slideInterval);
-      this.slideInterval = null; // Reset về null
+      this.slideInterval = null;
     }
   }
 
@@ -239,10 +243,7 @@ export class CustomerProduct implements OnInit {
   }
 
   navigateToAction(url: string) {
-    if (!url || url.trim() === '') {
-      console.log('This banner does not have a link attached!');
-      return;
-    }
+    if (!url || url.trim() === '') return;
 
     if (url.startsWith('http://') || url.startsWith('https://')) {
       window.open(url, '_blank');
@@ -250,7 +251,6 @@ export class CustomerProduct implements OnInit {
     }
 
     const cleanUrl = url.startsWith('/') ? url : `/${url}`;
-
     this.router.navigateByUrl(cleanUrl).catch(err => {
       console.error('Angular Router navigation error:', err);
     });
@@ -261,11 +261,8 @@ export class CustomerProduct implements OnInit {
     this.bannerService.getActiveBanners().subscribe({
       next: (res) => {
         const banners = Array.isArray(res) ? res : (res.value || res.data);
-
         if (banners && banners.length > 0) {
-
           this.mainBanners = banners.filter((b: any) => b.displayOrder < 10);
-
           this.sideBanners = banners
             .filter((b: any) => b.displayOrder >= 10)
             .sort((a: any, b: any) => a.displayOrder - b.displayOrder);
@@ -279,30 +276,23 @@ export class CustomerProduct implements OnInit {
     });
 
     // 2. Load Sale Products
-    this.productService.getSaleProducts(1,10).subscribe({
+    this.productService.getSaleProducts(1, 10).subscribe({
       next: (res) => {
-        console.log('Data API Sale Products return:', res);
-
         const pagedResult = res.data || res.value;
-
         if (pagedResult && pagedResult.items && pagedResult.items.length > 0) {
           this.saleProducts = pagedResult.items;
-        } else {
-          console.log('No sale items were found in the items section.');
         }
       },
-      /*error: (err) => console.error('Error loading sale products', err)*/
       error: (err) => console.error('Lỗi Sale Products:', err.error?.message || err)
     });
 
     // 3. Load Best Sellers
-    this.productService.getBestSellers(1,10).subscribe({
+    this.productService.getBestSellers(1, 10).subscribe({
       next: (res) => {
         if (res.isSuccess && res.value && res.value.items) {
           this.bestSellerProducts = res.value.items;
         }
       },
-      //error: (err) => console.log('Error loading best sellers', err)
       error: (err) => console.error('Lỗi Best Sellers:', err.error?.message || err)
     });
 
@@ -352,7 +342,6 @@ export class CustomerProduct implements OnInit {
         }
         this.loadProducts();
         this.loading = false;
-
       },
       error: (err) => {
         this.logger.error('Failed to load categories', err);
@@ -366,29 +355,24 @@ export class CustomerProduct implements OnInit {
       next: (res) => {
         if (res.status === 200 && res.data) {
           const pagedResult = res.data;
-
           this.products = pagedResult.items;
-
-          //Pagination
           this.totalPages = pagedResult.totalPages || 0;
           this.totalCount = pagedResult.totalCount || 0;
           this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
         }
       },
       error: (err) => {
-        this.logger.error('Failed to load products, Error: ${err}');
-        Swal.fire('Error', 'Failed to load products', 'error');
+        this.logger.error('Failed to load products', err);
+        Swal.fire(this.translate.instant('COMMON.ERROR'), 'Failed to load products', 'error');
       }
     });
   }
 
   onPageChange(page: number) {
-    if (page < 1 || page > this.totalPages || page === this.currentPage) {
-      return;
-    }
+    if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+
     this.currentPage = page;
 
-    // 1. Chia nhánh gọi data
     if (this.currentListType === 'bestseller') {
       this.loadBestSellersPaged();
     }
@@ -413,13 +397,8 @@ export class CustomerProduct implements OnInit {
   }
 
   getProductImageUrl(imageUrl: string | null): string {
-    if (!imageUrl || imageUrl === 'null') {
-      return this.defaultImage;
-    }
-    if (imageUrl.startsWith('http')) {
-      return imageUrl;
-    }
-
+    if (!imageUrl || imageUrl === 'null') return this.defaultImage;
+    if (imageUrl.startsWith('http')) return imageUrl;
     const cleanPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
     return `${this.baseUrl}${cleanPath}`;
   }
@@ -436,9 +415,9 @@ export class CustomerProduct implements OnInit {
         next: () => {
           Swal.fire({
             icon: 'success',
-            title: 'Added to Cart',
+            title: this.translate.instant('COMMON.SUCCESS') || 'Success',
             heightAuto: false,
-            text: `${product.name} has been added to your cart!`,
+            text: `${product.name} added to cart!`,
             timer: 1500,
             showConfirmButton: false
           });
@@ -453,11 +432,11 @@ export class CustomerProduct implements OnInit {
     else {
       Swal.fire({
         icon: 'warning',
-        title: 'Login Required',
+        title: this.translate.instant('AUTH.LOGIN_TITLE') || 'Login Required',
         text: 'Please log in to continue adding items to your cart!',
         showCancelButton: true,
-        confirmButtonText: 'Login',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: this.translate.instant('NAV.LOGIN') || 'Login',
+        cancelButtonText: this.translate.instant('COMMON.CANCEL') || 'Cancel',
         reverseButtons: true
       }).then((result) => {
         if (result.isConfirmed) {
@@ -487,12 +466,10 @@ export class CustomerProduct implements OnInit {
       .subscribe({
         next: (res) => {
           const pagedResult = res.value;
-
           this.products = pagedResult.items.map((product: any) => ({
             ...product,
             categoryName: this.categoriesMap.get(product.categoryId) || 'N/A',
           }));
-
           this.totalPages = pagedResult.totalPages;
           this.totalCount = pagedResult.totalCount;
         }
@@ -502,6 +479,7 @@ export class CustomerProduct implements OnInit {
   toggleFilter() {
     this.showFilter = !this.showFilter;
   }
+
   applyFilter() {
     this.toggleFilter();
 
@@ -524,14 +502,13 @@ export class CustomerProduct implements OnInit {
         error: (err) => {
           Swal.fire({
             icon: 'error',
-            title: 'Failed',
+            title: this.translate.instant('COMMON.ERROR') || 'Failed',
             text: err.errors || 'Failed to filter products.',
             heightAuto: false,
           });
         }
       });
     }
-
   }
 
   reset() {
@@ -561,7 +538,6 @@ export class CustomerProduct implements OnInit {
     setTimeout(() => {
       const element = document.getElementById('product-grid-section');
       if (element) {
-        
         const headerOffset = 100;
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.scrollY - headerOffset;
@@ -583,17 +559,13 @@ export class CustomerProduct implements OnInit {
 
   loadAllSaleProducts() {
     this.loading = true;
-    // Giả sử ta lấy tối đa 50 món sale để khách xem, bạn có thể chỉnh số này
-    this.productService.getSaleProducts(1,10).subscribe({
+    this.productService.getSaleProducts(1, 10).subscribe({
       next: (res: any) => {
         const pagedResult = res.data || res.value;
         this.products = pagedResult?.items || [];
-
-        // Cập nhật lại số trang (nếu API có trả về phân trang)
         this.totalPages = pagedResult?.totalPages || 1;
         this.totalCount = pagedResult?.totalCount || this.products.length;
         this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
-
         this.loading = false;
         this.scrollToProductGrid();
       },
@@ -606,10 +578,8 @@ export class CustomerProduct implements OnInit {
     this.productService.getBestSellers(this.currentPage, this.pageSize).subscribe({
       next: (res: any) => {
         if (res.isSuccess && res.value) {
-          const pagedResult = res.value; 
-
+          const pagedResult = res.value;
           this.products = pagedResult.items;
-
           this.totalPages = pagedResult.totalPages || 0;
           this.totalCount = pagedResult.totalCount || 0;
           this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
@@ -625,10 +595,8 @@ export class CustomerProduct implements OnInit {
     this.productService.getProductsByCollection(this.currentCollectionId, this.currentPage, this.pageSize).subscribe({
       next: (res: any) => {
         const pagedResult = res.data;
-
         if (pagedResult) {
           this.products = pagedResult.items || [];
-
           this.totalPages = pagedResult.totalPages || 0;
           this.totalCount = pagedResult.totalCount || 0;
           this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
@@ -641,22 +609,17 @@ export class CustomerProduct implements OnInit {
 
   loadHotSalesPaged() {
     this.loading = true;
-
-    // Gọi API lấy danh sách Flash Sale có phân trang
     this.productService.getSaleProducts(this.currentPage, this.pageSize).subscribe({
       next: (res: any) => {
         const pagedResult = res.data || res.value;
-
         if (pagedResult) {
           this.products = (pagedResult.items || []).map((product: any) => ({
             ...product,
             categoryName: this.categoriesMap.get(product.categoryId) || 'N/A',
           }));
-
           this.totalPages = pagedResult.totalPages || 0;
           this.totalCount = pagedResult.totalCount || 0;
           this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
-
           this.scrollToProductGrid();
         }
         this.loading = false;

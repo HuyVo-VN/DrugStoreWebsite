@@ -18,6 +18,8 @@ import { UserService } from '../Services/user';
 import { MatRadioModule } from '@angular/material/radio';
 import { PaymentService } from '../Services/payment.service';
 import { environment } from '../../environments/environment';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { CurrencyConverterPipe } from '../currency-converter.pipe';
 
 
 @Component({
@@ -33,7 +35,9 @@ import { environment } from '../../environments/environment';
     MatButtonModule,
     MatIconModule,
     CurrencyPipe,
-    MatRadioModule
+    MatRadioModule,
+    TranslateModule,
+    CurrencyConverterPipe
   ],
   templateUrl: './product-detail.html',
   styleUrls: ['./product-detail.css'],
@@ -87,6 +91,7 @@ export class ProductDetail implements OnInit {
     private userService: UserService,
     private paymentService: PaymentService,
     private route: ActivatedRoute,
+    private translate: TranslateService
   ) { }
 
   ngOnInit() {
@@ -163,7 +168,7 @@ export class ProductDetail implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        Swal.fire('Error', 'Failed in loading products', 'error');
+        Swal.fire(this.translate.instant('COMMON.ERROR'), 'Failed in loading products', 'error');
         this.loading = false;
       }
     });
@@ -197,8 +202,8 @@ export class ProductDetail implements OnInit {
         title: 'Login Required',
         text: 'Please log in to continue adding items to your cart!',
         showCancelButton: true,
-        confirmButtonText: 'Login',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: this.translate.instant('NAV.LOGIN'),
+        cancelButtonText: this.translate.instant('COMMON.CANCEL'),
         reverseButtons: true
       }).then((result) => {
         if (result.isConfirmed) {
@@ -212,6 +217,7 @@ export class ProductDetail implements OnInit {
     this.calculateTotal();
     this.hasInput = true;
   }
+
   createInstantOrder() {
     if (this.userRole) {
       this.orderService.createInstantOrder(this.totalToPay, this.address, this.phone, this.productId, this.quantity)
@@ -225,7 +231,7 @@ export class ProductDetail implements OnInit {
                 const createdOrderId = response.data?.id || response.value?.id;
 
                 if (!createdOrderId) {
-                  Swal.fire('Error', 'Unable to retrieve the order number to make payment!', 'error');
+                  Swal.fire(this.translate.instant('COMMON.ERROR'), 'Unable to retrieve the order number to make payment!', 'error');
                   return;
                 }
 
@@ -235,7 +241,7 @@ export class ProductDetail implements OnInit {
                       window.location.href = res.url;
                     }
                   },
-                  error: () => Swal.fire('Lỗi', 'Unable to create VNPay payment link', 'error')
+                  error: () => Swal.fire(this.translate.instant('COMMON.ERROR'), 'Unable to create VNPay payment link', 'error')
                 });
 
               }
@@ -247,7 +253,7 @@ export class ProductDetail implements OnInit {
                   heightAuto: false,
                   showConfirmButton: false
                 }).then(() => {
-                  window.location.reload(); 
+                  window.location.reload();
                 });
               }
 
@@ -281,8 +287,8 @@ export class ProductDetail implements OnInit {
         title: 'Login Required',
         text: 'Please log in to continue!',
         showCancelButton: true,
-        confirmButtonText: 'Login',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: this.translate.instant('NAV.LOGIN'),
+        cancelButtonText: this.translate.instant('COMMON.CANCEL'),
         reverseButtons: true
       }).then((result) => {
         if (result.isConfirmed) {
@@ -356,9 +362,9 @@ export class ProductDetail implements OnInit {
 
   showMaxLimitWarning() {
     if (this.max === this.product.stock) {
-      Swal.fire('Sorry', 'Only a limited number of this product left in stock!', 'warning');
+      Swal.fire(this.translate.instant('COMMON.ERROR'), this.translate.instant('CART.QUANTITY_LIMIT'), 'warning');
     } else {
-      Swal.fire('Too late!', 'Only a limited number of Flash Sale slots left!', 'info');
+      Swal.fire(this.translate.instant('COMMON.ERROR'), this.translate.instant('CART.QUANTITY_LIMIT'), 'info');
     }
   }
 

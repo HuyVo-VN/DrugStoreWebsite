@@ -11,12 +11,14 @@ import { UserService } from '../Services/user';
 import { OrderService } from '../Services/order.service';
 import { PaymentService } from '../Services/payment.service';
 import { environment } from '../../environments/environment';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { CurrencyConverterPipe } from '../currency-converter.pipe';
 
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, RouterModule, CurrencyPipe, FormsModule, MatRadioModule],
+  imports: [CommonModule, RouterModule, TranslateModule, CurrencyConverterPipe, FormsModule, MatRadioModule],
   templateUrl: './cart.html',
   styleUrl: './cart.css'
 })
@@ -25,7 +27,7 @@ export class Cart implements OnInit {
   grandTotal: number = 0;
   isAllSelected: boolean = true;
 
-  originalTotal: number = 0;   
+  originalTotal: number = 0;
   saleDiscountTotal: number = 0;
 
   phone: string = '';
@@ -50,7 +52,8 @@ export class Cart implements OnInit {
     private authService: AuthService,
     private userService: UserService,
     private orderService: OrderService,
-    private paymentService: PaymentService
+    private paymentService: PaymentService,
+    private translate: TranslateService
   ) { }
 
   ngOnInit() {
@@ -160,9 +163,9 @@ export class Cart implements OnInit {
     const maxAllowed = this.getMaxAllowed(item);
     if (item.quantity >= maxAllowed) {
       if (maxAllowed === item.stock) {
-        Swal.fire('Sorry', 'Only ${maxAllowed} products left in stock!', 'warning');
+        Swal.fire(this.translate.instant('COMMON.ERROR'), this.translate.instant('CART.QUANTITY_LIMIT'), 'warning');
       } else {
-        Swal.fire('You are too late', `Only ${maxAllowed} Flash Sale slots left!`, 'info');
+        Swal.fire(this.translate.instant('COMMON.ERROR'), this.translate.instant('CART.QUANTITY_LIMIT'), 'info');
       }
       return;
     }
@@ -183,6 +186,7 @@ export class Cart implements OnInit {
     }
     this.calculateTotal();
   }
+
   onQtyChange(event: any, item: any) {
     let newValue = parseInt(event.target.value);
 
@@ -194,9 +198,9 @@ export class Cart implements OnInit {
     const maxAllowed = this.getMaxAllowed(item);
     if (newValue > maxAllowed) {
       if (maxAllowed === item.stock) {
-        Swal.fire('Sorry', 'Only ${maxAllowed} products left in stock!', 'warning');
+        Swal.fire(this.translate.instant('COMMON.ERROR'), this.translate.instant('CART.QUANTITY_LIMIT'), 'warning');
       } else {
-        Swal.fire('You are too late!', 'Only ${ maxAllowed } Flash Sale slots left!', 'info');
+        Swal.fire(this.translate.instant('COMMON.ERROR'), this.translate.instant('CART.QUANTITY_LIMIT'), 'info');
       }
       newValue = maxAllowed;
       event.target.value = newValue;
@@ -214,8 +218,8 @@ export class Cart implements OnInit {
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: this.translate.instant('COMMON.YES'),
+      cancelButtonText: this.translate.instant('COMMON.CANCEL'),
     }).then((result) => {
       if (result.isConfirmed) {
         this.cartService.removeFromCart(item.itemId)
@@ -290,9 +294,6 @@ export class Cart implements OnInit {
     this.orderService.createOrder(this.totalToPay, this.address, this.phone, selectedItems)
       .subscribe({
         next: (response: any) => {
-          // GHI CHÚ: Hãy đảm bảo API createOrder của bạn có trả về thông tin đơn hàng vừa tạo (đặc biệt là ID)
-          // Thường nó sẽ nằm ở response.data.id hoặc response.value.id
-
           if (response.status === 0 || response.status === 200) {
 
             if (this.paymentMethod === 'ATM') {
@@ -310,12 +311,10 @@ export class Cart implements OnInit {
                     const deleteCalls = selectedItems.map(item => this.cartService.removeFromCart(item.itemId));
 
                     Promise.all(deleteCalls.map(obs => obs.toPromise())).then(() => {
-                      window.location.href = res.url; 
+                      window.location.href = res.url;
                     }).catch(() => {
                       window.location.href = res.url;
                     });
-                    // -------------------------------------------------------------------
-
                   }
                 },
                 error: () => Swal.fire('Error', 'Unable to create VNPay payment link', 'error')
@@ -352,7 +351,7 @@ export class Cart implements OnInit {
       const now = new Date().getTime();
       const endDate = new Date(item.discountEndDate).getTime();
 
-      if (endDate > now) { 
+      if (endDate > now) {
         const remainingSale = (item.saleStock || 0) - (item.saleSold || 0);
         if (remainingSale >= 0 && remainingSale < maxAllowed) {
           maxAllowed = remainingSale;
@@ -373,4 +372,3 @@ export class Cart implements OnInit {
   }
 
 }
-

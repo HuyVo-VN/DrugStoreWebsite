@@ -4,10 +4,11 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../Services/auth.service';
 import { UserService } from '../Services/user';
 import { AppRoles } from '../enums/role.enums';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-footer',
-  imports: [RouterModule, CommonModule],
+  imports: [RouterModule, CommonModule, TranslateModule],
   templateUrl: './footer.html',
   styleUrl: './footer.css'
 })

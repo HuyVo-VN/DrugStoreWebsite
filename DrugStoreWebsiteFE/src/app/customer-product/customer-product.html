@@ -2,9 +2,7 @@
   <div class="shop-container">
 
     <div class="hero-section" *ngIf="!isSearchOrFilterActive">
-
       <div class="hero-top-wrapper">
-
         <div class="hero-main-slider" (mouseenter)="pauseBannerSlide()" (mouseleave)="startBannerSlide()">
           <div class="slider-inner" [style.transform]="'translateX(-' + currentBannerIndex * 100 + '%)'">
             <img *ngFor="let banner of mainBanners"
@@ -13,36 +11,27 @@
                  class="slider-img" alt="Promo Banner"
                  onerror="this.src='/images/default-banner.png';">
           </div>
-
           <button class="slider-nav-btn prev" (click)="prevBanner()">&#10094;</button>
           <button class="slider-nav-btn next" (click)="nextBanner()">&#10095;</button>
-
           <div class="slider-dots">
             <span class="dot" *ngFor="let banner of mainBanners; let i = index"
-                  [class.active]="i === currentBannerIndex"
-                  (click)="goToBanner(i)"></span>
+                  [class.active]="i === currentBannerIndex" (click)="goToBanner(i)"></span>
           </div>
         </div>
-
         <div class="hero-side-banners">
           <div class="side-banner-item" *ngFor="let side of sideBanners" (click)="navigateToAction(side.targetUrl)">
-            <img [src]="getProductImageUrl(side.imageUrl)"
-                 alt="Side Promo"
-                 class="side-img"
+            <img [src]="getProductImageUrl(side.imageUrl)" alt="Side Promo" class="side-img"
                  onerror="this.src='/images/default-banner.png';">
           </div>
         </div>
-
       </div>
-
     </div>
 
     <div class="flash-sale-section" *ngIf="saleProducts.length > 0 && !isSearchOrFilterActive">
-
       <div class="flash-sale-header">
         <div class="fs-title-wrapper">
           <i class="fa-solid fa-bolt fs-icon"></i>
-          <h2 class="fs-title">HOT SALE TODAY</h2>
+          <h2 class="fs-title">{{ 'SALE.HOT_SALE' | translate }}</h2>
           <div class="fs-countdown">
             <span class="time-box">{{ fsHours }}</span> :
             <span class="time-box">{{ fsMinutes }}</span> :
@@ -50,68 +39,55 @@
           </div>
         </div>
         <a class="fs-view-all" [routerLink]="['/']" [queryParams]="{ type: 'hotsale' }">
-          View All<i class="fa-solid fa-chevron-right"></i>
+          {{ 'COMMON.VIEW_ALL' | translate }}<i class="fa-solid fa-chevron-right"></i>
         </a>
       </div>
-
       <div class="flash-sale-list">
         <div class="fs-card" *ngFor="let item of saleProducts" (click)="goToProductDetails(item.id)">
-
           <div class="fs-badge">-{{ item.discountPercent }}%</div>
-
           <div class="fs-img-wrapper">
-            <img [src]="getProductImageUrl(item.imageUrl)" alt="{{ item.name }}" class="fs-img" onerror="this.src='/images/default-product.png';">
+            <img [src]="getProductImageUrl(item.imageUrl)" alt="{{ item.name }}" class="fs-img"
+                 onerror="this.src='/images/default-product.png';">
           </div>
-
           <div class="fs-info">
             <h3 class="fs-name" title="{{ item.name }}">{{ item.name }}</h3>
             <div class="fs-price-row">
-              <span class="fs-current-price">{{ item.price - (item.price * (item.discountPercent || 0) / 100) | currency : 'USD' : 'symbol' : '1.0-2' }}</span>
-              <span class="fs-original-price">{{ item.price | currency : 'USD' : 'symbol' : '1.0-2' }}</span>
+              <span class="fs-current-price">{{ item.price - (item.price * (item.discountPercent || 0) / 100) | currencyConvert }}</span>
+              <span class="fs-original-price">{{ item.price | currencyConvert }}</span>
             </div>
-
             <div class="fs-progress-bar">
               <div class="fs-progress-fill" [style.width.%]="getSoldPercent(item.saleSold, item.saleStock)"></div>
-              <span class="fs-progress-text">Sold {{ item.saleSold }} / {{ item.saleStock }}</span>
+              <span class="fs-progress-text">{{ 'PRODUCT.SOLD' | translate }} {{ item.saleSold }} / {{ item.saleStock }}</span>
             </div>
           </div>
-
         </div>
       </div>
-
     </div>
 
     <div class="best-seller-section" *ngIf="bestSellerProducts.length > 0 && !isSearchOrFilterActive">
-
       <div class="bs-header">
-        <h2 class="bs-title"><i class="fa-solid fa-fire-flame-curved has-text-warning"></i> BEST SELLER</h2>
+        <h2 class="bs-title"><i class="fa-solid fa-fire-flame-curved has-text-warning"></i> {{ 'SALE.BEST_SELLER' | translate }}</h2>
       </div>
-
       <div class="bs-list">
         <div class="bs-card" *ngFor="let item of bestSellerProducts; let i = index" (click)="goToProductDetails(item.id)">
-
-          <div class="bs-rank-badge" [ngClass]="'rank-' + (i + 1)">
-            TOP {{ i + 1 }}
-          </div>
-
+          <div class="bs-rank-badge" [ngClass]="'rank-' + (i + 1)">TOP {{ i + 1 }}</div>
           <div class="bs-img-wrapper">
-            <img [src]="getProductImageUrl(item.imageUrl)" alt="{{ item.name }}" class="bs-img" onerror="this.src='/images/default-product.png';">
+            <img [src]="getProductImageUrl(item.imageUrl)" alt="{{ item.name }}" class="bs-img"
+                 onerror="this.src='/images/default-product.png';">
           </div>
-
           <div class="bs-info">
             <h3 class="bs-name" title="{{ item.name }}">{{ item.name }}</h3>
             <div class="bs-price-row" style="margin: 5px 0;">
               <ng-container *ngIf="isSaleActive(item)">
                 <span class="fs-current-price" style="color: #ff424e; font-weight: bold;">
-                  {{ item.price - (item.price * item.discountPercent / 100) | currency : 'USD' : 'symbol' : '1.0-2' }}
+                  {{ item.price - (item.price * item.discountPercent / 100) | currencyConvert }}
                 </span>
                 <span class="fs-original-price" style="text-decoration: line-through; color: #999; font-size: 0.85rem; margin-left: 5px;">
-                  {{ item.price | currency : 'USD' : 'symbol' : '1.0-2' }}
+                  {{ item.price | currencyConvert }}
                 </span>
               </ng-container>
-
               <ng-container *ngIf="!isSaleActive(item)">
-                <p class="bs-price" style="margin: 0;">{{ item.price | currency : 'USD' : 'symbol' : '1.0-2' }}</p>
+                <p class="bs-price" style="margin: 0;">{{ item.price | currencyConvert }}</p>
               </ng-container>
             </div>
             <div class="bs-meta">
@@ -119,69 +95,57 @@
                 <i class="fa-solid fa-star"></i> {{ item.rating }}
                 <span class="bs-review-count">({{ item.reviewCount }})</span>
               </div>
-              <div class="bs-sold">Sold {{ (item.soldQuantity > 1000) ? (item.soldQuantity/1000 | number:'1.1-1') + 'k' : item.soldQuantity }}</div>
+              <div class="bs-sold">{{ 'PRODUCT.SOLD' | translate }} {{ (item.soldQuantity > 1000) ? (item.soldQuantity/1000 | number:'1.1-1') + 'k' : item.soldQuantity }}</div>
             </div>
           </div>
-
         </div>
       </div>
-
     </div>
 
     <ng-container *ngIf="homepageCollections.length > 0 && !isSearchOrFilterActive">
-
       <div class="family-cabinet-section" *ngFor="let collection of homepageCollections">
-
         <div class="fc-header">
           <h2 class="fc-title">
             <i class="fa-solid fa-layer-group fc-icon"></i>
             {{ collection.name | uppercase }}
           </h2>
           <a class="fc-view-all" [routerLink]="['/']" [queryParams]="{ collectionId: collection.id }">
-            View All <i class="fa-solid fa-arrow-right"></i>
+            {{ 'COMMON.VIEW_ALL' | translate }} <i class="fa-solid fa-arrow-right"></i>
           </a>
         </div>
-
         <div class="fc-list">
           <div class="fc-card" *ngFor="let item of collection.products" (click)="goToProductDetails(item.id)">
-
             <div class="fc-img-wrapper">
-              <img [src]="getProductImageUrl(item.imageUrl)" alt="{{ item.name }}" class="fc-img" onerror="this.src='/images/default-product.png';">
+              <img [src]="getProductImageUrl(item.imageUrl)" alt="{{ item.name }}" class="fc-img"
+                   onerror="this.src='/images/default-product.png';">
             </div>
-
             <div class="fc-info">
               <h3 class="fc-name" title="{{ item.name }}">{{ item.name }}</h3>
-
               <div class="fc-price-row" style="margin: 5px 0;">
                 <ng-container *ngIf="isSaleActive(item)">
                   <span class="fs-current-price" style="color: #ff424e; font-weight: bold;">
-                    {{ item.price - (item.price * item.discountPercent / 100) | currency : 'USD' : 'symbol' : '1.0-2' }}
+                    {{ item.price - (item.price * item.discountPercent / 100) | currencyConvert }}
                   </span>
                   <span class="fs-original-price" style="text-decoration: line-through; color: #999; font-size: 0.85rem; margin-left: 5px;">
-                    {{ item.price | currency : 'USD' : 'symbol' : '1.0-2' }}
+                    {{ item.price | currencyConvert }}
                   </span>
                 </ng-container>
-
                 <ng-container *ngIf="!isSaleActive(item)">
-                  <p class="fc-price" style="margin: 0; font-weight: bold; color: #008cef;">{{ item.price | currency : 'USD' : 'symbol' : '1.0-2' }}</p>
+                  <p class="fc-price" style="margin: 0; font-weight: bold; color: #008cef;">{{ item.price | currencyConvert }}</p>
                 </ng-container>
               </div>
-
               <div class="fc-meta">
                 <div class="fc-rating">
                   <i class="fa-solid fa-star"></i> {{ item.rating || 5.0 }}
                 </div>
                 <button class="fc-add-btn" (click)="$event.stopPropagation(); addToCart($event, item)">
-                  <i class="fa-solid fa-cart-plus"></i> Add
+                  <i class="fa-solid fa-cart-plus"></i> {{ 'PRODUCT.ADD_TO_CART' | translate }}
                 </button>
               </div>
             </div>
-
           </div>
         </div>
-
       </div>
-
     </ng-container>
 
     <div id="product-grid-section" class="product-grid" *ngIf="products.length > 0; else noData">
@@ -190,104 +154,71 @@
           <img [src]="getProductImageUrl(product.imageUrl)" alt="{{ product.name }}" class="card-image"
                onerror="this.src='/images/default-product.png';" />
         </div>
-
         <div class="card-content">
-          <h3 class="product-name" title="{{ product.name }}">
-            {{ product.name }}
-          </h3>
-
+          <h3 class="product-name" title="{{ product.name }}">{{ product.name }}</h3>
           <div class="price-wrapper" style="margin-top: 5px;">
-
             <ng-container *ngIf="isSaleActive(product)">
               <span class="fs-current-price" style="color: #ff424e; font-weight: bold; font-size: 1.1rem;">
-                {{ product.price - (product.price * product.discountPercent / 100) | currency : 'USD' : 'symbol' : '1.0-2' }}
+                {{ product.price - (product.price * product.discountPercent / 100) | currencyConvert }}
               </span>
               <span class="fs-original-price" style="text-decoration: line-through; color: #999; font-size: 0.9rem; margin-left: 8px;">
-                {{ product.price | currency : 'USD' : 'symbol' : '1.0-2' }}
+                {{ product.price | currencyConvert }}
               </span>
             </ng-container>
-
             <ng-container *ngIf="!isSaleActive(product)">
               <p class="product-price" style="margin: 0; color: #008cef; font-weight: bold; font-size: 1.1rem;">
-                {{ product.price | currency : 'USD' : 'symbol' : '1.0-2' }}
+                {{ product.price | currencyConvert }}
               </p>
             </ng-container>
-
           </div>
         </div>
-
         <div *ngIf="product.isActive && product.categoryIsActive && product.stock > 0" class="card-footer">
           <button class="add-to-cart-btn" (click)="addToCart($event, product)">
-            <i class="fas fa-cart-plus"></i> Add to cart
+            <i class="fas fa-cart-plus"></i> {{ 'PRODUCT.ADD_TO_CART' | translate }}
           </button>
         </div>
-
         <div *ngIf="!product.isActive || !product.categoryIsActive" class="card-footer">
-          <button class="soldout-btn" disabled> Suspend business</button>
+          <button class="soldout-btn" disabled>{{ 'PRODUCT.SUSPEND' | translate }}</button>
         </div>
-
         <div *ngIf="product.isActive && product.categoryIsActive && product.stock <= 0" class="card-footer">
-          <button class="soldout-btn" disabled> Out of stock </button>
+          <button class="soldout-btn" disabled>{{ 'PRODUCT.OUT_OF_STOCK' | translate }}</button>
         </div>
       </div>
     </div>
 
     <div class="shop-pagination" *ngIf="totalPages > 1">
-      <button class="page-btn prev-next" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">
-        &laquo; Prev
-      </button>
-
-      <button *ngFor="let p of pages" class="page-btn number" [class.active]="p === currentPage"
-              (click)="onPageChange(p)">
-        {{ p }}
-      </button>
-
-      <button class="page-btn prev-next" (click)="onPageChange(currentPage + 1)"
-              [disabled]="currentPage === totalPages">
-        Next &raquo;
-      </button>
-
-
-
+      <button class="page-btn prev-next" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">&laquo; Prev</button>
+      <button *ngFor="let p of pages" class="page-btn number" [class.active]="p === currentPage" (click)="onPageChange(p)">{{ p }}</button>
+      <button class="page-btn prev-next" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages">Next &raquo;</button>
     </div>
     <div class="shop-pagination-line"></div>
+
     <ng-template #noData>
-      <div class="no-data">
-        <p>There is nothing now!</p>
-      </div>
+      <div class="no-data"><p>{{ 'PRODUCT.NO_DATA' | translate }}</p></div>
     </ng-template>
   </div>
 </div>
 
 <div class="shop-filter-panel" [class.show]="showFilter">
-
   <div class="shop-filter-content">
-
-    <h3 style="margin-bottom: 10px;">Filter by</h3>
-
+    <h3 style="margin-bottom: 10px;">{{ 'COMMON.FILTER_BY' | translate }}</h3>
     <mat-form-field style="width: 358px;">
-      <mat-label>Category</mat-label>
+      <mat-label>{{ 'PRODUCT.CATEGORY' | translate }}</mat-label>
       <mat-select [(ngModel)]="selectedCategoryId">
         @for (category of categories; track category) {
         <mat-option [value]="category.value">{{category.viewValue}}</mat-option>
         }
       </mat-select>
     </mat-form-field>
-
-
-    <h4 style="margin-bottom: 5px;">Price</h4>
-
+    <h4 style="margin-bottom: 5px;">{{ 'PRODUCT.PRICE' | translate }}</h4>
     <div class="shop-price-row">
-      <input type="text" class="shop-input" placeholder="Min price" [(ngModel)]="minPrice">
+      <input type="text" class="shop-input" [placeholder]="'Min'" [(ngModel)]="minPrice">
       <span style="margin: 0 5px;">-</span>
-      <input type="text" class="shop-input" placeholder="Max price" [(ngModel)]="maxPrice">
+      <input type="text" class="shop-input" [placeholder]="'Max'" [(ngModel)]="maxPrice">
     </div>
-
   </div>
-
   <div class="shop-filter-footer">
-    <button type="button" class="shop-button-reset" (click)="reset()">Reset</button>
-    <button type="button" class="shop-button-apply" (click)="applyFilter()">Apply</button>
+    <button type="button" class="shop-button-reset" (click)="reset()">{{ 'COMMON.RESET' | translate }}</button>
+    <button type="button" class="shop-button-apply" (click)="applyFilter()">{{ 'COMMON.APPLY' | translate }}</button>
   </div>
-
 </div>

@@ -8,12 +8,14 @@ import { CartService } from '../Services/cart.service';
 import { AppRoles } from '../enums/role.enums';
 import { AuthService } from '../Services/auth.service';
 import { environment } from '../../environments/environment';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { CurrencyConverterPipe } from '../currency-converter.pipe';
 
 
 @Component({
   selector: 'app-order-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, CurrencyPipe, DatePipe],
+  imports: [CommonModule, RouterModule, TranslateModule, CurrencyConverterPipe, DatePipe],
   templateUrl: './order-details.html',
   styleUrls: ['./order-details.css']
 })
@@ -37,8 +39,9 @@ export class OrderDetails implements OnInit {
     private location: Location,
     private logger: LoggerService,
     private cartService: CartService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private translate: TranslateService
+  ) { }
 
   ngOnInit() {
 
@@ -60,7 +63,7 @@ export class OrderDetails implements OnInit {
           this.order = res.data;
           this.calculateFinancials();
         } else {
-          Swal.fire('Error', 'Can not find order', 'error');
+          Swal.fire(this.translate.instant('COMMON.ERROR') || 'Error', 'Cannot find order', 'error');
           this.goBack();
         }
         this.isLoading = false;
@@ -68,9 +71,9 @@ export class OrderDetails implements OnInit {
       error: (err) => {
         this.logger.error(err);
         if (err.status === 403) {
-            Swal.fire('Forbiden', 'Permision denied', 'error');
+          Swal.fire('Forbidden', 'Permission denied', 'error');
         } else {
-            Swal.fire('Error', 'Can not load Order Details', 'error');
+          Swal.fire(this.translate.instant('COMMON.ERROR') || 'Error', 'Cannot load Order Details', 'error');
         }
         this.isLoading = false;
         this.goBack();
@@ -94,14 +97,14 @@ export class OrderDetails implements OnInit {
 
   reOrder() {
     Swal.fire({
-      title: 'Repurchase Order?',
+      title: this.translate.instant('ORDER.REPURCHASE') || 'Repurchase Order?',
       text: "Items from this order will be added to your shopping cart.",
       icon: 'question',
       showCancelButton: true,
       heightAuto: false,
       confirmButtonColor: '#b1f033ff',
-      confirmButtonText: 'Confirm',
-      cancelButtonText: 'Cancel'
+      confirmButtonText: this.translate.instant('COMMON.CONFIRM') || 'Confirm',
+      cancelButtonText: this.translate.instant('COMMON.CANCEL') || 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
         let successCount = 0;
@@ -109,16 +112,16 @@ export class OrderDetails implements OnInit {
 
         items.forEach((item: any) => {
 
-            this.cartService.addToCart(item.productId, item.quantity).subscribe({
-                next: () => successCount++,
-                error: () => this.logger.error('Erorr when add ' + item.productName)
-            });
+          this.cartService.addToCart(item.productId, item.quantity).subscribe({
+            next: () => successCount++,
+            error: () => this.logger.error('Error when add ' + item.productName)
+          });
         });
 
         setTimeout(() => {
-            Swal.fire('Successfully', 'Item had been added to your cart.', 'success').then(() => {
-                this.router.navigate(['/cart']);
-            });
+          Swal.fire(this.translate.instant('COMMON.SUCCESS') || 'Successfully', 'Items have been added to your cart.', 'success').then(() => {
+            this.router.navigate(['/cart']);
+          });
         }, 1000);
       }
     });

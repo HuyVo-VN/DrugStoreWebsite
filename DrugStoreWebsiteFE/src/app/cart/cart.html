@@ -1,5 +1,5 @@
 <div class="cart-container">
-  <h2 class="cart-title">Your Cart <span>({{ cartItems.length }} Items)</span></h2>
+  <h2 class="cart-title">{{ 'CART.TITLE' | translate }} <span>({{ cartItems.length }} {{ 'CART.ITEMS' | translate }})</span></h2>
 
   <div class="cart-content-wrapper" *ngIf="cartItems.length > 0; else emptyCart">
 
@@ -9,10 +9,10 @@
         <div class="col-checkbox">
           <input type="checkbox" [(ngModel)]="isAllSelected" (change)="toggleAll()">
         </div>
-        <div class="col-product">Items</div>
-        <div class="col-price">Price</div>
-        <div class="col-quantity">Quantity</div>
-        <div class="col-total">Total</div>
+        <div class="col-product">{{ 'CART.ITEMS' | translate }}</div>
+        <div class="col-price">{{ 'PRODUCT.PRICE' | translate }}</div>
+        <div class="col-quantity">{{ 'PRODUCT.QUANTITY' | translate }}</div>
+        <div class="col-total">{{ 'CART.TOTAL' | translate }}</div>
         <div class="col-action"><i class="fa-solid fa-trash-can"></i></div>
       </div>
 
@@ -27,9 +27,7 @@
             <img [src]="getProductImageUrl(item.productImage)" alt="{{ item.productName }}" class="product-img"
                  onerror="this.src='/images/default-product.png';">
             <div *ngIf="!item.isAvailable" class="sold-out-badge">
-              {{
- item.stock === 0 ? 'Sold out' : 'Suspend business'
-              }}
+              {{ item.stock === 0 ? ('CART.SOLD_OUT' | translate) : ('PRODUCT.SUSPEND' | translate) }}
             </div>
           </div>
 
@@ -38,16 +36,16 @@
 
             <div *ngIf="item.isAvailable">
               <span class="status-text text-green" *ngIf="item.quantity < item.stock">
-                Available
+                {{ 'CART.AVAILABLE' | translate }}
               </span>
               <span class="status-text text-red" *ngIf="item.quantity >= item.stock">
-                Quantity limit reached
+                {{ 'CART.QUANTITY_LIMIT' | translate }}
               </span>
             </div>
 
             <div *ngIf="!item.isAvailable">
               <span class="status-text text-red font-bold">
-                {{ item.stock === 0 ? 'Sold out' : 'Suspend business' }}
+                {{ item.stock === 0 ? ('CART.SOLD_OUT' | translate) : ('PRODUCT.SUSPEND' | translate) }}
               </span>
             </div>
           </div>
@@ -57,18 +55,18 @@
           <ng-container *ngIf="isSaleActive(item)">
             <div style="display: flex; flex-direction: column; align-items: center;">
               <span class="current-price" style="color: #ff424e; font-weight: bold;">
-                {{ item.price - (item.price * item.discountPercent / 100) | currency:'USD':'symbol':'1.0-2' }}
+                {{ item.price - (item.price * item.discountPercent / 100) | currencyConvert }}
               </span>
               <span style="text-decoration: line-through; color: #999; font-size: 0.85em;">
-                {{ item.price | currency:'USD':'symbol':'1.0-2' }}
+                {{ item.price | currencyConvert }}
               </span>
             </div>
           </ng-container>
           <ng-container *ngIf="!isSaleActive(item)">
-            <span class="current-price">{{ item.price | currency:'USD':'symbol':'1.0-2' }}</span>
+            <span class="current-price">{{ item.price | currencyConvert }}</span>
           </ng-container>
         </div>
-        
+
         <div class="col-quantity">
           <div class="quantity-box" [class.disabled-box]="!item.isAvailable">
             <button (click)="decreaseQty(item)" [disabled]="!item.isAvailable"> - </button>
@@ -79,7 +77,7 @@
 
         <div class="col-total">
           <span class="item-total-price" style="font-weight: bold; color: #ff424e;">
-            {{ (isSaleActive(item) ? (item.price - (item.price * item.discountPercent / 100)) : item.price) * item.quantity | currency:'USD':'symbol':'1.0-2' }}
+            {{ (isSaleActive(item) ? (item.price - (item.price * item.discountPercent / 100)) : item.price) * item.quantity | currencyConvert }}
           </span>
         </div>
 
@@ -94,17 +92,17 @@
     <div class="cart-right">
       <div class="summary-box price-summary">
 
-        <h3>Shipping Details</h3>
+        <h3>{{ 'CART.SHIPPING_DETAILS' | translate }}</h3>
         <form #shippingDetailsForm="ngForm">
           <div class="row">
 
             <div class="shipping-phone-container">
               <label class="input-title" for="phone-input">
-                Phone Number <span class="required-star">*</span>
+                {{ 'CART.PHONE_NUMBER' | translate }} <span class="required-star">*</span>
               </label>
 
               <input id="phone-input" class="placeholder-input" placeholder="+61 0132345678" [(ngModel)]="phone"
-                name="phone" required minlength="10" maxlength="15" pattern="^[0-9]+$" #phoneCtrl="ngModel" />
+                     name="phone" required minlength="10" maxlength="15" pattern="^[0-9]+$" #phoneCtrl="ngModel" />
 
               <div class="error" *ngIf="phoneCtrl.invalid && phoneCtrl.touched">
                 <p *ngIf="phoneCtrl.errors?.['required']">Phone number is required.</p>
@@ -117,12 +115,12 @@
 
             <div class="shipping-address-container">
               <label class="input-title" for="address-input">
-                Full Address <span class="required-star">*</span>
+                {{ 'CART.FULL_ADDRESS' | translate }} <span class="required-star">*</span>
               </label>
 
               <textarea id="address-input" class="placeholder-input"
-                placeholder="Street, City, State/Province, Zip Code" rows="3" [(ngModel)]="address" name="address"
-                required minlength="5" maxlength="100" #addressCtrl="ngModel"></textarea>
+                        placeholder="Street, City, State/Province, Zip Code" rows="3" [(ngModel)]="address" name="address"
+                        required minlength="5" maxlength="100" #addressCtrl="ngModel"></textarea>
 
               <div class="error" *ngIf="addressCtrl.invalid && addressCtrl.touched">
                 <p *ngIf="addressCtrl.errors?.['required']">Address is required.</p>
@@ -139,52 +137,52 @@
 
         <div class="summary-divider"></div>
 
-        <span>Order Summary</span>
+        <span>{{ 'CART.ORDER_SUMMARY' | translate }}</span>
         <div class="summary-row">
-          <span>Cart Total (Original)</span>
-          <span>{{ originalTotal | currency:'USD':'symbol':'1.0-2' }}</span>
+          <span>{{ 'CART.CART_TOTAL_ORIGINAL' | translate }}</span>
+          <span>{{ originalTotal | currencyConvert }}</span>
         </div>
         <div class="summary-row" *ngIf="saleDiscountTotal > 0" style="color: #28a745; font-weight: 500;">
-          <span>Sale Discount</span>
-          <span>- {{ saleDiscountTotal | currency:'USD':'symbol':'1.0-2' }}</span>
+          <span>{{ 'CART.SALE_DISCOUNT' | translate }}</span>
+          <span>- {{ saleDiscountTotal | currencyConvert }}</span>
         </div>
         <div class="summary-divider"></div>
         <div>
-          <span>Payment Type</span>
+          <span>{{ 'CART.PAYMENT_TYPE' | translate }}</span>
           <br>
           <mat-radio-group aria-label="Select payment method" class="cart-payment-container" [(ngModel)]="paymentMethod"
                            (ngModelChange)="onPaymentChange($event)">
             <div class="payment-option">
-              <span><i class="fa-solid fa-money-bill-1-wave" style="color: #15da36;"></i> Cash</span>
+              <span><i class="fa-solid fa-money-bill-1-wave" style="color: #15da36;"></i> {{ 'PAYMENT.CASH' | translate }}</span>
               <mat-radio-button value="Cash"></mat-radio-button>
             </div>
 
             <div class="payment-option">
-              <span><i class="fa-solid fa-credit-card" style="color: #0b25b6;"></i> ATM</span>
+              <span><i class="fa-solid fa-credit-card" style="color: #0b25b6;"></i> {{ 'PAYMENT.ATM' | translate }}</span>
               <mat-radio-button value="ATM"></mat-radio-button>
             </div>
           </mat-radio-group>
         </div>
         <div class="summary-row" *ngIf="discountAmount > 0" style="color: #28a745; font-weight: 500;">
-          <span>ATM Discount (3%)</span>
-          <span>- {{ discountAmount | currency:'USD':'symbol':'1.0-2' }}</span>
+          <span>{{ 'CART.ATM_DISCOUNT' | translate }}</span>
+          <span>- {{ discountAmount | currencyConvert }}</span>
         </div>
         <div class="summary-divider"></div>
         <div class="summary-row" *ngIf="originalTotal !== 0">
-          <span>Shipping fee</span>
-          <span>{{ fee | currency:'USD':'symbol':'1.0-2' }}</span>
+          <span>{{ 'CART.SHIPPING_FEE' | translate }}</span>
+          <span>{{ fee | currencyConvert }}</span>
         </div>
         <div class="summary-row total-row" *ngIf="originalTotal !== 0">
-          <span>To Pay</span>
-          <span class="final-price">{{ totalToPay | currency:'USD':'symbol':'1.0-2' }}</span>
+          <span>{{ 'CART.TO_PAY' | translate }}</span>
+          <span class="final-price">{{ totalToPay | currencyConvert }}</span>
         </div>
-        <p class="vat-note">(VAT included where applicable)</p>
+        <p class="vat-note">{{ 'CART.VAT_NOTE' | translate }}</p>
       </div>
 
 
       <button type="submit" class="checkout-btn" [disabled]="grandTotal === 0 || !shippingDetailsForm.valid "
-        [class.disabled]="grandTotal === 0 || !shippingDetailsForm.valid" (click)="createOrder()">
-        Proceed
+              [class.disabled]="grandTotal === 0 || !shippingDetailsForm.valid" (click)="createOrder()">
+        {{ 'CART.CHECKOUT' | translate }}
       </button>
     </div>
   </div>
@@ -193,8 +191,8 @@
   <ng-template #emptyCart>
     <div class="empty-cart-container">
       <img src="/images/empty-cart.png" alt="Empty Cart" class="empty-img" onerror="this.style.display='none'">
-      <p>Your cart is empty!</p>
-      <a routerLink="/" class="continue-shopping-btn">Continue Shopping</a>
+      <p>{{ 'CART.EMPTY' | translate }}</p>
+      <a routerLink="/" class="continue-shopping-btn">{{ 'CART.CONTINUE_SHOPPING' | translate }}</a>
     </div>
   </ng-template>
 

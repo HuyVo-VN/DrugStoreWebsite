@@ -1,5 +1,5 @@
 <div class="product-detail-home-link">
-  <a routerLink="/"><i class="fa-solid fa-house"></i> Home </a> / {{product?.name}}
+  <a routerLink="/"><i class="fa-solid fa-house"></i> {{ 'NAV.HOME' | translate }} </a> / {{product?.name}}
 </div>
 
 <div id="product-detail-container">
@@ -20,26 +20,26 @@
 
         <ng-container *ngIf="isSaleActive(product)">
           <span class="sale-price">
-            {{ product.price - (product.price * product.discountPercent / 100) | currency:'USD':'symbol':'1.0-2' }}
+            {{ product.price - (product.price * product.discountPercent / 100) | currencyConvert }}
           </span>
           <span class="original-price">
-            {{ product.price | currency:'USD':'symbol':'1.0-2' }}
+            {{ product.price | currencyConvert }}
           </span>
           <span class="sale-badge">
-            SALE OFF {{ product.discountPercent }}%
+            {{ 'SALE.SALE_OFF' | translate }} {{ product.discountPercent }}%
           </span>
         </ng-container>
 
         <ng-container *ngIf="!isSaleActive(product)">
           <span class="normal-price">
-            {{ product.price | currency:'USD':'symbol':'1.0-2' }}
+            {{ product.price | currencyConvert }}
           </span>
         </ng-container>
       </div>
 
-      <p><i class="fa fa-star product-feature-icon"></i>100% Genuine Products</p>
-      <p><i class="fa fa-star product-feature-icon"></i>Delivery within 24H: Free shipping for orders from $5</p>
-      <p><i class="fa fa-star product-feature-icon"></i>Fast 2H Delivery: Free shipping for orders from $5</p>
+      <p><i class="fa fa-star product-feature-icon"></i>{{ 'PRODUCT.GENUINE' | translate }}</p>
+      <p><i class="fa fa-star product-feature-icon"></i>{{ 'PRODUCT.DELIVERY_24H' | translate }}</p>
+      <p><i class="fa fa-star product-feature-icon"></i>{{ 'PRODUCT.FAST_DELIVERY' | translate }}</p>
 
       <div *ngIf="product.isActive && product.categoryIsActive && product.stock > 0"
            class="product-quantity-section">
@@ -48,16 +48,16 @@
           <input type="number" [(ngModel)]="quantity" (ngModelChange)="onInputChange()" [min]="min" [max]="max">
           <button (click)="increase()">+</button>
         </div>
-        <p class="product-quantity-text">Quantity: {{quantity}}</p>
+        <p class="product-quantity-text">{{ 'PRODUCT.QUANTITY' | translate }}: {{quantity}}</p>
       </div>
 
       <div *ngIf="product.isActive && product.categoryIsActive && product.stock > 0; else productUnavailable" class="card-footer">
         <button type="button" class="product-detail-btn-buy" (click)="inputShippingDetails()">
-          Buy now
+          {{ 'PRODUCT.BUY_NOW' | translate }}
         </button>
 
         <button type="button" class="product-detail-btn-add" (click)="addCart()">
-          Add to cart
+          {{ 'PRODUCT.ADD_TO_CART' | translate }}
         </button>
       </div>
     </div>
@@ -65,12 +65,12 @@
   </div>
 
   <div class="product-description">
-    <h3>Description</h3>
+    <h3>{{ 'PRODUCT.DESCRIPTION' | translate }}</h3>
     <p>{{ product.description}}</p>
   </div>
 
   <div class="product-specifications" *ngIf="parsedSpecs.length > 0">
-    <h3>Product Specifications</h3>
+    <h3>{{ 'PRODUCT.SPECIFICATIONS' | translate }}</h3>
 
     <table class="spec-table">
       <tr *ngFor="let spec of parsedSpecs | slice:0:4">
@@ -81,7 +81,7 @@
 
     <div class="view-all-spec-container" *ngIf="parsedSpecs.length > 4">
       <button class="view-all-spec-btn" (click)="showSpecPopup = true">
-        View all specifications <i class="fa-solid fa-angle-right"></i>
+        {{ 'PRODUCT.VIEW_ALL_SPECS' | translate }} <i class="fa-solid fa-angle-right"></i>
       </button>
     </div>
   </div>
@@ -89,7 +89,7 @@
   <div *ngIf="showSpecPopup" class="popup-overlay">
     <div class="popup-content spec-popup">
       <button class="popup-close" (click)="showSpecPopup = false">✖</button>
-      <h3>All Specifications</h3>
+      <h3>{{ 'PRODUCT.ALL_SPECIFICATIONS' | translate }}</h3>
 
       <table class="spec-table full-table">
         <tr *ngFor="let spec of parsedSpecs">
@@ -102,10 +102,10 @@
 
   <div class="related-products-section" *ngIf="relatedProducts && relatedProducts.length > 0">
     <div class="related-header">
-      <h3 class="related-title">You Might Also Like</h3>
+      <h3 class="related-title">{{ 'PRODUCT.RELATED' | translate }}</h3>
 
       <a class="view-all-link" [routerLink]="['/']" [queryParams]="{ category: product?.categoryId }">
-        View all <i class="fa-solid fa-angle-right"></i>
+        {{ 'COMMON.VIEW_ALL' | translate }} <i class="fa-solid fa-angle-right"></i>
       </a>
     </div>
 
@@ -113,7 +113,7 @@
       <div class="related-card" *ngFor="let rp of relatedProducts" (click)="goToProduct(rp.id)">
 
         <div class="rp-status-overlay" *ngIf="!rp.isActive || !rp.categoryIsActive || rp.stock <= 0">
-          <span>{{ rp.stock <= 0 && rp.isActive && rp.categoryIsActive ? 'Out of stock' : 'Suspend' }}</span>
+          <span>{{ rp.stock <= 0 && rp.isActive && rp.categoryIsActive ? ('PRODUCT.OUT_OF_STOCK' | translate) : ('PRODUCT.SUSPEND' | translate) }}</span>
         </div>
 
         <div class="rp-sale-badge" *ngIf="isSaleActive(rp) && rp.isActive && rp.categoryIsActive && rp.stock > 0">
@@ -129,12 +129,12 @@
 
           <div class="rp-price-box">
             <ng-container *ngIf="isSaleActive(rp)">
-              <span class="rp-sale-price">{{ rp.price - (rp.price * rp.discountPercent / 100) | currency:'USD':'symbol':'1.0-2' }}</span>
-              <span class="rp-original-price">{{ rp.price | currency:'USD':'symbol':'1.0-2' }}</span>
+              <span class="rp-sale-price">{{ rp.price - (rp.price * rp.discountPercent / 100) | currencyConvert }}</span>
+              <span class="rp-original-price">{{ rp.price | currencyConvert }}</span>
             </ng-container>
 
             <ng-container *ngIf="!isSaleActive(rp)">
-              <span class="rp-normal-price">{{ rp.price | currency:'USD':'symbol':'1.0-2' }}</span>
+              <span class="rp-normal-price">{{ rp.price | currencyConvert }}</span>
             </ng-container>
           </div>
         </div>
@@ -151,7 +151,7 @@
   <div class="product-unavailable-box">
     <p class="product-detail-unavailable">
       <i class="fa-solid fa-circle-exclamation"></i>
-      {{ product.stock <= 0 && product.isActive && product.categoryIsActive ? 'OUT OF STOCK' : 'SUSPEND BUSINESS' }}
+      {{ product.stock <= 0 && product.isActive && product.categoryIsActive ? ('PRODUCT.OUT_OF_STOCK' | translate | uppercase) : ('PRODUCT.SUSPEND' | translate | uppercase) }}
     </p>
   </div>
 </ng-template>
@@ -164,13 +164,13 @@
     <div class="buy-right">
       <div class="summary-box price-summary">
 
-        <h3>Shipping Details</h3>
+        <h3>{{ 'CART.SHIPPING_DETAILS' | translate }}</h3>
         <form #shippingDetailsForm="ngForm">
           <div class="row">
 
             <div class="shipping-phone-container">
               <label class="input-title" for="phone-input">
-                Phone Number <span class="required-star">*</span>
+                {{ 'CART.PHONE_NUMBER' | translate }} <span class="required-star">*</span>
               </label>
 
               <input id="phone-input" class="placeholder-input" placeholder="+61 0132345678" [(ngModel)]="phone"
@@ -187,7 +187,7 @@
           <div>
             <div class="shipping-address-container">
               <label class="input-title" for="address-input">
-                Full Address <span class="required-star">*</span>
+                {{ 'CART.FULL_ADDRESS' | translate }} <span class="required-star">*</span>
               </label>
 
               <textarea id="address-input" class="placeholder-input"
@@ -204,59 +204,59 @@
 
         <div class="summary-divider"></div>
 
-        <span>Order Summary</span>
+        <span>{{ 'CART.ORDER_SUMMARY' | translate }}</span>
         <div class="summary-row">
-          <span>Item Total</span>
-          <span>{{ originalTotal | currency:'USD':'symbol':'1.0-2' }}</span>
+          <span>{{ 'CART.SUBTOTAL' | translate }}</span>
+          <span>{{ originalTotal | currencyConvert }}</span>
         </div>
-        <div class="summary-row">
-          <span>Discount</span>
-          <span>- {{ saleDiscountTotal | currency:'USD':'symbol':'1.0-2' }}</span>
+        <div class="summary-row" *ngIf="saleDiscountTotal > 0">
+          <span>{{ 'CART.SALE_DISCOUNT' | translate }}</span>
+          <span>- {{ saleDiscountTotal | currencyConvert }}</span>
         </div>
         <div class="summary-divider"></div>
 
         <div>
-          <span>Payment Type</span>
+          <span>{{ 'CART.PAYMENT_TYPE' | translate }}</span>
           <br>
           <mat-radio-group aria-label="Select payment method" class="buy-payment-container" [(ngModel)]="paymentMethod"
                            (ngModelChange)="onPaymentChange($event)">
             <div class="payment-option">
-              <span><i class="fa-solid fa-money-bill-1-wave cash-icon"></i> Cash</span>
+              <span><i class="fa-solid fa-money-bill-1-wave cash-icon"></i> {{ 'PAYMENT.CASH' | translate }}</span>
               <mat-radio-button value="Cash"></mat-radio-button>
             </div>
 
             <div class="payment-option">
-              <span><i class="fa-solid fa-credit-card atm-icon"></i> ATM</span>
+              <span><i class="fa-solid fa-credit-card atm-icon"></i> {{ 'PAYMENT.ATM' | translate }}</span>
               <mat-radio-button value="ATM"></mat-radio-button>
             </div>
           </mat-radio-group>
         </div>
 
-        <div>
+        <div *ngIf="discountAmount > 0">
           <div class="summary-row">
-            <span>Discount</span>
-            <span>- {{ discountAmount | currency:'USD':'symbol':'1.0-2' }}</span>
+            <span>{{ 'CART.ATM_DISCOUNT' | translate }}</span>
+            <span>- {{ discountAmount | currencyConvert }}</span>
           </div>
         </div>
 
         <div class="summary-divider"></div>
 
         <div class="summary-row" *ngIf="grandTotal !== 0">
-          <span>Shipping fee</span>
-          <span>${{fee}}</span>
+          <span>{{ 'CART.SHIPPING_FEE' | translate }}</span>
+          <span>{{ fee | currencyConvert }}</span>
         </div>
 
         <div class="summary-row total-row" *ngIf="grandTotal!==0">
-          <span>To Pay</span>
-          <span class="final-price">{{ totalToPay | currency:'USD':'symbol':'1.0-2' }}</span>
+          <span>{{ 'CART.TO_PAY' | translate }}</span>
+          <span class="final-price">{{ totalToPay | currencyConvert }}</span>
         </div>
 
-        <p class="vat-note">(VAT included where applicable)</p>
+        <p class="vat-note">{{ 'CART.VAT_NOTE' | translate }}</p>
       </div>
 
       <button type="submit" class="checkout-btn" [disabled]="grandTotal === 0 || !shippingDetailsForm.valid "
               [class.disabled]="grandTotal === 0 || !shippingDetailsForm.valid" (click)="createInstantOrder()">
-        Proceed
+        {{ 'CART.CHECKOUT' | translate }}
       </button>
     </div>
 

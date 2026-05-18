@@ -25,9 +25,10 @@ namespace DrugStoreWebSiteData.Application.Service
             vnpay.AddRequestData("vnp_Command", _config.Command);
             vnpay.AddRequestData("vnp_TmnCode", _config.TmnCode);
 
-            // VNPay quy định số tiền gửi đi phải nhân với 100 (VD: 100,000 VND -> gửi 10000000)
-            // Vì hệ thống của bạn dùng USD, ta quy đổi tượng trưng 1 USD = 24000 VND để VNPay hiểu
-            var amountInVnd = (long)(model.Amount * 24000 * 100);
+            // 👉 SỬA ĐỔI: Sử dụng tỷ giá động (ExchangeRate) gửi từ Frontend. 
+            // Nếu Frontend lỗi gửi số <= 0, tự động lùi về mức an toàn 24000 để tránh sập.
+            double currentRate = model.ExchangeRate > 0 ? model.ExchangeRate : 26000;
+            var amountInVnd = (long)(model.Amount * currentRate * 100);
             vnpay.AddRequestData("vnp_Amount", amountInVnd.ToString());
 
             vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));

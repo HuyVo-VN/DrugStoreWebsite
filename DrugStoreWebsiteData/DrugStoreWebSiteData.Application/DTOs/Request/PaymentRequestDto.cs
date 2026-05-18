@@ -13,5 +13,6 @@ namespace DrugStoreWebSiteData.Application.DTOs.Request
         public double Amount { get; set; }
 
         public string OrderDescription { get; set; } = string.Empty;
+        public double ExchangeRate { get; set; }
     }
 }

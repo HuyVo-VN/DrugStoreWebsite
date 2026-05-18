@@ -1,0 +1,43 @@
+.switcher-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.switcher-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+  .switcher-btn:hover {
+    background: rgba(255,255,255,0.15);
+  }
+
+.divider {
+  opacity: 0.4;
+  font-size: 14px;
+  padding: 0 2px;
+}
+
+.flag {
+  font-size: 14px;
+}
+
+.currency-icon {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.label {
+  font-size: 12px;
+}

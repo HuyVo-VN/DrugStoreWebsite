@@ -10,32 +10,32 @@
       <a routerLink="/" class="header-menu-link">DrugStore</a>
     </div>
     <div *ngIf="isAdmin" class="header-content">
-      <a routerLink="/user" class="header-menu-link">Users</a>
+      <a routerLink="/user" class="header-menu-link">{{ 'NAV.USERS' | translate }}</a>
     </div>
     <div *ngIf="isManager" class="header-content">
-      <a routerLink="/admin/categories" class="header-menu-link">Categories</a>
+      <a routerLink="/admin/categories" class="header-menu-link">{{ 'NAV.CATEGORIES' | translate }}</a>
     </div>
     <div *ngIf="isManager" class="header-content">
-      <a routerLink="/product" class="header-menu-link">Products</a>
+      <a routerLink="/product" class="header-menu-link">{{ 'NAV.PRODUCTS' | translate }}</a>
     </div>
     <div *ngIf="isManager" class="header-content">
-      <a routerLink="/admin/orders" class="header-menu-link">Orders</a>
+      <a routerLink="/admin/orders" class="header-menu-link">{{ 'NAV.ORDERS' | translate }}</a>
     </div>
     <div *ngIf="isAdmin" class="header-content">
-      <a routerLink="/admin/banners" class="header-menu-link">Banners</a>
+      <a routerLink="/admin/banners" class="header-menu-link">{{ 'NAV.BANNERS' | translate }}</a>
     </div>
     <div *ngIf="isAdmin" class="header-content">
-      <a routerLink="/admin/collections" class="header-menu-link">Collections</a>
+      <a routerLink="/admin/collections" class="header-menu-link">{{ 'NAV.COLLECTIONS' | translate }}</a>
     </div>
 
     <div *ngIf="showSearch" class="header-search-section">
       <div class="search-bar-wrapper">
         <select class="search-category-select" [(ngModel)]="selectedCategory" (change)="onCategoryChange()">
-          <option value="">All Categories</option>
+          <option value="">{{ 'PRODUCT.ALL_CATEGORIES' | translate }}</option>
           <option *ngFor="let cat of categories" [value]="cat.id">{{cat.name}}</option>
         </select>
 
-        <input type="text" class="search-input" placeholder="Search for medicines..."
+        <input type="text" class="search-input" [placeholder]="'PRODUCT.SEARCH_PLACEHOLDER' | translate"
                [(ngModel)]="searchKeyword" (keyup.enter)="onSearch()">
 
         <button class="search-btn" (click)="onSearch()">
@@ -44,7 +44,7 @@
       </div>
 
       <div class="quick-search-links">
-        <span>Popular:</span>
+        <span>{{ 'PRODUCT.POPULAR' | translate }}:</span>
         <a (click)="quickSearch('Paracetamol')">Paracetamol</a>
         <a (click)="quickSearch('Vitamin')">Vitamin</a>
         <a (click)="quickSearch('Cream')">Cream</a>
@@ -54,19 +54,14 @@
   </div>
 
   <div class="header-logo-and-menu-right">
+
+    <app-lang-currency-switcher></app-lang-currency-switcher>
+
     <div class="header-user-section" *ngIf="username">
       <div *ngIf="isCustomer" class="order-btn">
-        <a
-          routerLink="/customer-orders"
-          style="
-            text-decoration: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            margin-right: 20px;
-          "
-          title="Your Orders"
-        >
+        <a routerLink="/customer-orders"
+           style="text-decoration: none; color: white; font-size: 20px; cursor: pointer; margin-right: 20px;"
+           [title]="'NAV.MY_ORDERS' | translate">
           <span matBadgeSize="large" matBadgeOverlap="false">
             <i class="fa-solid fa-clipboard-list"></i>
           </span>
@@ -74,11 +69,9 @@
       </div>
 
       <div *ngIf="isCustomer" class="header-btn-cart">
-        <a
-          routerLink="/cart"
-          style="text-decoration: none; color: white; font-size: 20px; cursor: pointer"
-          title="Your Cart"
-        >
+        <a routerLink="/cart"
+           style="text-decoration: none; color: white; font-size: 20px; cursor: pointer"
+           [title]="'NAV.CART' | translate">
           <span matBadge="{{ quantity }}" matBadgeSize="large" matBadgeOverlap="false">
             <i class="fa-solid fa-cart-shopping"></i>
           </span>
@@ -92,24 +85,25 @@
           <div class="header-dropdown-content">
             <a routerLink="/customer-orders" *ngIf="isCustomer" style="cursor: pointer">
               <i class="fa-solid fa-clipboard-list" style="color: #fcaa74; margin-right: 2px"></i>
-              My Orders</a
-            >
+              {{ 'NAV.MY_ORDERS' | translate }}
+            </a>
             <a [routerLink]="['/change-password']" style="cursor: pointer; text-decoration: none;">
               <i class="fa-solid fa-user-gear" style="color: #68e07c; margin-right: 4px;"></i>
-              Change Password
+              {{ 'AUTH.CHANGE_PASSWORD' | translate }}
             </a>
             <a (click)="logout()" style="color: red; cursor: pointer">
               <i class="fa-solid fa-right-from-bracket" style="color: red; margin-right: 2px"></i>
-              Log Out</a
-            >
+              {{ 'NAV.LOGOUT' | translate }}
+            </a>
           </div>
         </div>
       </div>
     </div>
+
     <div class="header-user-section" *ngIf="showLogin">
       <div class="header-dropdown">
         <div class="header-btn-login" (click)="login()">
-          <p style="color: white; cursor: pointer; margin-right: 4px">Login</p>
+          <p style="color: white; cursor: pointer; margin-right: 4px">{{ 'NAV.LOGIN' | translate }}</p>
           <i class="fa-solid fa-user" style="color: white; cursor: pointer; margin-top: 1.5px"></i>
         </div>
       </div>

@@ -17,6 +17,10 @@ const addAuthHeader = (request: HttpRequest<unknown>, token: string): HttpReques
 };
 
 export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
+  if (req.url.includes('/assets/') || req.url.endsWith('.json')) {
+    return next(req);
+  }
+
   const authService = inject(AuthService);
   const router = inject(Router);
   const accessToken = authService.getAccessToken();

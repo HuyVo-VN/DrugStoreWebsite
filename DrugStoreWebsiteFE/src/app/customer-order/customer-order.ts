@@ -11,12 +11,13 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { OrderStatus } from '../enums/status.enums';
 import { environment } from '../../environments/environment';
-
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { CurrencyConverterPipe } from '../currency-converter.pipe';
 
 @Component({
   selector: 'app-customer-order',
   standalone: true,
-  imports: [CommonModule, RouterModule, CurrencyPipe, DatePipe, MatFormFieldModule, MatSelectModule, MatInputModule, FormsModule],
+  imports: [CommonModule, RouterModule, TranslateModule, CurrencyConverterPipe, DatePipe, MatFormFieldModule, MatSelectModule, MatInputModule, FormsModule],
   templateUrl: './customer-order.html',
   styleUrls: ['./customer-order.css']
 })
@@ -38,29 +39,34 @@ export class CustomerOrder implements OnInit {
   selectedStatus = '';
   filter = '';
 
-  statusList = [
-    { value: OrderStatus.New, viewValue: 'New' },
-    { value: OrderStatus.Processing, viewValue: 'Processing' },
-    { value: OrderStatus.Completed, viewValue: 'Completed' },
-    { value: OrderStatus.Cancelled, viewValue: 'Cancelled' }
-  ];
+  // Sử dụng Getter để mảng này luôn tự cập nhật ngôn ngữ khi user chuyển đổi
+  get statusList() {
+    return [
+      { value: OrderStatus.New, viewValue: this.getStatus(0) },
+      { value: OrderStatus.Processing, viewValue: this.getStatus(1) },
+      { value: OrderStatus.Completed, viewValue: this.getStatus(2) },
+      { value: OrderStatus.Cancelled, viewValue: this.getStatus(3) }
+    ];
+  }
+
   //pagination
   currentPage = 1;
   pageSize = 4;
   totalPages = 0;
   totalCount = 0;
   pages: number[] = [];
+
   constructor(
     private orderService: OrderService,
     private authService: AuthService,
     private router: Router,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private translate: TranslateService
   ) { }
 
   ngOnInit() {
     this.loadOrders();
   }
-
 
   loadOrders() {
     this.isLoading = true;
@@ -85,7 +91,7 @@ export class CustomerOrder implements OnInit {
       },
       error: (err) => {
         this.logger.error('Failed to load orders', err);
-        Swal.fire('Error', 'Failed to load orders', 'error');
+        Swal.fire(this.translate.instant('COMMON.ERROR'), 'Failed to load orders', 'error');
         this.isLoading = false;
       }
     });
@@ -116,19 +122,28 @@ export class CustomerOrder implements OnInit {
 
   getStatusLabel(status: string): string {
     switch (status) {
-      case 'New': return 'New Proceed';
-      case 'Processing': return 'Processing';
-      case 'Completed': return 'Completed';
-      case 'Cancelled': return 'Cancelled';
+      case 'New':
+        return this.translate.instant('ORDER.BADGE_NEW') !== 'ORDER.BADGE_NEW' ? this.translate.instant('ORDER.BADGE_NEW') : 'New Proceed';
+      case 'Processing':
+        return this.translate.instant('ORDER.BADGE_PROCESSING') !== 'ORDER.BADGE_PROCESSING' ? this.translate.instant('ORDER.BADGE_PROCESSING') : 'Processing';
+      case 'Completed':
+        return this.translate.instant('ORDER.BADGE_COMPLETED') !== 'ORDER.BADGE_COMPLETED' ? this.translate.instant('ORDER.BADGE_COMPLETED') : 'Completed';
+      case 'Cancelled':
+        return this.translate.instant('ORDER.BADGE_CANCELLED') !== 'ORDER.BADGE_CANCELLED' ? this.translate.instant('ORDER.BADGE_CANCELLED') : 'Cancelled';
       default: return status;
     }
   }
+
   getStatus(status: number): string {
     switch (status) {
-      case 0: return 'New Proceed';
-      case 1: return 'Processing';
-      case 2: return 'Completed';
-      case 3: return 'Cancelled';
+      case 0:
+        return this.translate.instant('ORDER.BADGE_NEW') !== 'ORDER.BADGE_NEW' ? this.translate.instant('ORDER.BADGE_NEW') : 'New Proceed';
+      case 1:
+        return this.translate.instant('ORDER.BADGE_PROCESSING') !== 'ORDER.BADGE_PROCESSING' ? this.translate.instant('ORDER.BADGE_PROCESSING') : 'Processing';
+      case 2:
+        return this.translate.instant('ORDER.BADGE_COMPLETED') !== 'ORDER.BADGE_COMPLETED' ? this.translate.instant('ORDER.BADGE_COMPLETED') : 'Completed';
+      case 3:
+        return this.translate.instant('ORDER.BADGE_CANCELLED') !== 'ORDER.BADGE_CANCELLED' ? this.translate.instant('ORDER.BADGE_CANCELLED') : 'Cancelled';
       default: return '';
     }
   }
@@ -171,7 +186,7 @@ export class CustomerOrder implements OnInit {
       error: (err) => {
         Swal.fire({
           icon: 'error',
-          title: 'Failed',
+          title: this.translate.instant('COMMON.ERROR') || 'Failed',
           text: err.error || 'Failed to filter orders.',
           heightAuto: false,
         });

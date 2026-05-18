@@ -56,7 +56,7 @@ export class AdminCollection implements OnInit {
         const data = Array.isArray(res) ? res : (res.value || res.data);
         this.collections = data || [];
       },
-      error: (err) => console.error('Lỗi tải danh sách Collection', err)
+      error: (err) => console.error('Error loading Collection list', err)
     });
   }
 
@@ -138,20 +138,45 @@ export class AdminCollection implements OnInit {
     if (this.isEditMode) {
       this.collectionService.updateCollection(this.currentCollection.id, requestData).subscribe({
         next: () => {
-          Swal.fire('Successful!', 'Collection has been updated.', 'success');
+          Swal.fire
+          ({
+            title: 'Successful!',
+            text: 'Collection has been updated.',
+            icon: 'success',
+            heightAuto: false
+          });
           this.closeModal();
           this.loadCollections();
         },
-        error: () => Swal.fire('Error', 'Can not Update', 'error')
+        error: () =>
+        Swal.fire
+          ({
+            title: 'Error',
+            text: 'Can not Update',
+            icon: 'error',
+            heightAuto: false
+          })
       });
     } else {
       this.collectionService.createCollection(requestData).subscribe({
         next: () => {
-          Swal.fire('Successful!', 'Collection created', 'success');
+          Swal.fire
+            ({
+              title: 'Successful!',
+              text: 'Collection created',
+              icon: 'success',
+              heightAuto: false
+            });
           this.closeModal();
           this.loadCollections();
         },
-        error: () => Swal.fire('Error', 'Can not Create', 'error')
+        error: () => Swal.fire
+          ({
+            title: 'Error',
+            text: 'Can not Create',
+            icon: 'error',
+            heightAuto: false
+          })
       });
     }
   }

@@ -1,0 +1,19 @@
+<div class="switcher-wrapper">
+  <!-- Nút chuyển ngôn ngữ -->
+  <button class="switcher-btn"
+          (click)="toggleLang()"
+          [attr.aria-label]="currentLang === 'en' ? 'Switch to Vietnamese' : 'Switch to English'">
+    <span class="flag">{{ currentLang === 'en' ? '🇺🇸' : '🇻🇳' }}</span>
+    <span class="label">{{ currentLang === 'en' ? 'EN' : 'VI' }}</span>
+  </button>
+
+  <span class="divider">|</span>
+
+  <!-- Nút chuyển tiền tệ -->
+  <button class="switcher-btn"
+          (click)="toggleCurrency()"
+          [attr.aria-label]="'Switch to ' + (currentCurrency === 'USD' ? 'VNĐ' : 'USD')">
+    <span class="currency-icon">{{ currentCurrency === 'USD' ? '$' : '₫' }}</span>
+    <span class="label">{{ currentCurrency }}</span>
+  </button>
+</div>
